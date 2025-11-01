@@ -110,11 +110,43 @@ The guidance strength $s$ controls the balance:
 - $s = 0$: no guidance — any realistic sample
 - larger $s$: stricter label match, less diversity
 
+**How the Nudge Works in Practice**
+
+Recall the unguided reverse process.  
+At step $t$, given noisy image $x_t$, the model predicts a denoised mean $\mu_\theta(x_t, t)$ and noise scale $\sigma_t$, then samples:
+
+$$
+x_{t-1} = \mu_\theta(x_t, t) + \sigma_t z, \quad z \sim \mathcal{N}(0, I)
+$$
+
+Classifier guidance shifts this mean using the classifier gradient.  
+The modified mean becomes:
+
+$$
+\mu_\theta'(x_t, t, y) = \mu_\theta(x_t, t) + s \, \Sigma_t \, \nabla_{x_t} \log p_\phi(y | x_t)
+$$
+
+where $\Sigma_t$ is the noise covariance at step $t$ (often $\sigma_t^2 I$), and $s$ is the guidance scale.  
+We then sample with this modified mean:
+
+$$
+x_{t-1} = \mu_\theta'(x_t, t, y) + \sigma_t z, \quad z \sim \mathcal{N}(0, I)
+$$
+
+So at each step we compute the model's denoising mean, ask the classifier for feedback on label $y$, move in that direction, and add noise.  
+Over many steps, this steers samples toward both realism and the label.
+
 **Training and Generation**
 
-We train the diffusion model first.  
-Then we train a classifier on noisy data at multiple noise levels.  
-At generation, the classifier provides guidance each step, steering toward the condition.
+Train the diffusion model first.  
+Train a classifier on noisy data across noise levels.  
+At generation, the classifier provides guidance at each step.
+
+**An Intuitive Analogy**
+
+Think of navigating foggy terrain: the diffusion model moves toward plausible images (peaks).  
+Classifier guidance adds a compass toward the goal (e.g., "cat surfing").  
+It still climbs (realism) but also increases the goal signal.
 
 ---
 
