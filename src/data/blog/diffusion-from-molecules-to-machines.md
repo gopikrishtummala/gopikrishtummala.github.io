@@ -34,25 +34,15 @@ It is a process of **information loss** — sharp details and differences blur o
 
 ## 2. Reverse Diffusion: Turning Noise Into Structure
 
-**A Concrete Example First**
-
-Imagine you want to generate an image of "a fat cat surfing."  
-Where do you start? With pure random noise — a TV screen full of static.
-
-Over 50 steps, the diffusion model gradually removes that noise, little by little, until you have a fully realized image of a chubby cat on a surfboard.  
-That's the miracle: pure randomness transformed into structure through **reverse diffusion**.
-
-**The Core Idea**
-
 Diffusion models in AI take this familiar physical process and **run it in reverse**.
 
-The training idea is simple but powerful:
+The idea is simple but powerful:
 
 1. Start with real data (like an image).  
 2. Gradually add small amounts of random noise to it until it becomes pure noise.  
 3. Train a neural network to **remove** that noise step by step — learning the reverse of diffusion.
 
-The forward "noising" process can be written as:
+The forward “noising” process can be written as:
 
 $$
 x_t = \sqrt{\alpha_t} x_0 + \sqrt{1-\alpha_t}\, \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
@@ -84,18 +74,29 @@ This is achieved using **guided diffusion** — a way to bias or steer the rever
 
 ### 3.1 Classifier Guidance
 
+**A Concrete Example**
+
+Suppose we want to generate an image of "a fat cat surfing."  
+We start with pure noise — TV static.  
+A standard diffusion model might produce any realistic image: dogs, cars, or clouds.  
+We want to guide it toward cats on surfboards.
+
+Classifier guidance uses an external classifier as a guide.  
+At each denoising step, the classifier looks at the partially-noisy image and estimates how "cat-on-surfboard-like" it is.  
+This feedback steers generation toward the desired goal.
+
 **The Intuitive Picture**
 
-Think of guided diffusion like an artist and a critic working together.  
+Think of it like an artist and a critic working together.  
 The diffusion model is the artist, gradually removing noise to create an image.  
-The classifier is the critic, looking at each noisy stage and saying "that looks dog-like" or "getting more cat-like."  
-Based on those hints, the artist adjusts the next brushstroke.
+The classifier is the critic, observing each stage and saying "that looks more cat-like" or "getting there, keep adding water texture."  
+Based on these hints, the artist adjusts the next brushstroke.
 
 **The Math**
 
-We train a separate classifier network $p_\phi(y | x_t)$ that estimates how likely a noisy image $x_t$ matches condition $y$.
+We train a separate classifier network $p_\phi(y | x_t)$ that estimates how likely noisy image $x_t$ matches condition $y$.
 
-At each denoising step, we combine two influences:
+At each denoising step, we combine two gradients:
 
 $$
 \nabla_{x_t} \log p(x_{t-1} | x_t, y)
@@ -103,17 +104,17 @@ $$
 + s \, \nabla_{x_t} \log p_\phi(y | x_t)
 $$
 
-The first term points toward *any* realistic image.  
-The second term points toward images matching the label.  
-The guidance strength $s$ is a dial controlling the balance:
-- $s = 0$: no guidance — just make something realistic
-- larger $s$: follow the label more strictly — clearer match, less variety
+The first term guides toward any realistic image.  
+The second guides toward images matching the label.  
+The guidance strength $s$ controls the balance:
+- $s = 0$: no guidance — any realistic sample
+- larger $s$: stricter label match, less diversity
 
 **Training and Generation**
 
-We first train a diffusion model to denoise.  
-Then we train a separate classifier on noisy data, teaching it to recognize partially-denoised images.  
-At generation time, the classifier provides guidance at each step, helping steer the process toward the desired condition.
+We train the diffusion model first.  
+Then we train a classifier on noisy data at multiple noise levels.  
+At generation, the classifier provides guidance each step, steering toward the condition.
 
 ---
 
@@ -131,9 +132,21 @@ During practice, sometimes give them the sheet music, sometimes not.
 They learn to handle both cases.  
 At performance time, blend the two modes to dial in creativity versus precision.
 
+**The Probabilistic View**
+
+We can frame guided diffusion with Bayes.  
+We want to sample from a conditional distribution that balances two factors:
+
+$$
+p(x_0 | y) \propto p(y | x_0) \, p(x_0)
+$$
+
+We seek images that look realistic ($p(x_0)$) and match the text ($p(y | x_0)$).  
+Classifier-free guidance blends conditional and unconditional predictions; $w$ controls the emphasis.
+
 **The Math**
 
-During training, we randomly drop the conditioning label $y$ for some examples — the same network $\epsilon_\theta$ learns both conditional and unconditional denoising.
+During training, we randomly drop the conditioning label $y$ so the same network $\epsilon_\theta$ learns both conditional and unconditional denoising.
 
 At generation, we blend the two predictions:
 
@@ -142,48 +155,30 @@ $$
 - w \, \epsilon_\theta(x_t, t)
 $$
 
-Here's what this formula is doing:  
-We take the conditional prediction (where to move to match the prompt) and *amplify* it.  
-Then we subtract the unconditional prediction (where to move for any realistic image).  
-The guidance scale $w$ controls by how much.
+The formula amplifies the conditional prediction (toward the prompt) and subtracts the unconditional (toward any realistic image).  
+$w$ controls by how much.
 
-Think of it like this:  
-$\epsilon_\theta(x_t, t, y)$ says "move toward images of cats on surfboards."  
-$\epsilon_\theta(x_t, t)$ says "move toward any realistic image."  
-By amplifying the first and subtracting the second, we get a net direction that's more "cat-surfboard-specific" and less "generic realistic."
+Intuitively:  
+$\epsilon_\theta(x_t, t, y)$ points toward images of "cats on surfboards."  
+$\epsilon_\theta(x_t, t)$ points toward any realistic image.  
+Amplifying the first and subtracting the second yields a net direction that’s more specific to the condition.
 
-The guidance scale $w$ controls how much we emphasize the condition:
-- $w = 0$: just use the conditional prediction alone — basic prompt following
-- $w = 1$: double the conditional, subtract the unconditional — clear prompt match with good realism
-- $w = 7$: eight times the conditional minus seven times the unconditional — very strong adherence to the prompt (typical in Stable Diffusion)
-- $w > 10$: extreme amplification — sticks to prompt but may look artificial
+The guidance scale $w$:
+- $w = 0$: conditional only — basic prompt following
+- $w = 1$: double the conditional, subtract the unconditional — clear match with good realism
+- $w = 7$: 8× conditional minus 7× unconditional — strong adherence (common in Stable Diffusion)
+- $w > 10$: extreme amplification — very literal, may look artificial
 
-The key insight: the difference between the two predictions ($\epsilon_\theta(x_t, t, y) - \epsilon_\theta(x_t, t)$) captures what's *specific* to the condition versus what's *generic*.  
-Amplifying that difference steers generation more strongly toward the prompt.
+Insight: the difference ($\epsilon_\theta(x_t, t, y) - \epsilon_\theta(x_t, t)$) captures what’s specific vs generic. Amplifying that difference steers generation more strongly toward the prompt.
 
 **A Concrete Example**
 
-Consider the prompt "a fat cat surfing."
+For the prompt "a fat cat surfing," training learns paired image–text regions: cat shapes, surfboard patterns, water textures, rounded forms.
 
-During training, the model learned that images paired with this text tend to cluster in certain regions of image space: cat shapes, surfboard patterns, water textures, rounded forms.
+Starting from noise, denoising moves toward those regions over ~50 steps: a cat, a surfboard, water, and roundness.  
+At each step, noise is removed to form these parts from learned associations.
 
-Starting from random noise, it denoises step by step toward those regions.  
-At each of ~50 steps, it removes noise in a way that gradually forms: a cat (learned from training on cat images), a surfboard (from surf scenes), water (from ocean photos), and roundness (from chubby animal images).
-
-The guidance scale $w$ determines how strictly it follows those associations versus exploring other plausible directions.  
-Higher $w$ means tighter adherence to the learned pattern; lower $w$ allows more creative variation.
-
-**The Probabilistic View**
-
-We can also think of guided diffusion through a Bayesian lens.  
-The model is effectively sampling from a conditional distribution that balances two factors:
-
-$$
-p(x_0 | y) \propto p(y | x_0) \, p(x_0)
-$$
-
-That is, we want images that both look realistic ($p(x_0)$) *and* match the text description ($p(y | x_0)$).  
-Classifier-free guidance implements this balance by blending the conditional and unconditional predictions, with the guidance scale $w$ controlling the relative emphasis.
+$w$ controls how strictly it follows those associations vs exploring other plausible directions: higher $w$ → tighter adherence; lower $w$ → more variation.
 
 ---
 
