@@ -74,13 +74,11 @@ This is achieved using **guided diffusion** — a way to bias or steer the rever
 
 ### 3.1 Classifier Guidance
 
-One approach uses an external classifier to steer the denoising process.  
-Imagine you're sculpting from a noisy block — each chip removes some noise.  
-A classifier acts like an observer telling you "that's getting dog-like" or "more cat-like," helping you adjust direction.
+One approach uses an external classifier network to steer the denoising process.  
+The classifier acts like an observer — it can look at any noisy image and estimate how likely it matches a desired label.
 
-Mathematically, we train a separate classifier network $p_\phi(y | x_t)$ that estimates how likely a noisy image $x_t$ matches condition $y$.
-
-At each denoising step, we combine the normal denoising direction with the classifier's gradient:
+Mathematically, we train a separate classifier $p_\phi(y | x_t)$ that predicts how likely noisy image $x_t$ matches condition $y$.  
+At each denoising step, we combine two gradients:
 
 $$
 \nabla_{x_t} \log p(x_{t-1} | x_t, y)
@@ -88,22 +86,16 @@ $$
 + s \, \nabla_{x_t} \log p_\phi(y | x_t)
 $$
 
-The first term guides toward realism; the second toward the desired label.  
-The guidance strength $s$ controls the balance:
-- $s = 0$: no guidance — any realistic sample
-- larger $s$: stronger conditioning — clearer label match, less diversity
-
-Training involves two steps: first the diffusion model, then a classifier on noisy data.  
-At generation, the classifier provides guidance at each step.
+The first term guides toward realistic images; the second guides toward images matching the label.  
+The guidance strength $s$ controls how strongly we follow the classifier.  
+Training requires both the diffusion model and the classifier; at generation, the classifier provides guidance at each step.
 
 ---
 
 ### 3.2 Classifier-Free Guidance
 
-A simpler and widely used method is to train a single model that works both with and without conditioning.  
-Classifier guidance requires a separate network; classifier-free guidance avoids that.
-
-During training, we randomly drop the conditioning label $y$ for some examples — the model learns both unconditional and conditional denoising with the same network $\epsilon_\theta$.
+A simpler approach trains a single model that works both with and without conditioning.  
+During training, we randomly drop the conditioning label $y$ for some examples — the model learns both conditional and unconditional denoising with the same network.
 
 At generation, we blend the two predictions:
 
@@ -113,15 +105,12 @@ $$
 $$
 
 The first term predicts noise given condition $y$; the second predicts unconditionally.  
-The guidance scale $w$ controls the blend:
-- $w = 0$: loose following, high diversity
-- $w = 1$: balanced prompt match and realism
-- $w = 7$: strong conditioning (typical in Stable Diffusion)
-- $w > 10$: over-guided, unnatural
+The guidance scale $w$ controls the blend — higher values make generation follow the prompt more strictly.
 
-The model learns both realistic structure and condition-specific corrections; blending steers the generation.
-
-**Example:** For a prompt like "a fat cat surfing," the model learns paired image-text regions: cat shapes, surfboard patterns, water textures, rounded forms. Starting from random noise, it denoises over ~50 steps toward realistic images shaped by those regions, with $w$ controlling how strictly it follows the prompt.
+**Example:** Consider the prompt "a fat cat surfing."  
+During training, the model learned that images paired with this text tend to have cat shapes, surfboard patterns, water textures, and rounded forms.  
+Starting from random noise, it denoises step by step toward realistic images shaped by those learned associations.  
+The guidance scale $w$ determines how strictly it follows those associations versus exploring the space of plausible images.
 
 ---
 
