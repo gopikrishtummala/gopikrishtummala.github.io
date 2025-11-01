@@ -28,7 +28,8 @@ $$
 Here $u$ is the quantity that diffuses (such as concentration or temperature), and $D$ is the **diffusion coefficient** controlling how fast it spreads.
 
 Diffusion is everywhere: in heat conduction, chemical reactions, and molecular motion.  
-It is a process of **information loss** — sharp details and differences blur over time.
+It is a process of **information loss** — sharp details and differences blur over time.  
+Think of copying a high-quality song to a noisy cassette tape: each copy degrades further until you're left with hiss.
 
 ---
 
@@ -50,10 +51,11 @@ $$
 
 Here $x_0$ is the original data and $x_t$ is the noisy version after $t$ steps.
 
-The model learns the reverse process — predicting $\epsilon_\theta(x_t, t)$, the noise that was added — and subtracting it out to denoise.  
-Repeating this over 20–1000 steps turns random noise into a realistic sample.
+The neural network acts like a digital restorer, estimating added noise and subtracting it to recover the original.  
+Like enhancing a blurry crime photo, it learns to separate distortion from true structure.  
+Over 20–1000 steps, random noise is transformed into a realistic sample.
 
-Conceptually, this means:  
+Conceptually:  
 > **Forward diffusion destroys information; reverse diffusion reconstructs it.**
 
 That reconstruction is what enables diffusion models to *generate* images, sounds, or molecular structures from scratch.
@@ -195,13 +197,13 @@ $\epsilon_\theta(x_t, t, y)$ points toward images of "cats on surfboards."
 $\epsilon_\theta(x_t, t)$ points toward any realistic image.  
 Amplifying the first and subtracting the second yields a net direction that’s more specific to the condition.
 
-The guidance scale $w$:
+The guidance scale $w$ acts like a volume knob for creativity:
 - $w = 0$: conditional only — basic prompt following
-- $w = 1$: double the conditional, subtract the unconditional — clear match with good realism
-- $w = 7$: 8× conditional minus 7× unconditional — strong adherence (common in Stable Diffusion)
-- $w > 10$: extreme amplification — very literal, may look artificial
+- $w = 1$: low volume — equally favors prompt and general realism (high creativity, more misinterpretation)
+- $w = 7$: medium volume — strongly prioritizes prompt over general realism (common in Stable Diffusion)
+- $w > 10$: high volume — extreme amplification — very literal, may look artificial
 
-Insight: the difference ($\epsilon_\theta(x_t, t, y) - \epsilon_\theta(x_t, t)$) captures what’s specific vs generic. Amplifying that difference steers generation more strongly toward the prompt.
+Insight: the difference ($\epsilon_\theta(x_t, t, y) - \epsilon_\theta(x_t, t)$) captures what's specific vs generic. Amplifying that difference steers generation more strongly toward the prompt.
 
 **A Concrete Example**
 
@@ -211,6 +213,24 @@ Starting from noise, denoising moves toward those regions over ~50 steps: a cat,
 At each step, noise is removed to form these parts from learned associations.
 
 $w$ controls how strictly it follows those associations vs exploring other plausible directions: higher $w$ → tighter adherence; lower $w$ → more variation.
+
+---
+
+### 3.3 Latent Diffusion: The Efficiency Hack
+
+Up to now we've talked about diffusion operating directly on images — adding noise to pixels, removing noise from pixels.  
+But generating a $512 \times 512$ pixel image this way is computationally expensive, requiring hundreds of full-resolution operations.
+
+**Latent diffusion** solves this by doing diffusion in a compressed space.  
+An autoencoder compresses the image into a small, information-rich "latent space" — a compact code that preserves essential structure.  
+The diffusion process (noising and denoising) runs in this smaller space, reducing compute.  
+The autoencoder then decodes the final latent back to a full-resolution image.
+
+This is how **Stable Diffusion** generates high-quality images on consumer hardware.  
+Instead of operating on ~262,000 values ($512 \times 512$ pixels), it works on a latent representation with ~4,000 values — roughly 65× fewer.
+
+The same denoising steps apply, just in a compressed representation.  
+Decoder-guided denoising then expands the result into the original image space.
 
 ---
 
@@ -230,8 +250,13 @@ Intuitively, every denoising step becomes a small, directed move through probabi
 
 ### 5.1 Vision and Text-to-Image
 
-Models like **Stable Diffusion** and **Imagen** apply diffusion in a compact “latent” space — a lower-dimensional version of the image learned by an autoencoder.  
-Guidance from text embeddings allows semantic control over generation, producing accurate and coherent results from natural language prompts.
+Models like **Stable Diffusion** and **Imagen** combine several ideas: latent diffusion for efficiency, classifier-free guidance for control, and text embeddings for semantic direction.
+
+The text prompt (e.g., "a fat cat surfing") is encoded by a language model like CLIP into a numeric vector (a text embedding).  
+This embedding is the condition $y$ used to guide generation.  
+The model learns paired image–text associations during training, enabling semantic control over outputs.
+
+Latent diffusion makes this practical — diffusion runs in compressed space, decoded back to pixels.
 
 ### 5.2 Robotics and Planning
 
