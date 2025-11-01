@@ -34,15 +34,25 @@ It is a process of **information loss** — sharp details and differences blur o
 
 ## 2. Reverse Diffusion: Turning Noise Into Structure
 
+**A Concrete Example First**
+
+Imagine you want to generate an image of "a fat cat surfing."  
+Where do you start? With pure random noise — a TV screen full of static.
+
+Over 50 steps, the diffusion model gradually removes that noise, little by little, until you have a fully realized image of a chubby cat on a surfboard.  
+That's the miracle: pure randomness transformed into structure through **reverse diffusion**.
+
+**The Core Idea**
+
 Diffusion models in AI take this familiar physical process and **run it in reverse**.
 
-The idea is simple but powerful:
+The training idea is simple but powerful:
 
 1. Start with real data (like an image).  
 2. Gradually add small amounts of random noise to it until it becomes pure noise.  
 3. Train a neural network to **remove** that noise step by step — learning the reverse of diffusion.
 
-The forward “noising” process can be written as:
+The forward "noising" process can be written as:
 
 $$
 x_t = \sqrt{\alpha_t} x_0 + \sqrt{1-\alpha_t}\, \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
