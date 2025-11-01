@@ -62,11 +62,11 @@ That reconstruction is what enables diffusion models to *generate* images, sound
 
 ## 3. Guided Diffusion: Steering the Generation
 
-A standard diffusion model learns to produce samples that simply “look realistic.”  
+A standard diffusion model learns to produce samples that simply "look realistic."  
 But often we want to **control** what it generates — for example:
-- an image of a “cat sitting on grass,”  
-- a driving scenario with a “pedestrian crossing,” or  
-- a protein that “binds to a given molecule.”
+- an image of a "cat sitting on grass,"  
+- a driving scenario with a "pedestrian crossing," or  
+- a protein that "binds to a given molecule."
 
 This is achieved using **guided diffusion** — a way to bias or steer the reverse process toward a specific goal.
 
@@ -74,9 +74,13 @@ This is achieved using **guided diffusion** — a way to bias or steer the rever
 
 ### 3.1 Classifier Guidance
 
-One approach uses an external classifier that estimates how likely a partially denoised image matches a desired label $y$.
+One approach uses an external classifier to steer the denoising process.  
+Imagine you're sculpting from a noisy block — each chip removes some noise.  
+A classifier acts like an observer telling you "that's getting dog-like" or "more cat-like," helping you adjust direction.
 
-At each step, we modify the reverse process to favor samples with high classifier probability $p_\phi(y | x_t)$:
+Mathematically, we train a separate classifier network $p_\phi(y | x_t)$ that estimates how likely a noisy image $x_t$ matches condition $y$.
+
+At each denoising step, we combine the normal denoising direction with the classifier's gradient:
 
 $$
 \nabla_{x_t} \log p(x_{t-1} | x_t, y)
@@ -84,30 +88,40 @@ $$
 + s \, \nabla_{x_t} \log p_\phi(y | x_t)
 $$
 
-The term $s$ controls **guidance strength**:
-- $s = 0$: unguided, purely realistic samples  
-- large $s$: stronger conditioning, but less variety
+The first term guides toward realism; the second toward the desired label.  
+The guidance strength $s$ controls the balance:
+- $s = 0$: no guidance — any realistic sample
+- larger $s$: stronger conditioning — clearer label match, less diversity
 
-The second term acts like a **force** pulling the diffusion trajectory toward samples matching the condition.
+Training involves two steps: first the diffusion model, then a classifier on noisy data.  
+At generation, the classifier provides guidance at each step.
 
 ---
 
 ### 3.2 Classifier-Free Guidance
 
-A simpler and widely used method (e.g. in **Stable Diffusion**) is to train a single model that can operate both with and without conditioning.
+A simpler and widely used method is to train a single model that works both with and without conditioning.  
+Classifier guidance requires a separate network; classifier-free guidance avoids that.
 
-During sampling, we combine the two modes:
+During training, we randomly drop the conditioning label $y$ for some examples — the model learns both unconditional and conditional denoising with the same network $\epsilon_\theta$.
+
+At generation, we blend the two predictions:
 
 $$
 \hat{\epsilon} = (1 + w) \, \epsilon_\theta(x_t, t, y)
 - w \, \epsilon_\theta(x_t, t)
 $$
 
-Here $w$ is again a **guidance scale**.  
-Higher values make the generation follow the prompt more strictly, at the cost of diversity.
+The first term predicts noise given condition $y$; the second predicts unconditionally.  
+The guidance scale $w$ controls the blend:
+- $w = 0$: loose following, high diversity
+- $w = 1$: balanced prompt match and realism
+- $w = 7$: strong conditioning (typical in Stable Diffusion)
+- $w > 10$: over-guided, unnatural
 
-This method requires no separate classifier and is more efficient.  
-It can condition on many things: text, semantic maps, or robot states.
+The model learns both realistic structure and condition-specific corrections; blending steers the generation.
+
+**Example:** For a prompt like "a fat cat surfing," the model learns paired image-text regions: cat shapes, surfboard patterns, water textures, rounded forms. Starting from random noise, it denoises over ~50 steps toward realistic images shaped by those regions, with $w$ controlling how strictly it follows the prompt.
 
 ---
 
