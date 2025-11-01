@@ -132,14 +132,24 @@ $$
 - w \, \epsilon_\theta(x_t, t)
 $$
 
-The first term predicts noise given the condition; the second predicts without any condition.  
-The guidance scale $w$ is a dial that controls the blend:
-- $w = 0$: barely follows the prompt — high creativity
-- $w = 1$: balanced — good prompt match and realism
-- $w = 7$: strong following (typical in Stable Diffusion)
-- $w > 10$: over-tight — follows prompt literally but looks unnatural
+Here's what this formula is doing:  
+We take the conditional prediction (where to move to match the prompt) and *amplify* it.  
+Then we subtract the unconditional prediction (where to move for any realistic image).  
+The guidance scale $w$ controls by how much.
 
-The model effectively learns to separate "what makes any realistic image" from "what makes it match the specific condition."
+Think of it like this:  
+$\epsilon_\theta(x_t, t, y)$ says "move toward images of cats on surfboards."  
+$\epsilon_\theta(x_t, t)$ says "move toward any realistic image."  
+By amplifying the first and subtracting the second, we get a net direction that's more "cat-surfboard-specific" and less "generic realistic."
+
+The guidance scale $w$ controls how much we emphasize the condition:
+- $w = 0$: just use the conditional prediction alone — basic prompt following
+- $w = 1$: double the conditional, subtract the unconditional — clear prompt match with good realism
+- $w = 7$: eight times the conditional minus seven times the unconditional — very strong adherence to the prompt (typical in Stable Diffusion)
+- $w > 10$: extreme amplification — sticks to prompt but may look artificial
+
+The key insight: the difference between the two predictions ($\epsilon_\theta(x_t, t, y) - \epsilon_\theta(x_t, t)$) captures what's *specific* to the condition versus what's *generic*.  
+Amplifying that difference steers generation more strongly toward the prompt.
 
 **A Concrete Example**
 
@@ -152,6 +162,18 @@ At each of ~50 steps, it removes noise in a way that gradually forms: a cat (lea
 
 The guidance scale $w$ determines how strictly it follows those associations versus exploring other plausible directions.  
 Higher $w$ means tighter adherence to the learned pattern; lower $w$ allows more creative variation.
+
+**The Probabilistic View**
+
+We can also think of guided diffusion through a Bayesian lens.  
+The model is effectively sampling from a conditional distribution that balances two factors:
+
+$$
+p(x_0 | y) \propto p(y | x_0) \, p(x_0)
+$$
+
+That is, we want images that both look realistic ($p(x_0)$) *and* match the text description ($p(y | x_0)$).  
+Classifier-free guidance implements this balance by blending the conditional and unconditional predictions, with the guidance scale $w$ controlling the relative emphasis.
 
 ---
 
