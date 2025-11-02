@@ -231,24 +231,6 @@ $w$ controls how strictly it follows those associations vs exploring other plaus
 
 ---
 
-### 3.3 Latent Diffusion: The Efficiency Hack
-
-Up to now we've talked about diffusion operating directly on images — adding noise to pixels, removing noise from pixels.  
-But generating a $512 \times 512$ pixel image this way is computationally expensive, requiring hundreds of full-resolution operations.
-
-**Latent diffusion** solves this by doing diffusion in a compressed space.  
-An autoencoder compresses the image into a small, information-rich "latent space" — a compact code that preserves essential structure.  
-The diffusion process (noising and denoising) runs in this smaller space, reducing compute.  
-The autoencoder then decodes the final latent back to a full-resolution image.
-
-This is how **Stable Diffusion** generates high-quality images on consumer hardware.  
-Instead of operating on ~262,000 values ($512 \times 512$ pixels), it works on a latent representation with ~4,000 values — roughly 65× fewer.
-
-The same denoising steps apply, just in a compressed representation.  
-Decoder-guided denoising then expands the result into the original image space.
-
----
-
 ## 4. Diffusion as Gradient Flow in Probability Space
 
 Diffusion can also be viewed as a **probabilistic process** — a kind of random walk in data space.
@@ -265,13 +247,16 @@ Intuitively, every denoising step becomes a small, directed move through probabi
 
 ### 5.1 Vision and Text-to-Image
 
-Models like **Stable Diffusion** and **Imagen** combine several ideas: latent diffusion for efficiency, classifier-free guidance for control, and text embeddings for semantic direction.
+Models like **Stable Diffusion** and **Imagen** bring together the concepts we've discussed: classifier-free guidance, text embeddings, and latent diffusion.
 
-The text prompt (e.g., "a fat cat surfing") is encoded by a language model like CLIP into a numeric vector (a text embedding).  
-This embedding is the condition $y$ used to guide generation.  
-The model learns paired image–text associations during training, enabling semantic control over outputs.
+The text prompt (e.g., "a fat cat surfing") is encoded by a language model like CLIP into a numeric vector.  
+This embedding is the condition $y$ that guides generation.  
+The model learns paired image–text associations during training, enabling semantic control.
 
-Latent diffusion makes this practical — diffusion runs in compressed space, decoded back to pixels.
+**Latent diffusion** makes this practical on consumer hardware.  
+Instead of operating on pixels ($512 \times 512$ ≈ 262,000 values), we compress the image into a compact latent space (≈ 4,000 values) using an autoencoder.  
+Diffusion (noising and denoising) runs in this smaller space; the autoencoder decodes the final result back to full resolution.  
+This yields ~65× compute savings, enabling fast, high-quality generation.
 
 ### 5.2 Robotics and Planning
 
