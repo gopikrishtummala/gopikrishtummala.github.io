@@ -39,13 +39,30 @@ That is the Transformer.
 
 ---
 
-## 2. From Sequences to Parallel Processing
+## 2. From Fixed Weights to Dynamic Attention
 
-The core idea: drop sequential processing and attend to the full sequence at once.  
-Instead of a single reader, imagine a team of linguists: each word is assigned a linguist who can query and compare all words in parallel.
+Traditional networks use fixed weights $W$ learned during training and applied to all inputs.  
+Transformers compute input-dependent attention weights on the fly for each example, enabling context-aware mixing.
 
-Mathematically: for a sentence of $n$ words, let word $i$ attend to all other $n-1$ words.  
-GPUs can compute these $n \times n$ comparisons in parallel.
+### 2.1 The Naive Approach
+
+Simple learning: one weight matrix $W$ fixed across examples.  
+Example: predict tomorrow's temperature from today's: $\hat{y} = W \cdot x + b$.  
+Learning: adjust $W$ via gradient descent.  
+Limitation: no signal about which parts of the input matter.
+
+### 2.2 The Transformer Innovation
+
+Transformers build new attention weights for every token and example:
+
+**Naive**: $y = Wx$ (fixed $W$)  
+**Transformer**: $y_i = \sum_j A_{ij} V_j$ where $A_{ij} = \text{softmax}_j(\frac{Q_i \cdot K_j}{\sqrt{d_k}})$
+
+$A$ is recomputed per input; $A_{ij}$ indicates how much token $i$ attends to token $j$.
+
+**Example:** "The animal didn't cross the street because it was too tired."  
+- Naive network: uniform mixing; blurs roles.  
+- Transformer: $A_{\text{it},\text{animal}} \approx 0.92$, $A_{\text{it},\text{street}} \approx 0.03$; identifies "it = animal".
 
 ---
 
@@ -53,11 +70,11 @@ GPUs can compute these $n \times n$ comparisons in parallel.
 
 ### 3.1 The Core Concept
 
-**Attention** computes relevance-weighted sums of inputs.  
+Attention computes relevance-weighted sums of inputs.  
 For each position, score all others, normalize to probabilities, and blend.
 
 Consider translating "The cat sat on the mat" to French.  
-When producing "chat", we need gender and context (as well as article/verb form).  
+When producing "chat", we need gender and context.  
 Attention gathers that information.
 
 ### 3.2 Query, Key, Value
@@ -155,12 +172,15 @@ Add them to word embeddings before the first layer.
 
 ## 8. Why Transformers Work
 
-Speed: parallelism replaces sequential recurrence.  
-Context: full-sequence access.  
-Depth: many layers without degradation.  
-Scalability: aligned with GPU compute trends.
+| Feature | Previous Approaches | Transformers |
+|---------|---------------------|--------------|
+| **Processing** | Sequential | Fully parallel |
+| **Context** | Limited by memory | Full sequence |
+| **Weights** | Fixed $W$ | Dynamic attention $A$ |
+| **Depth** | Degrades after ~10 layers | 100+ layers |
+| **Scalability** | Sequential bottleneck | GPU-friendly |
 
-Together, they support complex, long-range dependencies.
+Together, these support modeling complex, long-range dependencies at scale.
 
 ---
 
