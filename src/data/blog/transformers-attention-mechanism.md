@@ -198,8 +198,41 @@ This bounds practical model sizes.
 
 ---
 
-## 10. Summary
+## 10. Transformers: Revolutionizing NLP and Beyond
 
-Transformers use attention: self-attention for context, cross-attention to bridge sequences.  
-This enables parallel processing of long sequences and underpins modern language models.
+Transformers changed NLP and are widely applied elsewhere. The main changes are:
+
+### 10.1 NLP Applications
+
+**Language Translation:** Strong results in machine translation (e.g., Google Translate).
+
+**Text Generation:** Coherent, context-aware text for chat, content, and translation.
+
+**Text Classification:** Sentiment analysis, spam detection, topic modeling. Often superior to traditional methods.
+
+**Question Answering:** Answer complex questions via context, supporting assistants and chatbots.
+
+**Summarization:** Summarize long documents and articles by extracting main points.
+
+### 10.2 Beyond NLP
+
+**Computer Vision:** Image classification, detection, and generation. Vision Transformers (ViTs) match or beat CNNs.
+
+**Speech Recognition:** Speech-to-text for assistants and voice interfaces.
+
+**Time Series Analysis:** Forecasting (stock, weather, traffic).
+
+### 10.3 What Transformers Enable
+
+- Accuracy: strong performance across NLP and vision tasks
+- Efficiency: parallel processing vs. sequential RNNs
+- Flexibility: NLP, vision, audio, time series
+- Scalability: large models and datasets; supports big outputs
+
+---
+
+## 11. Summary
+
+Transformers rely on attention: self-attention for context, cross-attention to bridge sequences.  
+Parallel processing of long sequences underpins modern language models and broader AI.
 

@@ -15,7 +15,7 @@ With 10+ years of experience in designing machine learning algorithms and models
 ### Current Role
 **Senior Machine Learning Engineer @ Adobe** (Sep 2024 - Present)
 - Building large-scale data frameworks for GenAI training
-- Managing high-performance data loaders serving millions of requests monthly
+- Managing high-performance dataloaders serving millions of requests monthly
 - Implementing runtime profiling and telemetry for performance tuning
 
 ### Previous Roles
