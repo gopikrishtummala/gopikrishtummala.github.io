@@ -35,7 +35,22 @@ Think of copying a high-quality song to a noisy cassette tape: each copy degrade
 
 ## 2. Reverse Diffusion: Turning Noise Into Structure
 
-Diffusion models in AI take this familiar physical process and **run it in reverse**.
+Diffusion models sit at the intersection of physics and probability — a class of **generative models that learn data distributions by reversing a stochastic process**.  
+Instead of directly modeling $p(x)$ (the probability of an image, molecule, or signal), they simulate how data gradually dissolves into noise, then learn to reverse it to recover samples from $p(x)$.
+
+Mathematically, diffusion models learn the **score function** $\nabla_x \log p_t(x)$ — the gradient of the log-probability at a noisy timestep $t$.  
+By estimating this direction toward higher likelihood, the model learns how to move random noise toward regions of higher data density, effectively learning the entire probability distribution.
+
+This positions diffusion within the broader family of generative models:
+- **VAEs** approximate $p(x|z)$ through latent variable inference
+- **GANs** learn an implicit mapping from noise to data via adversarial training
+- **Diffusion models** explicitly learn the gradient of the data distribution
+
+The result is a model that doesn't just generate — it learns the physics of probability.
+
+---
+
+**The Core Mechanism**
 
 The idea is simple but powerful:
 
