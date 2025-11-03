@@ -158,37 +158,181 @@ $$
 D_{\text{KL}}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z})) = \mathbb{E}_q[\log q(\mathbf{z}|\mathbf{x}) - \log p(\mathbf{z})]
 $$
 
+### 6.1 Understanding KL Divergence Intuitively
+
+**The Kullback–Leibler (KL) divergence** measures the difference between two probability distributions. It quantifies how much information is lost when using an approximation distribution $Q$ instead of the true distribution $P$.
+
+**An intuitive analogy**: Imagine you have two bags of marbles.
+
+- **Bag P (True Distribution)**: 8 red marbles, 2 blue marbles (80% red, 20% blue). This is the actual reality.
+- **Bag Q (Approximation)**: 5 red marbles, 5 blue marbles (50% red, 50% blue). This is your model or belief about the bag.
+
+The KL divergence tells you how different your belief (Bag Q) is from reality (Bag P).
+
+**The core idea**: In information theory, we think about "surprise." An event with a low probability is very surprising, while a likely event is not. The KL divergence measures the average extra surprise you experience when you use the wrong distribution ($Q$) instead of the correct one ($P$) to make predictions.
+
+- If your belief $Q$ is identical to the true distribution $P$, the KL divergence is zero. You have no extra surprise.
+- The more different $Q$ is from $P$, the higher the KL divergence value.
+- It's not a true "distance" because it's not symmetric: the difference from $P$ to $Q$ is not the same as from $Q$ to $P$.
+
+### 6.2 The Mathematical Formula
+
+For discrete probability distributions $P$ and $Q$ over the same set of events, the KL divergence of $Q$ from $P$ (often written as $D_{KL}(P||Q)$) is:
+
+$$
+D_{KL}(P||Q) = \sum_{x} P(x) \cdot \log \left(\frac{P(x)}{Q(x)}\right)
+$$
+
+This can also be written as:
+
+$$
+D_{KL}(P||Q) = \sum_{x} P(x) \cdot (\log(P(x)) - \log(Q(x)))
+$$
+
+**Notation:**
+- $P(x)$: The actual probability of event $x$ happening.
+- $Q(x)$: Your estimated (approximating) probability of event $x$ happening.
+- $\log$: Usually base 2 for "bits" of information, or base $e$ (natural log) for "nats."
+- $\sum_{x}$: Sum over all possible outcomes $x$.
+
+**Key insight**: The formula calculates a weighted average of the logarithmic difference between the true and approximate probabilities, where the weights are the actual probabilities $P(x)$. This means events that are likely to happen in reality (high $P(x)$) have a bigger impact on the final score.
+
+### 6.3 KL Divergence in VAEs
+
+In VAEs, we want the learned distribution $q(\mathbf{z}|\mathbf{x})$ to match a standard normal prior $p(\mathbf{z}) = \mathcal{N}(\mathbf{0},\mathbf{I})$.
+
 **Special case** ($p(\mathbf{z}) = \mathcal{N}(\mathbf{0},\mathbf{I})$, diagonal $\boldsymbol{\sigma}^2$):
 
 $$
 D_{\text{KL}} = \frac{1}{2} \sum_{j=1}^K \left( \mu_j^2 + \sigma_j^2 - \log \sigma_j^2 - 1 \right)
 $$
 
+Let's break down what each term does:
+
+- **$\mu_j^2$**: Penalizes large mean values, pushing them toward zero. If the encoder outputs a mean far from zero, this term grows quadratically.
+- **$\sigma_j^2$**: Encourages variance to be close to 1. If variance is too small or too large, this term increases.
+- **$-\log \sigma_j^2$**: Prevents variance from collapsing to zero. As $\sigma_j \to 0$, $-\log \sigma_j^2 \to +\infty$, creating infinite penalty.
+- **$-1$**: Normalization constant to ensure the KL divergence is zero when $\boldsymbol{\mu} = \mathbf{0}$ and $\boldsymbol{\sigma}^2 = \mathbf{1}$.
+
+### 6.4 Why This Regularization Matters
+
 This term acts as a **regularizer**: it pushes means toward zero and variances toward one, producing a smooth, continuous latent space.
+
+**Without KL regularization**: The encoder could learn arbitrary distributions for different inputs. Some might have means at $(10, -5, 3)$ while others at $(-8, 2, -1)$. The latent space would be fragmented, with codes scattered arbitrarily. Interpolation between codes wouldn't make sense, and sampling from $\mathcal{N}(\mathbf{0},\mathbf{I})$ wouldn't correspond to realistic images.
+
+**With KL regularization**: All learned distributions are pushed toward the standard normal. The latent space becomes organized and continuous. Codes cluster around the origin, and smooth interpolation becomes possible. Sampling from $\mathcal{N}(\mathbf{0},\mathbf{I})$ now corresponds to sampling from regions where the model has seen training data.
+
+**The trade-off**: There's a tension between reconstruction quality and regularization:
+- Too much KL weight ($\beta$-VAE with high $\beta$): Excellent latent space structure, but blurrier reconstructions because the model is constrained.
+- Too little KL weight: Better reconstructions, but a less organized latent space that may have "holes" or discontinuities.
+
+This is why $\beta$-VAE introduces a hyperparameter $\beta$ to weight the KL term:
+
+$$
+\mathcal{L}_{\text{VAE}} = \mathcal{L}_{\text{recon}} + \beta \cdot D_{\text{KL}}
+$$
+
+Tuning $\beta$ lets you balance between faithful reconstructions and a well-structured latent space.
 
 ---
 
 ## 7. The Evidence Lower Bound (ELBO)
 
-The **log marginal probability** is:
+This mathematical expression is the basis for the Variational Autoencoder (VAE) and Variational Inference methods. It shows how an intractable log-likelihood can be approximated with a tractable lower bound.
+
+### 7.1 Step 1: Rewriting the Log-Likelihood
+
+The initial expression for the log-likelihood of a data point $\mathbf{x}$ is given by:
 
 $$
-\log p(\mathbf{x}) = \log \int p(\mathbf{x}|\mathbf{z}) p(\mathbf{z}) \, d\mathbf{z}
+\log p(\mathbf{x}) = \log \int p(\mathbf{x}, \mathbf{z}) \, d\mathbf{z}
 $$
 
-This integral is intractable.  
-Introducing $q(\mathbf{z}|\mathbf{x})$ and using Jensen's inequality:
+The integral over the latent variable $\mathbf{z}$ is often intractable because it requires integrating over all possible values of $\mathbf{z}$.
+
+To address this, we introduce an arbitrary distribution $q(\mathbf{z}|\mathbf{x})$, which we can choose to be a simple, tractable distribution (e.g., a normal distribution). We can multiply and divide the integrand by this distribution $q(\mathbf{z}|\mathbf{x})$:
 
 $$
-\log p(\mathbf{x}) \ge \mathbb{E}_q[\log p(\mathbf{x}|\mathbf{z})] - D_{\text{KL}}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z}))
+\log p(\mathbf{x}) = \log \int \frac{p(\mathbf{x}, \mathbf{z})}{q(\mathbf{z}|\mathbf{x})} q(\mathbf{z}|\mathbf{x}) \, d\mathbf{z}
 $$
 
-This is the **Evidence Lower BOund (ELBO)**.  
-Maximizing the ELBO $\equiv$ minimizing:
+This can be re-written as an expectation with respect to $q(\mathbf{z}|\mathbf{x})$:
+
+$$
+\log p(\mathbf{x}) = \log \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\frac{p(\mathbf{x}, \mathbf{z})}{q(\mathbf{z}|\mathbf{x})}\right]
+$$
+
+### 7.2 Step 2: Applying Jensen's Inequality
+
+Jensen's inequality states that for a concave function $f$ (like the logarithm), and a random variable $X$:
+
+$$
+f(\mathbb{E}[X]) \ge \mathbb{E}[f(X)]
+$$
+
+Applying this to the expression from Step 1:
+
+$$
+\log \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\frac{p(\mathbf{x}, \mathbf{z})}{q(\mathbf{z}|\mathbf{x})}\right] \ge \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\log \frac{p(\mathbf{x}, \mathbf{z})}{q(\mathbf{z}|\mathbf{x})}\right]
+$$
+
+The expression on the right-hand side is a lower bound on the log-likelihood, often called the **Evidence Lower Bound (ELBO)**.
+
+### 7.3 Step 3: Expanding the Lower Bound
+
+We can use the properties of logarithms ($\log(A/B) = \log(A) - \log(B)$) to expand the ELBO:
+
+$$
+\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\log \frac{p(\mathbf{x}, \mathbf{z})}{q(\mathbf{z}|\mathbf{x})}\right] = \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}, \mathbf{z}) - \log q(\mathbf{z}|\mathbf{x})]
+$$
+
+Next, we use the property of conditional probability, $p(\mathbf{x}, \mathbf{z}) = p(\mathbf{x}|\mathbf{z}) p(\mathbf{z})$:
+
+$$
+\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}|\mathbf{z}) + \log p(\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x})]
+$$
+
+By rearranging the terms and splitting the expectation, we arrive at the final form of the lower bound:
+
+$$
+\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}|\mathbf{z})] + \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x})]
+$$
+
+### 7.4 Recognizing the KL Divergence
+
+The second term is the negative of the Kullback–Leibler (KL) divergence between the two distributions $q(\mathbf{z}|\mathbf{x})$ and $p(\mathbf{z})$. The KL divergence is defined as $D_{KL}(A||B) = \mathbb{E}_A[\log(A/B)]$. Therefore:
+
+$$
+-D_{KL}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z})) = \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\log \frac{p(\mathbf{z})}{q(\mathbf{z}|\mathbf{x})}\right] = \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x})]
+$$
+
+### 7.5 The Final ELBO Expression
+
+Putting it all together, we have:
+
+$$
+\log p(\mathbf{x}) \ge \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}|\mathbf{z})] - D_{KL}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z}))
+$$
+
+**Summary**: The equation $\log p(\mathbf{x}) \ge \mathbb{E}_{q}[\log p(\mathbf{x}|\mathbf{z})] - D_{KL}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z}))$ is derived by using Jensen's inequality on the logarithm of the log-likelihood. This converts the intractable integral over the latent variable $\mathbf{z}$ into a tractable lower bound, called the Evidence Lower Bound (ELBO).
+
+This lower bound consists of two parts:
+1. **Reconstruction term** $\mathbb{E}_{q}[\log p(\mathbf{x}|\mathbf{z})]$: Measures how well the model can reconstruct the input $\mathbf{x}$ from a latent code $\mathbf{z}$ sampled from $q(\mathbf{z}|\mathbf{x})$.
+2. **Regularization term** $-D_{KL}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z}))$: Measures the difference between the approximate posterior $q(\mathbf{z}|\mathbf{x})$ and the prior $p(\mathbf{z})$. This keeps the learned distributions close to the prior.
+
+Since we want to maximize the log-likelihood $\log p(\mathbf{x})$, we maximize its lower bound (the ELBO). This is equivalent to minimizing:
+
+$$
+\mathcal{L}_{\text{VAE}} = -\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}|\mathbf{z})] + D_{KL}(q(\mathbf{z}|\mathbf{x}) \| p(\mathbf{z}))
+$$
+
+Or, in terms of the components we've seen:
 
 $$
 \mathcal{L}_{\text{VAE}} = \mathcal{L}_{\text{recon}} + D_{\text{KL}}
 $$
+
+where $\mathcal{L}_{\text{recon}} = -\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}|\mathbf{z})]$ is the reconstruction loss.
 
 ---
 
