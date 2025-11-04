@@ -290,14 +290,27 @@ const nextPost =
 <script is:inline>
   /** Load and initialize Mermaid diagrams */
   (function() {
-    // Load Mermaid from CDN
-    if (typeof window.mermaid === "undefined") {
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
-      script.onload = initializeMermaid;
-      document.head.appendChild(script);
-    } else {
-      initializeMermaid();
+    let mermaidLoaded = false;
+
+    function loadMermaid() {
+      if (typeof window.mermaid !== "undefined") {
+        mermaidLoaded = true;
+        initializeMermaid();
+        return;
+      }
+
+      if (!mermaidLoaded) {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
+        script.onload = function() {
+          mermaidLoaded = true;
+          initializeMermaid();
+        };
+        script.onerror = function() {
+          console.error("Failed to load Mermaid library");
+        };
+        document.head.appendChild(script);
+      }
     }
 
     function initializeMermaid() {
@@ -308,7 +321,8 @@ const nextPost =
       }
 
       // Configure Mermaid theme based on current color scheme
-      const isDark = document.documentElement.classList.contains("dark");
+      const isDark = document.documentElement.classList.contains("dark") || 
+                     document.documentElement.getAttribute("data-theme") === "dark";
       
       window.mermaid.initialize({
         startOnLoad: false,
@@ -320,44 +334,130 @@ const nextPost =
         securityLevel: "loose",
       });
 
-      // Find all code blocks with language "mermaid"
-      const mermaidBlocks = document.querySelectorAll("pre code.language-mermaid");
+      // Find all code blocks with language "mermaid" - try multiple selectors
+      const selectors = [
+        "pre code.language-mermaid",
+        "pre code[class*='language-mermaid']",
+        "pre code[class*='mermaid']",
+        "code.language-mermaid",
+        "code[class*='language-mermaid']"
+      ];
+
+      let mermaidBlocks = [];
+      for (const selector of selectors) {
+        mermaidBlocks = Array.from(document.querySelectorAll(selector));
+        if (mermaidBlocks.length > 0) break;
+      }
+
+      if (mermaidBlocks.length === 0) {
+        // Try again after a short delay in case content hasn't rendered yet
+        setTimeout(initializeMermaid, 200);
+        return;
+      }
       
       mermaidBlocks.forEach((block, index) => {
-        const mermaidCode = block.textContent || "";
+        // Skip if already processed
+        if (block.closest(".mermaid-processed")) {
+          return;
+        }
+
+        const mermaidCode = block.textContent || block.innerText || "";
+        if (!mermaidCode.trim()) {
+          return;
+        }
+
         const id = `mermaid-${index}-${Date.now()}`;
+        
+        // Get the parent pre element
+        const preElement = block.closest("pre") || block.parentElement;
         
         // Create a new div for Mermaid to render into
         const mermaidDiv = document.createElement("div");
-        mermaidDiv.className = "mermaid";
+        mermaidDiv.className = "mermaid mermaid-processed";
         mermaidDiv.id = id;
         mermaidDiv.textContent = mermaidCode;
         
-        // Replace the code block with the Mermaid div
-        const preElement = block.parentElement;
+        // Replace the pre/code block with the Mermaid div
         if (preElement) {
           preElement.replaceWith(mermaidDiv);
+        } else {
+          block.replaceWith(mermaidDiv);
         }
       });
 
       // Render all Mermaid diagrams
       if (window.mermaid && window.mermaid.run) {
-        window.mermaid.run();
+        try {
+          window.mermaid.run({
+            querySelector: ".mermaid",
+            nodes: document.querySelectorAll(".mermaid"),
+          });
+        } catch (e) {
+          console.error("Error rendering Mermaid diagrams:", e);
+        }
       }
+    }
+
+    // Load Mermaid and initialize
+    function startMermaid() {
+      loadMermaid();
     }
 
     // Initialize on page load
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", function() {
-        if (window.mermaid) initializeMermaid();
-      });
+      document.addEventListener("DOMContentLoaded", startMermaid);
+    } else {
+      // DOM already loaded
+      setTimeout(startMermaid, 100);
     }
 
     // Re-initialize after Astro page swaps (for client-side navigation)
     document.addEventListener("astro:page-load", function() {
       setTimeout(function() {
-        if (window.mermaid) initializeMermaid();
-      }, 100);
+        if (!mermaidLoaded) {
+          loadMermaid();
+        } else {
+          initializeMermaid();
+        }
+      }, 200);
     });
+
+    // Also try after a longer delay to catch any late-rendering content
+    setTimeout(function() {
+      if (mermaidLoaded && window.mermaid) {
+        initializeMermaid();
+      }
+    }, 500);
+
+    // Use MutationObserver to catch dynamically added content
+    if (typeof MutationObserver !== "undefined") {
+      const observer = new MutationObserver(function(mutations) {
+        let shouldCheck = false;
+        mutations.forEach(function(mutation) {
+          if (mutation.addedNodes.length > 0) {
+            for (let node of mutation.addedNodes) {
+              if (node.nodeType === 1) { // Element node
+                if (node.querySelector && (
+                  node.querySelector("pre code.language-mermaid") ||
+                  node.querySelector("pre code[class*='mermaid']") ||
+                  node.matches && node.matches("pre code.language-mermaid")
+                )) {
+                  shouldCheck = true;
+                  break;
+                }
+              }
+            }
+          }
+        });
+        if (shouldCheck && mermaidLoaded && window.mermaid) {
+          setTimeout(initializeMermaid, 100);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
   })();
 </script>
