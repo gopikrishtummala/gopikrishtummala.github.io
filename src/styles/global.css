@@ -73,6 +73,7 @@ html[data-theme="dark"] {
   @apply my-6 flex justify-center overflow-x-auto;
   display: flex;
   justify-content: center;
+  font-size: 14px;
 }
 
 .mermaid svg {
@@ -81,8 +82,43 @@ html[data-theme="dark"] {
   height: auto;
 }
 
+/* Scale down text and nodes in Mermaid diagrams */
+.mermaid svg .nodeLabel,
+.mermaid svg .edgeLabel,
+.mermaid svg .cluster-label {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+.mermaid svg .node rect,
+.mermaid svg .node circle,
+.mermaid svg .node ellipse,
+.mermaid svg .node polygon {
+  rx: 4px;
+  ry: 4px;
+}
+
+/* Reduce padding in nodes */
+.mermaid svg .node .label {
+  padding: 4px 8px !important;
+}
+
 /* Ensure Mermaid diagrams work well in prose */
 .prose .mermaid {
   @apply mx-auto my-6;
   width: 100%;
+  max-width: 100%;
+}
+
+/* Make diagrams responsive */
+@media (max-width: 768px) {
+  .mermaid {
+    font-size: 12px;
+  }
+  
+  .mermaid svg .nodeLabel,
+  .mermaid svg .edgeLabel,
+  .mermaid svg .cluster-label {
+    font-size: 12px !important;
+  }
 }
