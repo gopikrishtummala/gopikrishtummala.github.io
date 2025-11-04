@@ -84,13 +84,13 @@ The VAE architecture flows from input data through probabilistic encoding to rec
 
 ```mermaid
 graph TD
-    A[Input Data X] --> B{Encoder: Compute mu and log-sigma-squared};
-    B --> C[Probabilistic Latent Space Z: A Gaussian Cloud];
-    C --> D{Sampling with Reparameterization Trick};
-    D --> E[Latent Code z];
-    E --> F[Decoder: Reconstruct Data X-hat];
-    style C fill:#ccf,stroke:#333,stroke-width:2px;
-    style D fill:#f99,stroke:#333,stroke-width:2px;
+    A[Input X] --> B[Encoder]
+    B --> C[Latent Space Z]
+    C --> D[Sample z]
+    D --> E[Decoder]
+    E --> F[Output X]
+    style C fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#f99,stroke:#333,stroke-width:2px
 ```
 
 This visualization emphasizes the transition from a **deterministic** input (A) to a **probabilistic** representation (C) and highlights the **Sampling** step (D) as the core difference from a standard Autoencoder.
@@ -135,19 +135,15 @@ The reparameterization trick isolates randomness as an external input, enabling 
 
 ```mermaid
 graph TD
-    A[Encoder Output] --> A1[Mean μ]
-    A[Encoder Output] --> A2[Log-Variance log sigma²]
-
-    A2 --> B[Compute σ Std Dev]
-    
-    C[Random Noise ε ~ N 0 I] --> D[Scaling σ · ε]
-    
-    A1 --> E[Addition μ + σ · ε]
-    D --> E
-    
-    E --> F[Latent Code z Differentiable]
-    style C fill:#cfa,stroke:#333,stroke-width:2px
-    style F fill:#f99,stroke:#333,stroke-width:2px
+    A[Encoder] --> B[Mean μ]
+    A --> C[Variance σ²]
+    C --> D[Compute σ]
+    E[Noise ε] --> F[Scale σ·ε]
+    D --> F
+    B --> G[z = μ + σ·ε]
+    F --> G
+    style E fill:#cfa,stroke:#333,stroke-width:2px
+    style G fill:#f99,stroke:#333,stroke-width:2px
 ```
 
 This diagram shows how the random noise ($\boldsymbol{\varepsilon}$, node C) is an external, fixed input, making it clear that gradients can flow back through the network's trainable parameters ($\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$) at the final step (E).
@@ -303,18 +299,12 @@ This "tug-of-war" creates a balance: the reconstruction term wants perfect fidel
 
 ```mermaid
 graph TD
-    A[Minimize VAE Loss] -->|Goal: Learn Data Distribution| B(Evidence Lower Bound ELBO)
-
-    B --> C[1. Reconstruction Loss L_recon]
-    B --> D[2. Regularization Loss D_KL]
-
-    C --> C1[Metric -E log p X Z or MSE]
-    C --> C2[Intuition Fidelity Make X-hat look like X]
-    D --> D1[Metric D_KL q Z X p Z]
-    D --> D2[Intuition Structure Force Z to be smooth Gaussian]
-
-    style C fill:#bbf,stroke:#333
-    style D fill:#ffb,stroke:#333
+    A[VAE Loss] --> B[Reconstruction Loss]
+    A --> C[KL Divergence]
+    B --> D[Fidelity]
+    C --> E[Structure]
+    style B fill:#bbf,stroke:#333
+    style C fill:#ffb,stroke:#333
 ```
 
 This diagram clearly links the two mathematical components to their underlying **intuitive goals** (Fidelity vs. Structure), which is essential for both high-schoolers and math students.
@@ -453,25 +443,15 @@ The latent space organizes data into a continuous, structured representation. He
 
 ```mermaid
 graph LR
-    subgraph Latent["Latent Space Z 2D for MNIST"]
-        A[Digit 0 Cluster] --> B[Digit 1 Cluster]
-        B --> C[Digit 2 Cluster]
-        C --> D[...]
-        D --> E[Digit 9 Cluster]
-        F[Interpolation Path] -.->|Smooth Transition| A
-        F -.->|Smooth Transition| E
-    end
-    
-    subgraph Data["Data Space X"]
-        A1[Image 0] --> E1[Image 9]
-    end
-    
-    A -.->|Decode| A1
-    E -.->|Decode| E1
-    F -.->|Decode| F1[Morphing Sequence]
-    
+    A[Digit 0] --> B[Digit 1]
+    B --> C[Digit 2]
+    C --> D[...]
+    D --> E[Digit 9]
+    F[Interpolation] -.->|Smooth| A
+    F -.->|Smooth| E
+    A -.->|Decode| G[Image 0]
+    E -.->|Decode| H[Image 9]
     style F fill:#cfc,stroke:#333,stroke-width:2px
-    style F1 fill:#cfc,stroke:#333,stroke-width:2px
 ```
 
 This 2D concept map shows how clusters of data (e.g., MNIST digits 0-9) are organized in latent space, with smooth interpolation paths between them. The continuous nature means any point you sample yields a meaningful result, enabling generation.
