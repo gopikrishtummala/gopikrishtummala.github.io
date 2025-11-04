@@ -334,7 +334,8 @@ const nextPost =
         securityLevel: "loose",
       });
 
-      // Find all code blocks with language "mermaid" - try multiple selectors
+      // Find all code blocks - try multiple approaches
+      // First, try standard selectors
       const selectors = [
         "pre code.language-mermaid",
         "pre code[class*='language-mermaid']",
@@ -349,6 +350,18 @@ const nextPost =
         if (mermaidBlocks.length > 0) break;
       }
 
+      // If no blocks found by class, try finding by content (Shiki might use different classes)
+      if (mermaidBlocks.length === 0) {
+        const allCodeBlocks = document.querySelectorAll("pre code");
+        allCodeBlocks.forEach(function(block) {
+          const code = block.textContent || block.innerText || "";
+          // Check if it looks like Mermaid code (starts with graph, flowchart, etc.)
+          if (code.trim().match(/^\s*(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|gitgraph|journey|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|mindmap|timeline|sankey-beta|quadrantChart)/)) {
+            mermaidBlocks.push(block);
+          }
+        });
+      }
+
       if (mermaidBlocks.length === 0) {
         // Try again after a short delay in case content hasn't rendered yet
         setTimeout(initializeMermaid, 200);
@@ -357,19 +370,32 @@ const nextPost =
       
       mermaidBlocks.forEach((block, index) => {
         // Skip if already processed
-        if (block.closest(".mermaid-processed")) {
+        if (block.closest(".mermaid-processed") || block.closest(".mermaid")) {
           return;
         }
 
-        const mermaidCode = block.textContent || block.innerText || "";
-        if (!mermaidCode.trim()) {
+        // Get the code content - try multiple methods
+        let mermaidCode = "";
+        if (block.textContent) {
+          mermaidCode = block.textContent;
+        } else if (block.innerText) {
+          mermaidCode = block.innerText;
+        } else {
+          // Try to get text from all child nodes
+          mermaidCode = Array.from(block.childNodes)
+            .map(node => node.textContent || "")
+            .join("");
+        }
+
+        mermaidCode = mermaidCode.trim();
+        if (!mermaidCode) {
           return;
         }
 
         const id = `mermaid-${index}-${Date.now()}`;
         
-        // Get the parent pre element
-        const preElement = block.closest("pre") || block.parentElement;
+        // Get the parent pre element (Shiki wraps code in pre)
+        const preElement = block.closest("pre");
         
         // Create a new div for Mermaid to render into
         const mermaidDiv = document.createElement("div");
@@ -377,10 +403,11 @@ const nextPost =
         mermaidDiv.id = id;
         mermaidDiv.textContent = mermaidCode;
         
-        // Replace the pre/code block with the Mermaid div
+        // Replace the pre element (which contains the code block)
         if (preElement) {
           preElement.replaceWith(mermaidDiv);
         } else {
+          // Fallback: replace just the code block
           block.replaceWith(mermaidDiv);
         }
       });
