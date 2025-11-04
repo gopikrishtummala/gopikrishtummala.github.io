@@ -84,11 +84,11 @@ The VAE architecture flows from input data through probabilistic encoding to rec
 
 ```mermaid
 graph TD
-    A[Input Data X] --> B{Encoder: Compute $\mu$ and $\log\sigma^2$};
+    A[Input Data X] --> B{Encoder: Compute mu and log-sigma-squared};
     B --> C[Probabilistic Latent Space Z: A Gaussian Cloud];
     C --> D{Sampling with Reparameterization Trick};
-    D --> E[Latent Code $\mathbf{z}$];
-    E --> F[Decoder: Reconstruct Data $\hat{X}$];
+    D --> E[Latent Code z];
+    E --> F[Decoder: Reconstruct Data X-hat];
     style C fill:#ccf,stroke:#333,stroke-width:2px;
     style D fill:#f99,stroke:#333,stroke-width:2px;
 ```
@@ -135,17 +135,17 @@ The reparameterization trick isolates randomness as an external input, enabling 
 
 ```mermaid
 graph TD
-    A[Encoder Output] --> A1(Mean $\boldsymbol{\mu}$)
-    A[Encoder Output] --> A2(Log-Variance $\log\boldsymbol{\sigma}^2$);
+    A[Encoder Output] --> A1["Mean μ"]
+    A[Encoder Output] --> A2["Log-Variance log(σ²)"];
 
-    A2 --> B[Compute $\boldsymbol{\sigma} = \exp(0.5 \cdot \log\boldsymbol{\sigma}^2)$];
+    A2 --> B["Compute σ = exp(0.5 × log(σ²))"];
     
-    C($\boldsymbol{\varepsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$) --> D{Multiplication: $\boldsymbol{\sigma} \odot \boldsymbol{\varepsilon}$};
+    C["ε ~ N(0, I)"] --> D["Multiplication: σ ⊙ ε"];
     
-    A1 --> E[Addition: $\boldsymbol{\mu} + (\boldsymbol{\sigma} \odot \boldsymbol{\varepsilon})$];
+    A1 --> E["Addition: μ + (σ ⊙ ε)"];
     D --> E;
     
-    E --> F[Latent Code $\mathbf{z}$ (Differentiable)];
+    E --> F["Latent Code z (Differentiable)"];
     style C fill:#cfa,stroke:#333,stroke-width:2px;
     style F fill:#f99,stroke:#333,stroke-width:2px;
 ```
@@ -305,13 +305,13 @@ This "tug-of-war" creates a balance: the reconstruction term wants perfect fidel
 graph TD
     A[Minimize VAE Loss] -->|Goal: Learn Data Distribution| B(Evidence Lower Bound -ELBO);
 
-    B --> C{1. Reconstruction Loss: $\mathcal{L}_{\text{recon}}$};
-    B --> D{2. Regularization Loss: $D_{KL}$};
+    B --> C["1. Reconstruction Loss: L_recon"];
+    B --> D["2. Regularization Loss: D_KL"];
 
-    C --> C1[Metric: $-\mathbb{E}[\log p(X|Z)]$ or MSE];
-    C --> C2[Intuition: Fidelity - Make $\hat{X}$ look like $X$];
-    D --> D1[Metric: $D_{KL}(q(Z|X) \| p(Z))$];
-    D --> D2[Intuition: Structure - Force $Z$ to be a smooth Gaussian];
+    C --> C1["Metric: -E[log p(X|Z)] or MSE"];
+    C --> C2["Intuition: Fidelity - Make X-hat look like X"];
+    D --> D1["Metric: D_KL(q(Z|X) || p(Z))"];
+    D --> D2["Intuition: Structure - Force Z to be a smooth Gaussian"];
 
     style C fill:#bbf,stroke:#333;
     style D fill:#ffb,stroke:#333;
