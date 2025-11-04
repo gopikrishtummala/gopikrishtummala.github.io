@@ -280,7 +280,7 @@ The expression on the right-hand side is a lower bound on the log-likelihood, of
 
 ### 7.3 Step 3: Expanding the Lower Bound
 
-We can use the properties of logarithms ($\log(A/B) = \log(A) - \log(B)$) to expand the ELBO:
+We can expand the ELBO:
 
 $$
 \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\log \frac{p(\mathbf{x}, \mathbf{z})}{q(\mathbf{z}|\mathbf{x})}\right] = \mathbb{E}_{q(\mathbf{z}|\mathbf{x})}[\log p(\mathbf{x}, \mathbf{z}) - \log q(\mathbf{z}|\mathbf{x})]
@@ -407,7 +407,153 @@ Sample from $q(\mathbf{z}|\mathbf{x})$ to generate variations of a training exam
 
 ---
 
-## 12. Why VAEs Matter
+## 12. Extensions: Conditional VAEs and Vector Quantized VAEs
+
+The standard VAE framework has been extended in several directions to address specific limitations and enable new capabilities. Two important variants are Conditional VAEs (CVAEs) and Vector Quantized VAEs (VQ-VAEs).
+
+---
+
+## 12.1 Conditional Variational Autoencoders (CVAEs)
+
+A **Conditional Variational Autoencoder (CVAE)** is a modification of the traditional VAE that introduces conditional generation based on additional information such as class labels, attributes, or other input conditions.
+
+### 12.1.1 The Conditional Framework
+
+In a standard VAE, we model $p(\mathbf{x})$ unconditionally. In a CVAE, we condition both the encoder and decoder on additional information $\mathbf{y}$ (e.g., class labels, text descriptions, or other attributes):
+
+- **Conditional Encoder**: $q(\mathbf{z}|\mathbf{x}, \mathbf{y})$ — encodes input $\mathbf{x}$ into latent code $\mathbf{z}$ given condition $\mathbf{y}$
+- **Conditional Decoder**: $p(\mathbf{x}|\mathbf{z}, \mathbf{y})$ — decodes latent code $\mathbf{z}$ to data $\mathbf{x}$ given condition $\mathbf{y}$
+
+The ELBO becomes:
+
+$$
+\log p(\mathbf{x}|\mathbf{y}) \ge \mathbb{E}_{q(\mathbf{z}|\mathbf{x},\mathbf{y})}[\log p(\mathbf{x}|\mathbf{z},\mathbf{y})] - D_{KL}(q(\mathbf{z}|\mathbf{x},\mathbf{y}) \| p(\mathbf{z}|\mathbf{y}))
+$$
+
+Typically, we assume the prior $p(\mathbf{z}|\mathbf{y}) = p(\mathbf{z}) = \mathcal{N}(\mathbf{0},\mathbf{I})$ is independent of the condition, simplifying to:
+
+$$
+\log p(\mathbf{x}|\mathbf{y}) \ge \mathbb{E}_{q(\mathbf{z}|\mathbf{x},\mathbf{y})}[\log p(\mathbf{x}|\mathbf{z},\mathbf{y})] - D_{KL}(q(\mathbf{z}|\mathbf{x},\mathbf{y}) \| p(\mathbf{z}))
+$$
+
+### 12.1.2 Implementation Strategy
+
+The condition $\mathbf{y}$ is typically incorporated by concatenating it to the input at various stages:
+
+**Encoder**: The condition is concatenated with the input $\mathbf{x}$ before encoding. For images, this often means:
+- One-hot encoding the label to match spatial dimensions
+- Concatenating along the channel dimension: $[\mathbf{x}, \mathbf{y}]$
+- Passing the concatenated tensor through the encoder network
+
+**Decoder**: The condition is concatenated with the latent code $\mathbf{z}$ before decoding:
+- Embedding $\mathbf{y}$ to match $\mathbf{z}$'s dimensionality
+- Concatenating: $[\mathbf{z}, \text{embed}(\mathbf{y})]$
+- Passing through the decoder network
+
+### 12.1.3 Why CVAEs Matter
+
+**Controlled Generation**: CVAEs enable generating samples with specific attributes. For example:
+- Generate images of a specific digit class (MNIST: generate only "7"s)
+- Create faces with particular features (CelebA: generate smiling faces)
+- Produce text-conditioned images (generate "a cat sitting on grass")
+
+**Better Latent Structure**: By conditioning on class labels, the model learns to separate class-relevant information in the latent space, potentially improving disentanglement.
+
+**Practical Applications**:
+- **Data Augmentation**: Generate class-specific training examples
+- **Content Creation**: Controlled generation for creative applications
+- **Semi-supervised Learning**: Leverage both labeled and unlabeled data
+
+---
+
+## 12.2 Vector Quantized Variational Autoencoders (VQ-VAEs)
+
+**Vector Quantized Variational Autoencoders (VQ-VAEs)** replace the continuous latent space with a **discrete codebook**, enabling the model to learn discrete latent representations instead of continuous ones.
+
+### 12.2.1 The Discrete Latent Space
+
+Unlike standard VAEs that use continuous Gaussian distributions, VQ-VAEs use:
+
+- **Discrete Latent Variables**: Instead of sampling from $\mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\sigma}^2)$, we select from a finite set of vectors
+- **Codebook**: A learned dictionary $\mathbf{E} = \{\mathbf{e}_1, \mathbf{e}_2, ..., \mathbf{e}_K\}$ of $K$ embedding vectors, each of dimension $d$
+- **Quantization**: The encoder output is mapped to the nearest codebook vector
+
+### 12.2.2 Architecture Overview
+
+**Encoder**: Maps input $\mathbf{x}$ to continuous output $\mathbf{z}_e$ (same as standard VAE encoder)
+
+**Vector Quantization (VQ) Layer**: 
+1. Reshape encoder output $\mathbf{z}_e$ into vectors: $(n \times h \times w, d)$
+2. For each vector, find the nearest codebook entry:
+   $$
+   \mathbf{z}_q = \mathbf{e}_k \text{ where } k = \arg\min_j \|\mathbf{z}_e - \mathbf{e}_j\|^2
+   $$
+3. Reshape quantized vectors back to spatial dimensions
+
+**Decoder**: Reconstructs from quantized codes $\mathbf{z}_q$
+
+### 12.2.3 The Challenge: Differentiability
+
+The quantization step (argmin) is not differentiable, preventing gradient flow. VQ-VAE solves this with the **straight-through estimator**:
+
+- **Forward pass**: Use quantized codes $\mathbf{z}_q$ for decoding
+- **Backward pass**: Copy gradients from $\mathbf{z}_q$ directly to $\mathbf{z}_e$, bypassing the quantization step
+
+This allows training while effectively treating quantization as an identity function during backpropagation.
+
+### 12.2.4 Loss Function
+
+VQ-VAE uses three loss components:
+
+**1. Reconstruction Loss**:
+$$
+\mathcal{L}_{\text{recon}} = -\log p(\mathbf{x}|\mathbf{z}_q)
+$$
+
+**2. Codebook Loss** (Vector Quantization Loss):
+$$
+\mathcal{L}_{\text{codebook}} = \|\text{sg}[\mathbf{z}_e] - \mathbf{e}_k\|^2
+$$
+where $\text{sg}[\cdot]$ is the stop-gradient operator. This moves codebook vectors toward encoder outputs.
+
+**3. Commitment Loss**:
+$$
+\mathcal{L}_{\text{commit}} = \beta \|\mathbf{z}_e - \text{sg}[\mathbf{z}_q]\|^2
+$$
+where $\beta$ is a hyperparameter (typically 0.25). This prevents the encoder from growing unboundedly by encouraging it to commit to codebook vectors.
+
+**Total Loss**:
+$$
+\mathcal{L}_{\text{VQ-VAE}} = \mathcal{L}_{\text{recon}} + \mathcal{L}_{\text{codebook}} + \mathcal{L}_{\text{commit}}
+$$
+
+### 12.2.5 Why VQ-VAEs Matter
+
+**Discrete Representations**: Many real-world concepts are inherently discrete (categories, objects, words). VQ-VAEs capture these naturally without forcing continuous interpolation.
+
+**Posterior Collapse Mitigation**: Standard VAEs can suffer from posterior collapse where the decoder ignores the latent code. VQ-VAEs' discrete bottleneck forces meaningful use of the latent space.
+
+**Hierarchical Modeling**: VQ-VAEs enable multi-scale discrete representations, useful for modeling complex structures (e.g., images at multiple resolutions).
+
+**Applications**:
+- **High-Quality Image Generation**: VQ-VAE-2 achieves state-of-the-art results
+- **Audio Generation**: Discrete tokens are natural for audio codecs
+- **Language Modeling**: Can be combined with autoregressive models for text generation
+- **Foundation Models**: VQ-VAE components appear in models like DALL·E
+
+### 12.2.6 Connection to Autoregressive Models
+
+VQ-VAEs are often combined with autoregressive models (e.g., Transformers) to model the discrete latent sequence:
+
+1. **VQ-VAE** learns to compress data into discrete tokens
+2. **Autoregressive Model** learns the distribution over these tokens: $p(\mathbf{z}_q)$
+3. **Generation**: Sample tokens autoregressively, then decode with VQ-VAE decoder
+
+This two-stage approach separates representation learning (VQ-VAE) from generation modeling (autoregressive model), enabling both high-quality compression and powerful generation.
+
+---
+
+## 13. Why VAEs Matter
 
 | Aspect | VAEs |
 |--------|------|
@@ -438,5 +584,9 @@ Contemporary approaches blend VAEs and diffusion for improved generation quality
 - **ELBO = reconstruction + KL divergence** guides training.
 - A continuous latent space supports interpolation and generation.
 
-From compression to creation, VAEs show how adding probability to neural networks enables generation from learned structure.
+**Extensions**:
+- **CVAEs** enable conditional generation by incorporating additional information (labels, attributes) into both encoder and decoder.
+- **VQ-VAEs** use discrete codebooks instead of continuous distributions, capturing inherently discrete concepts and mitigating posterior collapse.
+
+From compression to creation, VAEs show how adding probability to neural networks enables generation from learned structure. Their extensions—conditional and discrete variants—expand the framework's applicability to controlled generation and hierarchical modeling.
 
