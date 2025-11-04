@@ -135,19 +135,19 @@ The reparameterization trick isolates randomness as an external input, enabling 
 
 ```mermaid
 graph TD
-    A[Encoder Output] --> A1["Mean μ"]
-    A[Encoder Output] --> A2["Log-Variance log(σ²)"];
+    A[Encoder Output] --> A1[Mean μ]
+    A[Encoder Output] --> A2[Log-Variance log sigma²]
 
-    A2 --> B["Compute σ = exp(0.5 × log(σ²))"];
+    A2 --> B[Compute σ = exp 0.5 × log sigma²]
     
-    C["ε ~ N(0, I)"] --> D["Multiplication: σ ⊙ ε"];
+    C[ε ~ N 0 I] --> D[Multiplication σ ⊙ ε]
     
-    A1 --> E["Addition: μ + (σ ⊙ ε)"];
-    D --> E;
+    A1 --> E[Addition μ + σ ⊙ ε]
+    D --> E
     
-    E --> F["Latent Code z (Differentiable)"];
-    style C fill:#cfa,stroke:#333,stroke-width:2px;
-    style F fill:#f99,stroke:#333,stroke-width:2px;
+    E --> F[Latent Code z Differentiable]
+    style C fill:#cfa,stroke:#333,stroke-width:2px
+    style F fill:#f99,stroke:#333,stroke-width:2px
 ```
 
 This diagram shows how the random noise ($\boldsymbol{\varepsilon}$, node C) is an external, fixed input, making it clear that gradients can flow back through the network's trainable parameters ($\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$) at the final step (E).
@@ -303,18 +303,18 @@ This "tug-of-war" creates a balance: the reconstruction term wants perfect fidel
 
 ```mermaid
 graph TD
-    A[Minimize VAE Loss] -->|Goal: Learn Data Distribution| B(Evidence Lower Bound -ELBO);
+    A[Minimize VAE Loss] -->|Goal: Learn Data Distribution| B(Evidence Lower Bound ELBO)
 
-    B --> C["1. Reconstruction Loss: L_recon"];
-    B --> D["2. Regularization Loss: D_KL"];
+    B --> C[1. Reconstruction Loss L_recon]
+    B --> D[2. Regularization Loss D_KL]
 
-    C --> C1["Metric: -E[log p(X|Z)] or MSE"];
-    C --> C2["Intuition: Fidelity - Make X-hat look like X"];
-    D --> D1["Metric: D_KL(q(Z|X) || p(Z))"];
-    D --> D2["Intuition: Structure - Force Z to be a smooth Gaussian"];
+    C --> C1[Metric -E log p X Z or MSE]
+    C --> C2[Intuition Fidelity Make X-hat look like X]
+    D --> D1[Metric D_KL q Z X p Z]
+    D --> D2[Intuition Structure Force Z to be smooth Gaussian]
 
-    style C fill:#bbf,stroke:#333;
-    style D fill:#ffb,stroke:#333;
+    style C fill:#bbf,stroke:#333
+    style D fill:#ffb,stroke:#333
 ```
 
 This diagram clearly links the two mathematical components to their underlying **intuitive goals** (Fidelity vs. Structure), which is essential for both high-schoolers and math students.
@@ -453,7 +453,7 @@ The latent space organizes data into a continuous, structured representation. He
 
 ```mermaid
 graph LR
-    subgraph "Latent Space Z (2D for MNIST)"
+    subgraph Latent["Latent Space Z 2D for MNIST"]
         A[Digit 0 Cluster] --> B[Digit 1 Cluster]
         B --> C[Digit 2 Cluster]
         C --> D[...]
@@ -462,16 +462,16 @@ graph LR
         F -.->|Smooth Transition| E
     end
     
-    subgraph "Data Space X"
-        A1[Image: 0] --> E1[Image: 9]
+    subgraph Data["Data Space X"]
+        A1[Image 0] --> E1[Image 9]
     end
     
     A -.->|Decode| A1
     E -.->|Decode| E1
     F -.->|Decode| F1[Morphing Sequence]
     
-    style F fill:#cfc,stroke:#333,stroke-width:2px;
-    style F1 fill:#cfc,stroke:#333,stroke-width:2px;
+    style F fill:#cfc,stroke:#333,stroke-width:2px
+    style F1 fill:#cfc,stroke:#333,stroke-width:2px
 ```
 
 This 2D concept map shows how clusters of data (e.g., MNIST digits 0-9) are organized in latent space, with smooth interpolation paths between them. The continuous nature means any point you sample yields a meaningful result, enabling generation.
