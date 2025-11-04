@@ -31,6 +31,16 @@ Diffusion is everywhere: in heat conduction, chemical reactions, and molecular m
 It is a process of **information loss** — sharp details and differences blur over time.  
 Think of copying a high-quality song to a noisy cassette tape: each copy degrades further until you're left with hiss.
 
+### 1.1 The Problem of Time Reversal
+
+Solving the heat equation *forward* in time is straightforward: given an initial state, we can predict how temperature or concentration will spread. But what if we want to go **backwards** — to recover the original state from a blurred, diffused one?
+
+This is an **ill-posed problem** in classical mathematics. Small errors in the final state explode exponentially when propagated backwards, making it computationally unstable. The AI's job — learning to reverse diffusion — is essentially finding a way to stabilize this reverse process through probabilistic reasoning.
+
+Instead of trying to solve the deterministic heat equation backwards (which fails), diffusion models use **probability distributions** over possible solutions. By learning the gradient of the log-probability (the score function), the model navigates through a space of plausible reconstructions, finding stable paths that lead from noise back to structured data.
+
+This represents a computational breakthrough: solving a classically ill-posed physics problem by reframing it probabilistically.
+
 ---
 
 ## 2. Reverse Diffusion: Turning Noise Into Structure
@@ -39,7 +49,10 @@ Diffusion models sit at the intersection of physics and probability — a class 
 Instead of directly modeling $p(x)$ (the probability of an image, molecule, or signal), they simulate how data gradually dissolves into noise, then learn to reverse it to recover samples from $p(x)$.
 
 Mathematically, diffusion models learn the **score function** $\nabla_x \log p_t(x)$ — the gradient of the log-probability at a noisy timestep $t$.  
-By estimating this direction toward higher likelihood, the model learns how to move random noise toward regions of higher data density, effectively learning the entire probability distribution.
+
+Think of the score function as a **"Probability Compass"**: at any noisy state, it points in the direction that moves toward higher probability regions (regions with more real data). It's not a complicated formula the model memorizes, but a simple instruction: *In this noisy state, which direction should I move to get closer to a real piece of data?*
+
+This compass works at *every* level of noise, creating a smooth path from static to structure. By following this compass step-by-step, the model learns how to move random noise toward regions of higher data density, effectively learning the entire probability distribution.
 
 This positions diffusion within the broader family of generative models:
 - **VAEs** approximate $p(x|z)$ through latent variable inference
@@ -74,6 +87,21 @@ Conceptually:
 > **Forward diffusion destroys information; reverse diffusion reconstructs it.**
 
 That reconstruction is what enables diffusion models to *generate* images, sounds, or molecular structures from scratch.
+
+### 2.1 The Neural Network Architecture: The U-Net
+
+The neural network at the heart of diffusion models is typically a **U-Net** — an architecture shaped like an hourglass. Why this specific design?
+
+**The Multiscale Challenge**: To remove noise accurately, the network needs to:
+1. See the **big picture** (e.g., "is this a cat or a car?") — requiring compression through downsampling layers
+2. Preserve **fine details** (the high-frequency noise patterns) — requiring skip connections that bypass the compression
+
+**The U-Net Solution**: 
+- **Downsampling path (encoder)**: Compresses the image to capture high-level structure
+- **Upsampling path (decoder)**: Reconstructs the image at full resolution
+- **Skip connections**: Carry fine-grained details directly from encoder to decoder, ensuring the network can handle information at all scales simultaneously
+
+This structural design is what allows the model to identify global structure while accurately removing noise pixel-by-pixel. Without skip connections, the network would lose high-frequency details during compression; without downsampling, it couldn't capture the semantic content needed to guide denoising.
 
 ---
 
@@ -241,11 +269,57 @@ The reverse diffusion then follows another SDE with an extra term that points to
 Guidance simply modifies this score, adding an extra gradient that shifts the flow toward samples consistent with the desired condition.  
 Intuitively, every denoising step becomes a small, directed move through probability space.
 
+### 4.1 Continuous vs. Discrete Math: A Unifying Framework
+
+The shift from discrete steps (DDPM) to the continuous **Stochastic Differential Equation (SDE)** view showcases the unifying power of mathematics.
+
+**Discrete View (DDPM)**: The forward process adds noise in discrete steps:
+$$
+x_t = \sqrt{\alpha_t} x_0 + \sqrt{1-\alpha_t} \epsilon
+$$
+
+**Continuous View (SDE)**: The same process can be written as a continuous stochastic differential equation:
+$$
+dx = f(x, t) dt + g(t) dW
+$$
+where $dW$ represents Brownian motion (continuous random noise).
+
+**The Unification**: Different diffusion model formulations (DDPM, NCSN, Score SDE) are actually just **different discretizations** of the same underlying SDE. This is a common pattern in advanced physics and math research — showing that seemingly different approaches are unified by a deeper mathematical structure.
+
+The continuous perspective provides:
+- **Theoretical clarity**: Understanding the fundamental process
+- **Flexibility**: Enabling new sampling algorithms (like DDIM) that weren't obvious in the discrete view
+- **Mathematical elegance**: Connecting diffusion models to well-studied stochastic processes in physics and finance
+
 ---
 
-## 5. Applications
+## 5. The Speed Challenge: DDIM's Deterministic Shortcut
 
-### 5.1 Vision and Text-to-Image
+The slowest part of diffusion models is the hundreds of sequential steps required for generation. Each step depends on the previous one *and* introduces new randomness (a **Markovian** process), making parallelization impossible.
+
+**The Problem**: DDPM requires 100-1000 steps because:
+- Each step is **stochastic** (random sampling)
+- Steps are **sequential** (can't parallelize)
+- Small steps are needed for stability
+
+**The Solution: DDIM (Denoising Diffusion Implicit Models)**
+
+DDIM's key innovation is a **non-Markovian** forward process. Instead of taking 1,000 tiny, random, dependent steps to climb a hill, DDIM allows the model to take 50 huge, **deterministic** leaps.
+
+**How it works**: DDIM reimagines the diffusion process so that:
+- The forward process is **deterministic** (no randomness needed)
+- Steps can be **larger** (fewer total steps)
+- The process remains **stable** (doesn't explode)
+
+**The Mathematical Insight**: By making the forward process non-Markovian, we can skip steps during reverse diffusion. The model learns the same score function, but we use it more efficiently — taking bigger jumps along the probability gradient.
+
+**Result**: 10-20× speedup with minimal quality loss. This is a perfect example of mathematical optimization in action — understanding the underlying structure allows us to redesign the algorithm for efficiency.
+
+---
+
+## 6. Applications
+
+### 6.1 Vision and Text-to-Image
 
 Models like **Stable Diffusion** and **Imagen** bring together the concepts we've discussed: classifier-free guidance, text embeddings, and latent diffusion.
 
@@ -258,14 +332,14 @@ Instead of operating on pixels ($512 \times 512$ ≈ 262,000 values), we compres
 Diffusion (noising and denoising) runs in this smaller space; the autoencoder decodes the final result back to full resolution.  
 This yields ~65× compute savings, enabling fast, high-quality generation.
 
-### 5.2 Robotics and Planning
+### 6.2 Robotics and Planning
 
 In robotics, diffusion models generate *trajectories* rather than images.  
 Each trajectory represents a sequence of robot actions or positions.  
 By denoising noisy trajectories, models like **Diffusion Policy** produce smooth, physically consistent motions.  
 At Zoox, **Scenario Diffusion** uses the same principle to generate rare but safety-critical driving situations for simulation and planning.
 
-### 5.3 Biology and Molecular Design
+### 6.3 Biology and Molecular Design
 
 In biology, the “data” consists of 3D protein structures.  
 **RFdiffusion** from the Baker Lab learns how real proteins vary under noise, then reverses that process to create new stable folds.  
@@ -273,7 +347,31 @@ It treats atoms like pixels — denoising random coordinates into functional mol
 
 ---
 
-## 6. Why Diffusion Matters
+## 7. Diffusion as a Unifying Framework
+
+The fact that the same mathematical framework generates lifelike images, folds stable proteins (**RFDiffusion**), and dictates robot actions (**Diffusion Policy**) suggests something profound: the *rules of structure and disorder* appear universal across physics, chemistry, and computation.
+
+**Across Domains**:
+- **Images**: Denoising pixels to reveal visual structure
+- **Proteins**: Denoising atomic coordinates to reveal functional molecular shapes
+- **Robotics**: Denoising trajectories to reveal physically plausible motions
+- **Audio**: Denoising waveforms to reveal musical structure
+
+This universality positions AI not just as a tool for generating content, but as a method for exploring fundamental scientific laws. The diffusion framework reveals that the process of creating order from randomness follows similar mathematical principles whether we're working with quantum particles, neural networks, or robot joints.
+
+**The Power of Conditional Control**
+
+Classifier-Free Guidance can be understood as a form of **Mathematical Causality**. The prompt ($y$) is a constraint, and the guidance strength ($w$) is a dial that mathematically controls how much the model *deviates from its learned reality* to satisfy that constraint.
+
+This is powerful because it provides a controllable way to manage the trade-off between:
+- **Realism**: Following the learned data distribution ($p(x_0)$)
+- **Goal-Driven Generation**: Satisfying the specific condition ($p(y|x_0)$)
+
+By adjusting $w$, we can dial in exactly how much we want to prioritize the prompt versus general plausibility. This mathematical control over generation is what enables applications from creative art to scientific discovery — we can guide the model toward specific goals while maintaining fidelity to the underlying distribution.
+
+---
+
+## 8. Why Diffusion Matters
 
 | Aspect | Diffusion Models | Guided Diffusion |
 |--------|------------------|------------------|
@@ -290,7 +388,7 @@ Diffusion models stand out for three main reasons:
 
 ---
 
-## 7. Summary
+## 9. Summary
 
 - **Diffusion** describes how randomness spreads — in physics, it smooths out differences.  
 - **Reverse diffusion** teaches AI systems to go the other way — turning noise into order.  
