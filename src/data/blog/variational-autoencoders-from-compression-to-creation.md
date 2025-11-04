@@ -138,11 +138,11 @@ graph TD
     A[Encoder Output] --> A1[Mean μ]
     A[Encoder Output] --> A2[Log-Variance log sigma²]
 
-    A2 --> B[Compute σ = exp 0.5 × log sigma²]
+    A2 --> B[Compute σ Std Dev]
     
-    C[ε ~ N 0 I] --> D[Multiplication σ ⊙ ε]
+    C[Random Noise ε ~ N 0 I] --> D[Scaling σ · ε]
     
-    A1 --> E[Addition μ + σ ⊙ ε]
+    A1 --> E[Addition μ + σ · ε]
     D --> E
     
     E --> F[Latent Code z Differentiable]
