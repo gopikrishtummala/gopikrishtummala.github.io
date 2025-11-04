@@ -286,3 +286,78 @@ const nextPost =
     window.scrollTo({ left: 0, top: 0, behavior: "instant" })
   );
 </script>
+
+<script is:inline>
+  /** Load and initialize Mermaid diagrams */
+  (function() {
+    // Load Mermaid from CDN
+    if (typeof window.mermaid === "undefined") {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
+      script.onload = initializeMermaid;
+      document.head.appendChild(script);
+    } else {
+      initializeMermaid();
+    }
+
+    function initializeMermaid() {
+      // Wait for mermaid to be available
+      if (typeof window.mermaid === "undefined") {
+        setTimeout(initializeMermaid, 100);
+        return;
+      }
+
+      // Configure Mermaid theme based on current color scheme
+      const isDark = document.documentElement.classList.contains("dark");
+      
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? "dark" : "default",
+        themeVariables: {
+          fontFamily: "inherit",
+          fontSize: "16px",
+        },
+        securityLevel: "loose",
+      });
+
+      // Find all code blocks with language "mermaid"
+      const mermaidBlocks = document.querySelectorAll("pre code.language-mermaid");
+      
+      mermaidBlocks.forEach((block, index) => {
+        const mermaidCode = block.textContent || "";
+        const id = `mermaid-${index}-${Date.now()}`;
+        
+        // Create a new div for Mermaid to render into
+        const mermaidDiv = document.createElement("div");
+        mermaidDiv.className = "mermaid";
+        mermaidDiv.id = id;
+        mermaidDiv.textContent = mermaidCode;
+        
+        // Replace the code block with the Mermaid div
+        const preElement = block.parentElement;
+        if (preElement) {
+          preElement.replaceWith(mermaidDiv);
+        }
+      });
+
+      // Render all Mermaid diagrams
+      if (window.mermaid && window.mermaid.run) {
+        window.mermaid.run();
+      }
+    }
+
+    // Initialize on page load
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function() {
+        if (window.mermaid) initializeMermaid();
+      });
+    }
+
+    // Re-initialize after Astro page swaps (for client-side navigation)
+    document.addEventListener("astro:page-load", function() {
+      setTimeout(function() {
+        if (window.mermaid) initializeMermaid();
+      }, 100);
+    });
+  })();
+</script>

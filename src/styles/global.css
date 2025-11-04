@@ -67,3 +67,22 @@ html[data-theme="dark"] {
 :target {
   scroll-margin-block: 1rem;
 }
+
+/* Mermaid diagram styling */
+.mermaid {
+  @apply my-6 flex justify-center overflow-x-auto;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid svg {
+  @apply max-w-full;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure Mermaid diagrams work well in prose */
+.prose .mermaid {
+  @apply mx-auto my-6;
+  width: 100%;
+}
