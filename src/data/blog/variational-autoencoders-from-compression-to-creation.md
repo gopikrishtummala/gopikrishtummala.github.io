@@ -78,23 +78,6 @@ $$
 
 The Gaussian assumption means: given an input $\mathbf{x}$, our encoder believes the hidden code $\mathbf{z}$ is likely to lie near $\boldsymbol{\mu}(\mathbf{x})$, but not exactly — there's some uncertainty $\boldsymbol{\sigma}(\mathbf{x})$.
 
-### 3.1 VAE Architecture Overview
-
-The VAE architecture flows from input data through probabilistic encoding to reconstruction:
-
-```mermaid
-graph TD
-    A[Input X] --> B[Encoder]
-    B --> C[Latent Space Z]
-    C --> D[Sample z]
-    D --> E[Decoder]
-    E --> F[Output X]
-    style C fill:#ccf,stroke:#333,stroke-width:2px
-    style D fill:#f99,stroke:#333,stroke-width:2px
-```
-
-This visualization emphasizes the transition from a **deterministic** input (A) to a **probabilistic** representation (C) and highlights the **Sampling** step (D) as the core difference from a standard Autoencoder.
-
 ---
 
 ## 4. Sampling with the Reparameterization Trick
@@ -128,25 +111,6 @@ The randomness $\boldsymbol{\varepsilon}$ is external; gradients now flow throug
 **An intuitive analogy**:  
 Imagine a painter: if it draws the same picture every time, it isn't creative.  
 Controlled randomness adds exploration without losing structure.
-
-### 4.1 Visualizing the Reparameterization Trick
-
-The reparameterization trick isolates randomness as an external input, enabling gradient flow:
-
-```mermaid
-graph TD
-    A[Encoder] --> B[Mean μ]
-    A --> C[Variance σ²]
-    C --> D[Compute σ]
-    E[Noise ε] --> F[Scale σ·ε]
-    D --> F
-    B --> G[z = μ + σ·ε]
-    F --> G
-    style E fill:#cfa,stroke:#333,stroke-width:2px
-    style G fill:#f99,stroke:#333,stroke-width:2px
-```
-
-This diagram shows how the random noise ($\boldsymbol{\varepsilon}$, node C) is an external, fixed input, making it clear that gradients can flow back through the network's trainable parameters ($\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$) at the final step (E).
 
 ---
 
@@ -297,18 +261,6 @@ Before diving into the mathematical derivation, it's helpful to understand the i
 
 This "tug-of-war" creates a balance: the reconstruction term wants perfect fidelity (spreading codes apart), while the KL term wants perfect organization (clustering codes together). The optimal solution lies somewhere in between — good enough reconstruction with a well-structured latent space.
 
-```mermaid
-graph TD
-    A[VAE Loss] --> B[Reconstruction Loss]
-    A --> C[KL Divergence]
-    B --> D[Fidelity]
-    C --> E[Structure]
-    style B fill:#bbf,stroke:#333
-    style C fill:#ffb,stroke:#333
-```
-
-This diagram clearly links the two mathematical components to their underlying **intuitive goals** (Fidelity vs. Structure), which is essential for both high-schoolers and math students.
-
 ### 7.1 Step 1: Rewriting the Log-Likelihood
 
 The initial expression for the log-likelihood of a data point $\mathbf{x}$ is given by:
@@ -436,25 +388,6 @@ Linear interpolation in latent space produces smooth transitions in data space.
 - $\boldsymbol{\mu}_2$: controls stroke thickness
 
 You can walk through latent space and watch digits morph.
-
-### 9.1 Visualizing Latent Space as a Concept Map
-
-The latent space organizes data into a continuous, structured representation. Here's a conceptual visualization:
-
-```mermaid
-graph LR
-    A[Digit 0] --> B[Digit 1]
-    B --> C[Digit 2]
-    C --> D[...]
-    D --> E[Digit 9]
-    F[Interpolation] -.->|Smooth| A
-    F -.->|Smooth| E
-    A -.->|Decode| G[Image 0]
-    E -.->|Decode| H[Image 9]
-    style F fill:#cfc,stroke:#333,stroke-width:2px
-```
-
-This 2D concept map shows how clusters of data (e.g., MNIST digits 0-9) are organized in latent space, with smooth interpolation paths between them. The continuous nature means any point you sample yields a meaningful result, enabling generation.
 
 ---
 
