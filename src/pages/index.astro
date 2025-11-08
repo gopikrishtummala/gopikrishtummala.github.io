@@ -22,57 +22,75 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 
 <Layout>
   <Header />
-  <main id="main-content" data-layout="index">
-    <section id="hero" class="pt-8 pb-6">
-      <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        Welcome
-      </h1>
-      <a
-        target="_blank"
-        href="/rss.xml"
-        class="inline-block"
-        aria-label="rss feed"
-        title="RSS Feed"
-      >
-        <IconRss
-          width={20}
-          height={20}
-          class="scale-125 stroke-accent stroke-3 rtl:-rotate-90"
-        />
-        <span class="sr-only">RSS Feed</span>
-      </a>
-
-      <p>
-        I'm a Senior Machine Learning Engineer at Adobe with 10+ years of experience 
-        designing algorithms, training ML models, and building large-scale systems for 
-        autonomous vehicles and generative AI. I hold a Ph.D. in Computer Science from 
-        The Ohio State University and have published extensively at top-tier conferences 
-        with multiple best paper awards.
-      </p>
-      <p class="mt-2">
-        Learn more about my
-        <LinkButton
-          class="underline decoration-dashed underline-offset-4 hover:text-accent"
-          href="/about"
-        >
-          background
-        </LinkButton> or explore my 
-        <LinkButton
-          class="underline decoration-dashed underline-offset-4 hover:text-accent"
-          href="/posts"
-        >
-          research and publications
-        </LinkButton>.
-      </p>
-      {
-        // only display if at least one social link is enabled
-        SOCIALS.length > 0 && (
-          <div class="mt-4 flex flex-col sm:flex-row sm:items-center">
-            <div class="me-2 mb-1 whitespace-nowrap sm:mb-0">Social Links:</div>
-            <Socials />
+  <main
+    id="main-content"
+    data-layout="index"
+    class="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8"
+  >
+    <section
+      id="hero"
+      class="relative overflow-hidden rounded-4xl border border-white/40 bg-white/80 px-6 py-12 shadow-[var(--shadow-xl-soft)] backdrop-blur-xl sm:px-12 sm:py-16 dark:border-slate-700/40 dark:bg-slate-900/70"
+    >
+      <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/20 via-transparent to-transparent opacity-90" />
+      <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div class="max-w-2xl space-y-6">
+          <div class="inline-flex items-center gap-3 rounded-full border border-white/50 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-secondary-foreground shadow-sm dark:border-slate-700/40 dark:bg-slate-900/60">
+            {SITE.title}
+            <span class="hidden sm:inline">• Senior ML Engineer</span>
+            <a
+              target="_blank"
+              href="/rss.xml"
+              class="inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent transition hover:bg-accent/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+              aria-label="rss feed"
+              title="RSS Feed"
+            >
+              <IconRss width={16} height={16} class="rtl:-rotate-90" />
+              <span class="sr-only">RSS Feed</span>
+            </a>
           </div>
-        )
-      }
+          <h1 class="text-4xl font-semibold leading-tight sm:text-5xl">
+            <span class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+              Building intelligent systems with clarity.
+            </span>
+          </h1>
+          <p class="text-base leading-relaxed text-secondary-foreground sm:text-lg">
+            I'm a Senior Machine Learning Engineer at Adobe with more than a decade of experience designing algorithms, training ML models, and shipping large-scale systems for autonomous vehicles and generative AI. I hold a Ph.D. in Computer Science from The Ohio State University and have authored award-winning research across sensing, perception, and behavior prediction.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <LinkButton href="/about">About My Work</LinkButton>
+            <LinkButton href="/posts" class="border-transparent bg-accent text-white shadow-[0_20px_45px_-18px_rgba(59,130,246,0.65)] hover:text-white dark:bg-accent dark:text-slate-900 dark:hover:text-slate-900">
+              Research & Publications
+              <IconArrowRight class="inline-block rtl:-rotate-180" />
+            </LinkButton>
+          </div>
+          {
+            SOCIALS.length > 0 && (
+              <div class="flex w-full max-w-sm flex-col gap-3 rounded-3xl border border-white/40 bg-white/70 p-5 text-sm text-secondary-foreground shadow-sm backdrop-blur-lg dark:border-slate-700/40 dark:bg-slate-900/70">
+                <h2 class="text-xs font-semibold uppercase tracking-[0.24em] text-secondary-foreground/80">
+                  Connect
+                </h2>
+                <Socials centered />
+              </div>
+            )
+          }
+        </div>
+        <div class="mx-auto flex flex-col items-center gap-4">
+          <div class="relative">
+            <div class="absolute inset-0 -translate-y-2 animate-[pulse_6s_ease-in-out_infinite] rounded-full bg-gradient-to-tr from-sky-500/25 via-purple-500/30 to-transparent blur-2xl" />
+            <div class="relative h-48 w-48 overflow-hidden rounded-full border border-white/70 bg-white/60 shadow-[0_40px_90px_-40px_rgba(15,23,42,0.65)] transition hover:shadow-[0_45px_95px_-45px_rgba(56,189,248,0.75)] sm:h-60 sm:w-60 lg:h-64 lg:w-64">
+              <img
+                src="/gokul.jpg"
+                alt="Portrait of Gopi Krishna Tummala"
+                class="h-full w-full object-cover object-center"
+              />
+              <div class="absolute inset-0 rounded-full border border-white/70" />
+            </div>
+          </div>
+          <div class="rounded-full border border-white/30 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-secondary-foreground dark:border-slate-700/40 dark:bg-slate-900/70">
+            Always learning
+          </div>
+        </div>
+      </div>
     </section>
 
     <Hr />
@@ -80,9 +98,15 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
     {
       featuredPosts.length > 0 && (
         <>
-          <section id="featured" class="pt-12 pb-6">
-            <h2 class="text-2xl font-semibold tracking-wide">Featured</h2>
-            <ul>
+          <section id="featured" class="pt-16">
+            <h2 class="text-2xl font-semibold tracking-wide text-foreground sm:text-3xl">
+              Featured work
+            </h2>
+            <p class="mt-2 max-w-3xl text-sm text-secondary-foreground sm:text-base">
+              A curated selection of recent publications and projects that explore robust perception,
+              generative modeling, and multi-agent systems at scale.
+            </p>
+            <ul class="mt-8 grid gap-6 md:grid-cols-2">
               {featuredPosts.map(data => (
                 <Card variant="h3" {...data} />
               ))}
@@ -95,9 +119,17 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 
     {
       recentPosts.length > 0 && (
-        <section id="recent-posts" class="pt-12 pb-6">
-          <h2 class="text-2xl font-semibold tracking-wide">Recent Posts</h2>
-          <ul>
+        <section id="recent-posts" class="pt-16">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <h2 class="text-2xl font-semibold tracking-wide text-foreground sm:text-3xl">
+              Recent writing
+            </h2>
+            <LinkButton href="/posts">
+              View all posts
+              <IconArrowRight class="inline-block rtl:-rotate-180" />
+            </LinkButton>
+          </div>
+          <ul class="mt-8 grid gap-6 md:grid-cols-2">
             {recentPosts.map(
               (data, index) =>
                 index < SITE.postPerIndex && <Card variant="h3" {...data} />
@@ -106,13 +138,6 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
         </section>
       )
     }
-
-    <div class="my-8 text-center">
-      <LinkButton href="/posts/">
-        All Posts
-        <IconArrowRight class="inline-block rtl:-rotate-180" />
-      </LinkButton>
-    </div>
   </main>
   <Footer />
 </Layout>

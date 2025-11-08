@@ -38,25 +38,25 @@ If you haven’t yet, read Part I to see how the data stack keeps models fed; th
 ## Part II — Training Frameworks: How Models Actually Learn
 
 So you’ve got clean data streaming in — now what?
-The next job is to **teach** the model using those examples. This happens inside a *training loop*.
+The next job is to **teach** the model using those examples. This occurs within a *training loop*.
 
 ---
 
 ### 🌀 1. The Heart of Training: `model.train()`
 
-At its core, training is a simple three-step dance:
+At its core, the training loop follows a five-step process:
 
 ```python
 for batch in dataloader:
     optimizer.zero_grad()          # 1️⃣ clear old updates
     outputs = model(batch)         # 2️⃣ make predictions
     loss = loss_fn(outputs, batch.labels)  # 3️⃣ measure how wrong
-    loss.backward()                # 4️⃣ find which weights caused errors
+    loss.backward()                # 4️⃣ calculate which weights caused errors
     optimizer.step()               # 5️⃣ nudge them in the right direction
 ```
 
 This repeats thousands of times until the model’s guesses improve.
-The “backward” step uses **automatic differentiation** — a bit of calculus that finds how each weight affects the error.
+The “backward” step uses **automatic differentiation**—a bit of calculus that calculates how each weight affects the error.
 
 ---
 
@@ -70,7 +70,7 @@ The “backward” step uses **automatic differentiation** — a bit of calculus
 
 Best for researchers and anyone who wants to *tinker*.
 
-#### 🔬 **TensorFlow — Built for Production**
+#### 🔬 **TensorFlow: Built for Production**
 
 * Turns code into **graphs** that can run fast on GPUs and TPUs.
 * The `tf.data` system streams data efficiently.
@@ -103,12 +103,11 @@ It takes care of connecting machines, restarting failed workers, and sharing dat
 
 #### **Data Parallelism**
 
-Each GPU gets a different mini-batch of data.
-They all:
+Each GPU receives a different mini-batch of data. They then perform the following steps:
 
-1. Run forward/backward passes
-2. Share (average) their gradients
-3. Update their own copy of the model
+1. **Run** forward/backward passes
+2. **Share** (average) their gradients
+3. **Update** their own model copy
 
 It’s like multiple students studying different pages of a textbook, then comparing notes.
 
@@ -131,10 +130,7 @@ It’s efficient and reliable — the workhorse of today’s training clusters.
 ### 💡 4. When Models Don’t Fit — FSDP and ZeRO
 
 Big models (billions of parameters) can’t fit into one GPU’s memory.
-Solutions like **FSDP** and **DeepSpeed ZeRO** *split* the model:
-
-* Each GPU stores only a **slice** of weights and gradients.
-* Together they act like one giant virtual GPU.
+Solutions like **FSDP** and **DeepSpeed ZeRO** *split* the model, allowing each GPU to store only a **slice** of weights and gradients. Together, they act like one giant virtual GPU.
 
 This makes it possible to train models that would otherwise be too large — even on regular hardware.
 
@@ -189,7 +185,7 @@ When you run training on **hundreds of GPUs**, not everything goes smoothly:
 * Machines crash.
 * Network connections drop.
 * Spot instances disappear.
-* A power blip can end a week of progress.
+* A power blip can halt a week of progress.
 
 Resilience systems exist so you **don’t lose work** when that happens.
 
@@ -239,7 +235,7 @@ This keeps training stable even when the network isn’t perfect.
 Some orchestration layers (like **Ray**, **TorchElastic**, and **Kubernetes Jobs**) can **add or remove workers on the fly**.
 If a GPU drops out, others continue; when a new one joins, it syncs up automatically.
 
-It’s like a relay race where teammates can swap mid-run without losing the baton.
+It’s like a relay race where teammates can swap mid-run without dropping the baton.
 
 ---
 
@@ -252,8 +248,7 @@ Without robust systems:
 * Faults waste compute.
 * Models never finish training.
 
-When these layers work together — data, training, and resilience — they form the **hidden engine of AI**:
-A pipeline that feeds, scales, and survives.
+When these layers—data, training, and resilience—work together, they form the **hidden engine of AI**: a pipeline that feeds, scales, and survives.
 
 ---
 

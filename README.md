@@ -68,5 +68,3 @@ The site is automatically deployed to GitHub Pages via GitHub Actions when chang
 - **Patents**: Multiple granted patents in camera calibration and behavior prediction
 
 ---
-
-Built with AstroPaper theme by [Sat Naing](https://satnaing.dev)
