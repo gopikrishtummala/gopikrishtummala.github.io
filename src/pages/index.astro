@@ -34,19 +34,6 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
       <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/20 via-transparent to-transparent opacity-90" />
       <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div class="max-w-2xl space-y-6">
-          <div class="inline-flex items-center gap-3 rounded-full border border-white/50 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-secondary-foreground shadow-sm dark:border-slate-700/40 dark:bg-slate-900/60">
-            AI/ML Engineer
-            <a
-              target="_blank"
-              href="/rss.xml"
-              class="inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent transition hover:bg-accent/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-              aria-label="rss feed"
-              title="RSS Feed"
-            >
-              <IconRss width={16} height={16} class="rtl:-rotate-90" />
-              <span class="sr-only">RSS Feed</span>
-            </a>
-          </div>
           <h1 class="text-4xl font-semibold leading-tight sm:text-5xl">
             <span class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
               Building intelligent systems with clarity.
