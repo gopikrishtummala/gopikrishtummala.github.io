@@ -1,3 +1,23 @@
+---
+author: Gopi Krishna Tummala
+pubDatetime: 2025-02-01T00:00:00Z
+modDatetime: 2025-02-01T00:00:00Z
+title: The Hidden Engine of AI — Training Frameworks and Resilience
+slug: hidden-engine-of-ai
+featured: true
+draft: false
+tags:
+  - machine-learning
+  - deep-learning
+  - distributed-systems
+  - data-engineering
+  - pytorch
+  - tensorflow
+  - ray
+  - deepspeed
+description: A reader-friendly guide to scaling AI models beyond the data pipeline—from training loops and distributed frameworks to checkpoints, mixed precision, and fault tolerance.
+---
+
 *We explore Part I in depth in [Datasets & Dataloaders — The Hidden Engine of AI, Part I](/blog/datasets-and-dataloaders/). The quick recap below sets the stage before we dive into training systems and resilience.
 
 ---
