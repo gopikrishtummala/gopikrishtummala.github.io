@@ -205,53 +205,90 @@ const containerStyles: CSSProperties = {
 
 const nodeSize = { x: 210, y: 120 };
 
+const useTheme = () => {
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.getAttribute("data-theme") === "dark";
+  });
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const doc = document.documentElement;
+    const update = () => setIsDark(doc.getAttribute("data-theme") === "dark");
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(doc, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+};
+
 const renderNode = (isDark: boolean) =>
-  ({ nodeDatum, toggleNode }: any) => (
-    <g onClick={toggleNode} style={{ cursor: "pointer" }}>
-      <rect
-        width={176}
-        height={56}
-        x={-88}
-        y={-28}
-        rx={18}
-        fill={isDark ? "#111827" : "#1e293b"}
-        opacity={isDark ? 0.92 : 0.88}
-        stroke={isDark ? "rgba(148,163,184,0.5)" : "rgba(15,23,42,0.18)"}
-        strokeWidth={1}
-      />
-      <text
-        fill={isDark ? "rgba(226,232,240,0.95)" : "rgba(248,250,252,0.95)"}
-        textAnchor="middle"
-        alignmentBaseline="middle"
-        fontSize={11}
-        fontFamily="var(--code-font)"
-        dy={nodeDatum.attributes?.clue ? -6 : 0}
-      >
-        {nodeDatum.name}
-      </text>
-      {nodeDatum.attributes?.clue && (
+  ({ nodeDatum, toggleNode }: any) => {
+    const name = nodeDatum.name as string;
+    const clue = nodeDatum.attributes?.clue as string | undefined;
+    const paddingX = 16;
+    const paddingY = clue ? 20 : 12;
+    const fontSize = 12;
+    const clueFontSize = 10;
+    const lineHeight = 14;
+
+    const textWidth = Math.max(
+      name.length * fontSize * 0.55,
+      clue ? clue.length * clueFontSize * 0.52 : 0,
+    );
+    const width = Math.max(150, textWidth + paddingX * 2);
+    const height = clue ? paddingY * 2 + lineHeight * 2 : paddingY * 2 + lineHeight;
+
+    const bg = isDark ? "var(--color-element)" : "rgba(15,23,42,0.88)";
+    const border = isDark ? "rgba(148,163,184,0.4)" : "rgba(15,23,42,0.2)";
+    const nameColor = isDark ? "rgba(226,232,240,0.96)" : "rgba(248,250,252,0.95)";
+    const clueColor = isDark ? "rgba(148,163,184,0.85)" : "rgba(203,213,225,0.85)";
+
+    return (
+      <g onClick={toggleNode} style={{ cursor: "pointer" }}>
+        <rect
+          width={width}
+          height={height}
+          x={-width / 2}
+          y={-height / 2}
+          rx={22}
+          fill={bg}
+          stroke={border}
+          strokeWidth={1}
+        />
         <text
-          fill={isDark ? "rgba(148,163,184,0.85)" : "rgba(203,213,225,0.85)"}
+          fill={nameColor}
           textAnchor="middle"
           alignmentBaseline="middle"
-          fontSize={9}
+          fontSize={fontSize}
           fontFamily="var(--code-font)"
-          dy={12}
+          dy={clue ? -6 : 0}
         >
-          {nodeDatum.attributes.clue}
+          {name}
         </text>
-      )}
-    </g>
-  );
+        {clue && (
+          <text
+            fill={clueColor}
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fontSize={clueFontSize}
+            fontFamily="var(--code-font)"
+            dy={16}
+          >
+            {clue}
+          </text>
+        )}
+      </g>
+    );
+  };
 
 export default function InteractiveMindmap() {
   const data = useMemo(() => TREE_DATA, []);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [translate, setTranslate] = useState({ x: 280, y: 290 });
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof document === "undefined") return false;
-    return document.documentElement.getAttribute("data-theme") === "dark";
-  });
+  const isDark = useTheme();
 
   useEffect(() => {
     const element = containerRef.current;
@@ -259,7 +296,7 @@ export default function InteractiveMindmap() {
 
     const setFromRect = () => {
       const { width, height } = element.getBoundingClientRect();
-      setTranslate({ x: width * 0.22, y: height / 2 });
+      setTranslate({ x: width * 0.25, y: height / 2 });
     };
 
     setFromRect();
@@ -267,17 +304,6 @@ export default function InteractiveMindmap() {
     const observer = new ResizeObserver(() => setFromRect());
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const doc = document.documentElement;
-    const updateTheme = () => {
-      setIsDark(doc.getAttribute("data-theme") === "dark");
-    };
-    updateTheme();
-    const themeObserver = new MutationObserver(updateTheme);
-    themeObserver.observe(doc, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => themeObserver.disconnect();
   }, []);
 
   return (
@@ -288,14 +314,14 @@ export default function InteractiveMindmap() {
         collapsible
         zoomable
         translate={translate}
-        separation={{ siblings: 1, nonSiblings: 1.6 }}
+        separation={{ siblings: 1, nonSiblings: 1.7 }}
         nodeSize={nodeSize}
         scaleExtent={{ min: 0.5, max: 1.8 }}
         transitionDuration={350}
         renderCustomNodeElement={renderNode(isDark)}
         linkSvgProps={{
-          stroke: isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.28)",
-          strokeWidth: 1.4,
+          stroke: isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.25)",
+          strokeWidth: 1.25,
         }}
       />
     </div>
