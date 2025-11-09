@@ -1,69 +1,51 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, RefObject } from "react";
-import Tree, {
-  type Orientation,
-  type RawNodeDatum,
-  type TreeNodeDatum,
-} from "react-d3-tree";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
+import Tree, { type Orientation, type Point } from "react-d3-tree";
+import {
+  hierarchy,
+  tree,
+  type HierarchyPointLink,
+  type HierarchyPointNode,
+} from "d3-hierarchy";
+import { linkRadial } from "d3-shape";
+import { usePalette, useThemeMode } from "./mindmap/theme";
+import { buildAugmentedTree } from "./mindmap/tree";
+import { createNodeRenderer } from "./mindmap/NodeRenderer";
+import { exportSvgElement } from "./mindmap/export";
+import { smoothStepPath, organicPath } from "./mindmap/path";
+import { resetMeasurements } from "./mindmap/measure";
+import type {
+  HydratedMindmapNode,
+  InteractiveMindmapHandle,
+  MindmapNode,
+  MindmapThemeMode,
+  ExportFormat,
+  AugmentedRawNodeDatum,
+} from "./mindmap/types";
 
+const DEFAULT_HEIGHT = 640;
+const DEFAULT_NODE_SIZE = { x: 240, y: 160 };
+const DEFAULT_SEPARATION = { siblings: 1.25, nonSiblings: 1.95 };
+const DEFAULT_SCALE = { min: 0.5, max: 1.85 };
 const DISPLAY_FONT_STACK =
   'var(--display-font, "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif)';
-const CANVAS_FONT_STACK =
-  '"Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif';
-const DEFAULT_HEIGHT = 640;
-const DEFAULT_NODE_SIZE = { x: 260, y: 168 };
-const DEFAULT_SEPARATION = { siblings: 1.35, nonSiblings: 2.05 };
-const DEFAULT_SCALE = { min: 0.55, max: 2 };
-
-export type MindmapThemeMode = "auto" | "light" | "dark";
-
-export interface MindmapNode {
-  id?: string;
-  label: string;
-  description?: string;
-  collapsed?: boolean;
-  children?: MindmapNode[];
-  meta?: Record<string, unknown>;
-}
-
-export type HydratedMindmapNode = Omit<MindmapNode, "id"> & { id: string };
-
-interface AugmentedMetadata {
-  payload: HydratedMindmapNode;
-  ui: { hasChildren: boolean };
-}
-
-type AugmentedRawNodeDatum = RawNodeDatum &
-  AugmentedMetadata & {
-    children?: AugmentedRawNodeDatum[];
-    collapsed?: boolean;
-  };
-
-type AugmentedTreeNodeDatum = TreeNodeDatum &
-  AugmentedMetadata & {
-    children?: AugmentedTreeNodeDatum[];
-  };
-
-interface ColorSet {
-  bg: string;
-  border: string;
-  name: string;
-  description: string;
-  shadow: string;
-}
-
-interface Palette {
-  link: string;
-  leaf: ColorSet;
-  branch: ColorSet;
-}
 
 export interface InteractiveMindmapProps {
   data?: MindmapNode;
   height?: number | string;
   className?: string;
   style?: CSSProperties;
-  collapseByDefault?: boolean;
+  collapseByDefaultMap?: boolean;
+  collapseByDefaultRadial?: boolean;
   orientation?: Orientation;
   initialDepth?: number;
   zoomable?: boolean;
@@ -75,151 +57,45 @@ export interface InteractiveMindmapProps {
   leafTint?: { light: string; dark: string };
   branchTint?: { light: string; dark: string };
   onNodeClick?: (node: HydratedMindmapNode) => void;
+  linkStyle?: "default" | "organic";
+  layout?: "mindmap" | "tidy" | "radial";
+  showControls?: boolean;
+  letterSpacing?: number;
+  exportRef?: React.Ref<InteractiveMindmapHandle>;
+  allowLayoutSwitch?: boolean;
 }
 
 const BASE_CONTAINER_STYLES: CSSProperties = {
   width: "100%",
   borderRadius: "1.9rem",
-  border: "1px solid rgba(148,163,184,0.24)",
+  border: "1px solid rgba(148,163,184,0.22)",
   background:
-    "linear-gradient(135deg, rgba(15,23,42,0.06) 0%, rgba(37,99,235,0.08) 55%, rgba(15,23,42,0.04) 100%)",
-  boxShadow: "0 45px 85px -45px rgba(15,23,42,0.42)",
+    "linear-gradient(135deg, rgba(15,23,42,0.045) 0%, rgba(37,99,235,0.07) 55%, rgba(15,23,42,0.02) 100%)",
+  boxShadow: "0 45px 82px -48px rgba(15,23,42,0.38)",
   position: "relative",
   overflow: "hidden",
-};
-
-const DEFAULT_COLORS = {
-  leaf: {
-    lightBg: "rgba(37,99,235,0.08)",
-    lightBorder: "rgba(37,99,235,0.24)",
-    darkBg: "rgba(56,189,248,0.18)",
-    darkBorder: "rgba(56,189,248,0.32)",
-  },
-  branch: {
-    lightBg: "rgba(255,255,255,0.95)",
-    lightBorder: "rgba(15,23,42,0.12)",
-    darkBg: "rgba(15,23,42,0.88)",
-    darkBorder: "rgba(148,163,184,0.38)",
-  },
-  text: {
-    lightName: "rgba(22,30,46,0.76)",
-    lightDescription: "rgba(71,85,105,0.7)",
-    darkName: "rgba(248,250,252,0.92)",
-    darkDescription: "rgba(198,213,231,0.78)",
-  },
-  shadow: {
-    light: "drop-shadow(0 20px 38px rgba(15,23,42,0.18))",
-    dark: "drop-shadow(0 18px 32px rgba(15,23,42,0.55))",
-  },
-  link: {
-    light: "rgba(15,23,42,0.25)",
-    dark: "rgba(148,163,184,0.55)",
-  },
-};
-
-const slugify = (value: string) =>
-  value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") ||
-  "node";
-
-interface BuildOptions {
-  collapseByDefault: boolean;
-}
-
-const ensureId = (node: MindmapNode, path: string): HydratedMindmapNode => {
-  const generatedId = node.id ?? `${path}-${slugify(node.label)}`;
-  return {
-    ...node,
-    id: generatedId,
-  };
-};
-
-const buildAugmentedTree = (
-  node: MindmapNode,
-  options: BuildOptions,
-  path = "root",
-): AugmentedRawNodeDatum => {
-  const hydrated = ensureId(node, path);
-  const children = hydrated.children?.map((child, index) =>
-    buildAugmentedTree(child, options, `${path}.${index}`),
-  );
-  const hasChildren = Boolean(children && children.length > 0);
-
-  return {
-    name: hydrated.label,
-    attributes: hydrated.description ? { description: hydrated.description } : undefined,
-    payload: { ...hydrated },
-    ui: { hasChildren },
-    children,
-    collapsed:
-      hydrated.collapsed ?? (options.collapseByDefault && path !== "root"),
-  };
-};
-
-const measureLabelWidth = (() => {
-  let canvas: HTMLCanvasElement | null = null;
-  let context: CanvasRenderingContext2D | null = null;
-  return (text: string, fontSize: number, fontWeight = 300) => {
-    if (!text) return 0;
-    if (typeof document === "undefined") {
-      return text.length * fontSize * 0.58;
-    }
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      context = canvas.getContext("2d");
-    }
-    if (!context) {
-      return text.length * fontSize * 0.58;
-    }
-
-    context.font = `${fontWeight} ${fontSize}px ${CANVAS_FONT_STACK}`;
-    const metrics = context.measureText(text);
-    return metrics.width;
-  };
-})();
-
-const useTheme = (mode: MindmapThemeMode = "auto") => {
-  const [systemDark, setSystemDark] = useState<boolean>(() => {
-    if (mode === "dark") return true;
-    if (mode === "light") return false;
-    if (typeof document === "undefined") return false;
-    return document.documentElement.getAttribute("data-theme") === "dark";
-  });
-
-  useEffect(() => {
-    if (mode !== "auto" || typeof document === "undefined") return;
-    const doc = document.documentElement;
-    const update = () => setSystemDark(doc.getAttribute("data-theme") === "dark");
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(doc, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, [mode]);
-
-  if (mode === "dark") return true;
-  if (mode === "light") return false;
-  return systemDark;
 };
 
 const calculateTranslate = (width: number, height: number, orientation: Orientation) => {
   if (orientation === "vertical") {
     return {
       x: width / 2,
-      y: Math.max(height * 0.18, 120),
+      y: Math.max(height * 0.16, 120),
     };
   }
 
   return {
-    x: width * 0.32,
-    y: Math.max(height * 0.5, 260),
+    x: Math.max(width * 0.24, 240),
+    y: Math.max(height * 0.5, 240),
   };
 };
 
 const useAutoTranslate = (
-  ref: RefObject<HTMLDivElement | null>,
+  ref: React.RefObject<HTMLDivElement | null>,
   orientation: Orientation,
 ) => {
-  const [translate, setTranslate] = useState(() =>
-    calculateTranslate(800, DEFAULT_HEIGHT, orientation),
+  const [translate, setTranslate] = useState<Point>(() =>
+    calculateTranslate(900, DEFAULT_HEIGHT, orientation),
   );
 
   useEffect(() => {
@@ -245,393 +121,1057 @@ const useAutoTranslate = (
   return translate;
 };
 
-const getPalette = (
-  isDark: boolean,
-  leafTint?: { light: string; dark: string },
-  branchTint?: { light: string; dark: string },
-): Palette => {
-  const leafBg = isDark
-    ? leafTint?.dark ?? DEFAULT_COLORS.leaf.darkBg
-    : leafTint?.light ?? DEFAULT_COLORS.leaf.lightBg;
-  const branchBg = isDark
-    ? branchTint?.dark ?? DEFAULT_COLORS.branch.darkBg
-    : branchTint?.light ?? DEFAULT_COLORS.branch.lightBg;
-
-  return {
-    link: isDark ? DEFAULT_COLORS.link.dark : DEFAULT_COLORS.link.light,
-    leaf: {
-      bg: leafBg,
-      border: isDark ? DEFAULT_COLORS.leaf.darkBorder : DEFAULT_COLORS.leaf.lightBorder,
-      name: isDark ? DEFAULT_COLORS.text.darkName : DEFAULT_COLORS.text.lightName,
-      description: isDark
-        ? DEFAULT_COLORS.text.darkDescription
-        : DEFAULT_COLORS.text.lightDescription,
-      shadow: isDark ? DEFAULT_COLORS.shadow.dark : DEFAULT_COLORS.shadow.light,
-    },
-    branch: {
-      bg: branchBg,
-      border: isDark
-        ? DEFAULT_COLORS.branch.darkBorder
-        : DEFAULT_COLORS.branch.lightBorder,
-      name: isDark ? DEFAULT_COLORS.text.darkName : DEFAULT_COLORS.text.lightName,
-      description: isDark
-        ? DEFAULT_COLORS.text.darkDescription
-        : DEFAULT_COLORS.text.lightDescription,
-      shadow: isDark ? DEFAULT_COLORS.shadow.dark : DEFAULT_COLORS.shadow.light,
-    },
-  };
-};
-
-interface NodeRendererOptions {
-  palette: Palette;
-  onNodeClick?: (node: HydratedMindmapNode) => void;
-}
-
-const createNodeRenderer =
-  ({ palette, onNodeClick }: NodeRendererOptions) =>
-  ({ nodeDatum, toggleNode }: { nodeDatum: TreeNodeDatum; toggleNode: () => void }) => {
-    const node = nodeDatum as AugmentedTreeNodeDatum;
-    const {
-      payload: { label, description },
-      ui: { hasChildren },
-    } = node;
-
-    const isLeaf = !hasChildren;
-    const paddingX = 26;
-    const paddingY = description ? 30 : 20;
-    const fontSize = 14;
-    const descriptionFontSize = 12;
-    const lineHeight = 20;
-    const nameWeight = 320;
-    const descriptionWeight = 300;
-
-    const nameWidth = measureLabelWidth(label, fontSize, nameWeight);
-    const descriptionWidth = description
-      ? measureLabelWidth(description, descriptionFontSize, descriptionWeight)
-      : 0;
-    const textWidth = Math.max(nameWidth, descriptionWidth);
-    const width = Math.max(180, Math.min(320, textWidth + paddingX * 2));
-    const height = description
-      ? paddingY * 2 + lineHeight * 2
-      : paddingY * 2 + lineHeight;
-
-    const colors = isLeaf ? palette.leaf : palette.branch;
-
-    const handleClick = () => {
-      toggleNode();
-      onNodeClick?.(node.payload);
-    };
-
-    const textTransform = description ? "translateY(-2px)" : "translateY(0)";
-
-    return (
-      <g onClick={handleClick} style={{ cursor: "pointer", filter: colors.shadow }}>
-        <rect
-          width={width}
-          height={height}
-          x={-width / 2}
-          y={-height / 2}
-          rx={26}
-          fill={colors.bg}
-          stroke={colors.border}
-          strokeWidth={0.9}
-        />
-        <g transform={textTransform}>
-          <text
-            fill={colors.name}
-            textAnchor="middle"
-            alignmentBaseline="middle"
-            fontSize={fontSize}
-            fontFamily={DISPLAY_FONT_STACK}
-            fontWeight={nameWeight}
-            letterSpacing="0.03em"
-            dy={description ? -10 : 2}
-            style={{ textRendering: "geometricPrecision" }}
-          >
-            {label}
-          </text>
-          {description && (
-            <text
-              fill={colors.description}
-              textAnchor="middle"
-              alignmentBaseline="middle"
-              fontSize={descriptionFontSize}
-              fontFamily={DISPLAY_FONT_STACK}
-              fontWeight={descriptionWeight}
-              letterSpacing="0.035em"
-              dy={18}
-              style={{ textRendering: "geometricPrecision" }}
-            >
-              {description}
-            </text>
-          )}
-        </g>
-      </g>
-    );
-  };
-
 const resolveHeight = (height?: number | string) => {
   if (typeof height === "number") return `${height}px`;
   if (typeof height === "string") return height;
   return `${DEFAULT_HEIGHT}px`;
 };
 
-export const DEFAULT_MINDMAP_DATA: MindmapNode = {
-  label: "LeetCode Problem Classification",
-  children: [
-    {
-      label: "Arrays & Strings",
-      children: [
-        {
-          label: "Contiguous subarray / substring",
-          description: "max length, sum, uniqueness",
-          children: [
-            { label: "Sliding Window" },
-            { label: "Two Pointers" },
-            { label: "Prefix Sums" },
-          ],
-        },
-        {
-          label: "Frequency / membership",
-          description: "counts, duplicates, mappings",
-          children: [{ label: "Hash Map / Set" }],
-        },
-        {
-          label: "Pairs / triples / sums in sorted data",
-          children: [{ label: "Two Pointers" }],
-        },
-        {
-          label: "Next greater / smaller / histogram",
-          children: [
-            { label: "Monotonic Stack" },
-            { label: "Monotonic Queue" },
-          ],
-        },
-      ],
-    },
-    {
-      label: "Search & Sort",
-      children: [
-        {
-          label: "Searching value / threshold",
-          children: [{ label: "Binary Search" }, { label: "Modified Binary Search" }],
-        },
-        {
-          label: "Local optima → global answer",
-          children: [{ label: "Greedy" }],
-        },
-        {
-          label: "Bounded range anomalies",
-          description: "missing / duplicate",
-          children: [{ label: "Cyclic Sort" }],
-        },
-      ],
-    },
-    {
-      label: "Dynamic Programming",
-      children: [
-        {
-          label: "Counting combinations / overlapping states",
-          children: [{ label: "Classic DP (tabulation / memoization)" }],
-        },
-        {
-          label: "Optimization over sequences / paths",
-          children: [{ label: "Advanced DP (Knapsack / LIS / interval)" }],
-        },
-      ],
-    },
-    {
-      label: "Graphs",
-      children: [
-        {
-          label: "Connectivity / flood-fill / components",
-          children: [{ label: "BFS" }, { label: "DFS" }, { label: "Union-Find" }],
-        },
-        {
-          label: "Dependencies / prerequisites (DAG)",
-          children: [{ label: "Topological Sort" }],
-        },
-        {
-          label: "Cycles / shortest path / maze",
-          children: [
-            { label: "Graph Traversal (BFS / DFS)" },
-            { label: "Fast & Slow Pointers" },
-          ],
-        },
-      ],
-    },
-    {
-      label: "Trees",
-      children: [
-        {
-          label: "Hierarchy / recursion / validation",
-          children: [
-            { label: "Tree DFS (pre / in / post)" },
-            { label: "Stack-based Traversal" },
-          ],
-        },
-        {
-          label: "Level order / minimum depth",
-          children: [{ label: "Tree BFS" }],
-        },
-      ],
-    },
-    {
-      label: "Heaps & Queues",
-      children: [
-        {
-          label: "Min / max / k-th extreme",
-          children: [
-            { label: "Heap / Priority Queue" },
-            { label: "Two Heaps (median)" },
-            { label: "Monotonic Deque" },
-          ],
-        },
-        {
-          label: "Top-K frequent without full sort",
-          children: [{ label: "Heap-based Top-K" }],
-        },
-      ],
-    },
-    {
-      label: "Backtracking & Combinatorics",
-      children: [
-        {
-          label: "Permutations / combinations with pruning",
-          children: [{ label: "Backtracking" }],
-        },
-        {
-          label: "Subsets / powerset / combination sums",
-          children: [{ label: "Recursion" }, { label: "Bit Manipulation" }],
-        },
-      ],
-    },
-    {
-      label: "Intervals",
-      children: [
-        {
-          label: "Overlaps / merges / scheduling",
-          children: [
-            { label: "Merge Intervals Pattern" },
-            { label: "Sweep Line / Overlapping Intervals" },
-          ],
-        },
-      ],
-    },
-    {
-      label: "Linked Lists",
-      children: [
-        {
-          label: "Cycle detection / midpoints",
-          children: [{ label: "Fast & Slow Pointers" }],
-        },
-        {
-          label: "Reordering / reversing segments",
-          children: [{ label: "In-place Reversal" }],
-        },
-      ],
-    },
-    {
-      label: "Bit Manipulation",
-      children: [
-        {
-          label: "Binary representation / parity / uniques",
-          children: [{ label: "Bitwise Operations" }, { label: "XOR Tricks" }],
-        },
-      ],
-    },
-    {
-      label: "Strings (Advanced)",
-      children: [
-        {
-          label: "Prefix matching / dictionary search",
-          children: [{ label: "Trie (Prefix Tree)" }],
-        },
-        {
-          label: "Pattern matching / automata",
-          children: [{ label: "KMP" }, { label: "Rolling Hash" }],
-        },
-      ],
-    },
-  ],
+const useContainerSize = (ref: React.RefObject<HTMLDivElement | null>) => {
+  const [size, setSize] = useState({ width: 800, height: 640 });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
+      return;
+    }
+    const element = ref.current;
+    if (!element) return;
+
+    const update = () => {
+      const rect = element.getBoundingClientRect();
+      setSize({
+        width: Math.max(rect.width, 400),
+        height: Math.max(rect.height, 400),
+      });
+    };
+
+    update();
+
+    const observer = new window.ResizeObserver(() => update());
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return size;
 };
 
-export default function InteractiveMindmap({
-  data = DEFAULT_MINDMAP_DATA,
-  height,
-  className,
-  style,
-  collapseByDefault = true,
-  orientation = "horizontal",
-  initialDepth = 0,
-  zoomable = true,
-  collapsible = true,
-  separation,
-  scaleExtent,
-  themeMode = "auto",
+const RADIAL_MARGIN = 180;
+const MIN_RADIAL_RADIUS = 440;
+const LABEL_CHAR_ESTIMATE = 8;
+const LABEL_PADDING_MIN = 120;
+const LABEL_PADDING_MAX = 420;
+const LABEL_EXTRA_PADDING = 96;
+
+interface RadialTreeProps {
+  data: AugmentedRawNodeDatum;
+  zoom: number;
+  linkColor: string;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  textColor: string;
+  labelStroke: string;
+  onNodeClick?: (node: HydratedMindmapNode) => void;
+}
+
+const RadialTree = memo(function RadialTree({
+  data,
+  zoom,
   linkColor,
-  leafTint,
-  branchTint,
+  containerRef,
+  textColor,
+  labelStroke,
   onNodeClick,
-}: InteractiveMindmapProps) {
-  const isDark = useTheme(themeMode);
-  const palette = useMemo(
-    () => getPalette(isDark, leafTint, branchTint),
-    [isDark, leafTint, branchTint],
+}: RadialTreeProps) {
+  const size = useContainerSize(containerRef);
+
+  const radius = useMemo(() => {
+    const dimension = Math.min(size.width, size.height);
+    return Math.max(MIN_RADIAL_RADIUS, (dimension - RADIAL_MARGIN) / 2);
+  }, [size.height, size.width]);
+
+  const { nodes, links, labelPadding } = useMemo(() => {
+    const root = hierarchy<AugmentedRawNodeDatum>(data, (d) =>
+      d.collapsed ? null : d.children,
+    );
+    const layout = tree<AugmentedRawNodeDatum>()
+      .size([2 * Math.PI, radius])
+      .separation((a, b) => (a.parent === b.parent ? 1 : 2));
+    const layoutRoot = layout(root);
+    const radialLink = linkRadial<
+      HierarchyPointLink<AugmentedRawNodeDatum>,
+      HierarchyPointNode<AugmentedRawNodeDatum>
+    >()
+      .angle((d) => d.x)
+      .radius((d) => d.y);
+
+    const descendants = layoutRoot.descendants();
+    const maxLabelLength = descendants.reduce(
+      (max, node) => Math.max(max, node.data.name?.length ?? 0),
+      0,
+    );
+    const estimatedPadding = Math.min(
+      LABEL_PADDING_MAX,
+      Math.max(LABEL_PADDING_MIN, maxLabelLength * LABEL_CHAR_ESTIMATE),
+    );
+
+    return {
+      nodes: descendants,
+      links: layoutRoot.links().map((link) => ({
+        key: `${link.source.data.payload.id}-${link.target.data.payload.id}`,
+        path: radialLink(link) ?? "",
+      })),
+      labelPadding: estimatedPadding,
+    };
+  }, [data, radius]);
+
+  const canvasExtent = useMemo(
+    () => radius + labelPadding + RADIAL_MARGIN / 2 + LABEL_EXTRA_PADDING,
+    [radius, labelPadding],
+  );
+  const viewBox = useMemo(
+    () => [-canvasExtent, -canvasExtent, canvasExtent * 2, canvasExtent * 2].join(" "),
+    [canvasExtent],
   );
 
-  const treeData = useMemo(
-    () => buildAugmentedTree(data, { collapseByDefault }),
-    [data, collapseByDefault],
+  const handleNodeAction = useCallback(
+    (node: HierarchyPointNode<AugmentedRawNodeDatum>) => {
+      onNodeClick?.(node.data.payload);
+    },
+    [onNodeClick],
   );
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const translate = useAutoTranslate(containerRef, orientation);
-
-  const nodeRenderer = useMemo(
-    () => createNodeRenderer({ palette, onNodeClick }),
-    [palette, onNodeClick],
-  );
-
-  const separationConfig = { ...DEFAULT_SEPARATION, ...separation };
-  const scaleConfig = { ...DEFAULT_SCALE, ...scaleExtent };
-  const resolvedHeight = resolveHeight(height);
-  const containerStyles = useMemo(
-    () => ({
-      ...BASE_CONTAINER_STYLES,
-      height: resolvedHeight,
-      ...style,
-    }),
-    [resolvedHeight, style],
-  );
-  const effectiveLinkColor = linkColor ?? palette.link;
 
   return (
-    <div ref={containerRef} className={className} style={containerStyles}>
-      <style>
-        {`
-          .mindmap-link {
-            stroke: ${effectiveLinkColor};
-            stroke-width: 1.25px;
-            fill: none;
-          }
-        `}
-      </style>
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={viewBox}
+      preserveAspectRatio="xMidYMid meet"
+      style={{
+        background: "var(--canvas-bg, transparent)",
+        shapeRendering: "geometricPrecision",
+        textRendering: "optimizeLegibility",
+      }}
+    >
+      <g className="mindmap-radial" transform={`translate(0,0) scale(${zoom})`}>
+        <g
+          fill="none"
+          stroke={linkColor}
+          strokeOpacity={0.4}
+          strokeWidth={1}
+          strokeLinecap="round"
+        >
+          {links.map((link) => (
+            <path key={link.key} d={link.path} />
+          ))}
+        </g>
+        {nodes.map((node) => {
+          const hasChildren = Boolean(node.children && node.children.length > 0);
+          const rotation = (node.x * 180) / Math.PI - 90;
+          const translate = `translate(${node.y},0)`;
+          const flipped = node.x >= Math.PI;
+          const textAnchor = flipped ? "end" : "start";
+          const textOffset = flipped ? -8 : 8;
+
+          const handleKeyDown =
+            onNodeClick !== undefined
+              ? (event: ReactKeyboardEvent<SVGGElement>) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleNodeAction(node);
+                  }
+                }
+              : undefined;
+
+          return (
+            <g
+              key={node.data.payload.id}
+              transform={`rotate(${rotation}) ${translate}`}
+              onClick={onNodeClick ? () => handleNodeAction(node) : undefined}
+              tabIndex={onNodeClick ? 0 : undefined}
+              onKeyDown={handleKeyDown}
+              style={{ cursor: onNodeClick ? "pointer" : "default" }}
+            >
+              <circle
+                r={hasChildren ? 2.8 : 2.2}
+                fill={hasChildren ? linkColor : "#f8fafc"}
+                stroke={linkColor}
+                strokeWidth={hasChildren ? 0 : 0.9}
+              />
+              <text
+                dy="0.32em"
+                x={textOffset}
+                textAnchor={textAnchor}
+                transform={flipped ? "rotate(180)" : undefined}
+                fill={textColor}
+                stroke={labelStroke}
+                strokeWidth={3}
+                paintOrder="stroke"
+                style={{
+                  fontFamily: DISPLAY_FONT_STACK,
+                  fontSize: "0.68rem",
+                  letterSpacing: 0.02,
+                  userSelect: "none",
+                }}
+              >
+                {node.data.name}
+              </text>
+              {node.data.attributes?.description ? (
+                <title>{node.data.attributes.description}</title>
+              ) : null}
+            </g>
+          );
+        })}
+      </g>
+    </svg>
+  );
+});
+
+const Controls = ({
+  layout,
+  onLayoutChange,
+  onZoomIn,
+  onZoomOut,
+  onReset,
+  onExport,
+}: {
+  layout: "mindmap" | "radial";
+  onLayoutChange?: (layout: "mindmap" | "radial") => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onReset: () => void;
+  onExport: (format: ExportFormat) => void;
+}) => (
+  <div className="mindmap-controls">
+    {onLayoutChange ? (
+      <div className="mindmap-layout-switch" aria-label="Layout toggle">
+        <button
+          type="button"
+          className={layout === "mindmap" ? "active" : undefined}
+          onClick={() => onLayoutChange("mindmap")}
+        >
+          Map
+        </button>
+        <button
+          type="button"
+          className={layout === "radial" ? "active" : undefined}
+          onClick={() => onLayoutChange("radial")}
+        >
+          Radial
+        </button>
+      </div>
+    ) : null}
+    <button type="button" onClick={onZoomIn} aria-label="Zoom in">
+      +
+    </button>
+    <button type="button" onClick={onZoomOut} aria-label="Zoom out">
+      −
+    </button>
+    <button type="button" onClick={onReset} aria-label="Reset view">
+      Reset
+    </button>
+    <button type="button" onClick={() => onExport("png")} aria-label="Export as PNG">
+      PNG
+    </button>
+    <button type="button" onClick={() => onExport("pdf")} aria-label="Export as PDF">
+      PDF
+    </button>
+    <button type="button" onClick={() => onExport("svg")} aria-label="Export as SVG">
+      SVG
+    </button>
+  </div>
+);
+
+// Define the MindmapNode type for context, assuming a structure like:
+/*
+type MindmapNode = {
+  label: string;
+  description?: string;
+  children?: MindmapNode[];
+};
+*/
+
+export const DEFAULT_MINDMAP_DATA: MindmapNode = {
+    label: "🏆 LeetCode Problem Classification (Interview Prep)", // Added emoji and "Interview Prep"
+    description: "Core algorithms and data structures for FAANG-level interviews.",
+    children: [
+      // --- FOUNDATIONAL DATA STRUCTURES & PATTERNS ---
+      {
+        label: "📚 Arrays & Strings (Fundamental Patterns)",
+        children: [
+          {
+            label: "Subarrays, Substrings & Windows",
+            description: "Problems involving contiguous segments: max/min length, sum, product.",
+            children: [
+              { label: "Sliding Window" }, // Essential for O(n) solutions
+              { label: "Two Pointers (Same Direction)" },
+              { label: "Prefix Sums / Difference Array" }, // Crucial for range queries
+            ],
+          },
+          {
+            label: "Frequency & Uniqueness",
+            description: "Counting, finding duplicates, or mapping relationships.",
+            children: [{ label: "Hash Map / Set" }, { label: "Bucket Sort / Counting Sort" }], // Added Bucket Sort
+          },
+          {
+            label: "In-Place & Sorted Array Manipulation",
+            description: "Searching or manipulating elements in sorted or nearly sorted arrays.",
+            children: [
+              { label: "Two Pointers (Opposite Direction)" }, // Great for two-sum variations
+              { label: "Cyclic Sort" }, // Excellent for bounded range anomalies (missing/duplicate)
+            ],
+          },
+          {
+            label: "Monotonic Sequences",
+            description: "Finding the 'next greater' or calculating areas (e.g., histogram).",
+            children: [
+              { label: "Monotonic Stack" }, // Key for O(n) solutions to next greater/smaller
+              { label: "Monotonic Queue / Deque" }, // For sliding window maximum/minimum
+            ],
+          },
+        ],
+      },
+      // --- RECURSIVE & TREE STRUCTURES ---
+      {
+        label: "🌲 Trees (Binary & General)",
+        children: [
+          {
+            label: "Traversal & Validation (DFS)",
+            description: "Pre-order, In-order, Post-order, path-finding, and property checks.",
+            children: [
+              { label: "Recursion / Tree DFS" },
+              { label: "Iterative Stack-based Traversal" },
+              { label: "Lowest Common Ancestor (LCA)" }, // Specific, high-value sub-pattern
+            ],
+          },
+          {
+            label: "Level-Based Operations (BFS)",
+            description: "Finding depth, shortest path in unweighted graphs, and level order.",
+            children: [{ label: "Tree BFS (Level Order Traversal)" }, { label: "Minimum Depth / Height" }],
+          },
+          {
+            label: "Binary Search Trees (BSTs)",
+            description: "Utilizing the sorted property for efficient search/insertion.",
+            children: [{ label: "BST Properties & Search" }, { label: "In-order Traversal" }],
+          },
+        ],
+      },
+      {
+        label: "🔗 Linked Lists",
+        children: [
+          {
+            label: "Two-Pointer Techniques",
+            description: "Finding midpoints, cycles, or N-th element from the end.",
+            children: [{ label: "Fast & Slow Pointers (Floyd's Cycle)" }],
+          },
+          {
+            label: "Structural Manipulation",
+            description: "Reversal, merging, grouping, or segment manipulation.",
+            children: [{ label: "In-place Reversal" }, { label: "Dummy Head Node" }],
+          },
+        ],
+      },
+      // --- SEARCHING & OPTIMIZATION ---
+      {
+        label: "🔍 Search Algorithms & Divide/Conquer",
+        children: [
+          {
+            label: "Efficient Search in Sorted Data",
+            description: "Finding values, thresholds, or first/last occurrences.",
+            children: [
+              { label: "Binary Search (Classic)" },
+              { label: "Modified Binary Search (On Answer)" }, // For optimization problems
+            ],
+          },
+          {
+            label: "Greedy Algorithms",
+            description: "Local optimal choice leads to global optimal solution.",
+            children: [{ label: "Greedy Choice Property" }, { label: "Proof of Optimality" }],
+          },
+        ],
+      },
+      {
+        label: "🔄 Backtracking & Recursion",
+        children: [
+          {
+            label: "Combinatorics & State Space Search",
+            description: "Generating all permutations, combinations, or subsets.",
+            children: [
+              { label: "Backtracking (DFS with Pruning)" },
+              { label: "State Management & Helper Function" },
+            ],
+          },
+          {
+            label: "Subsets & Power Set",
+            description: "Specialized techniques for generating all sub-elements.",
+            children: [{ label: "Recursion / Cascading" }, { label: "Bit Manipulation (for Subsets)" }],
+          },
+        ],
+      },
+      // --- ADVANCED TECHNIQUES ---
+      {
+        label: "📈 Dynamic Programming (DP)",
+        children: [
+          {
+            label: "Sequence & Path Optimization",
+            description: "Finding max/min paths, max product, or longest sequences.",
+            children: [
+              { label: "1D DP (e.g., House Robber, LIS)" },
+              { label: "2D DP (e.g., Unique Paths, Edit Distance)" },
+            ],
+          },
+          {
+            label: "Decision Making & Counting",
+            description: "Knapsack variations, coin change, or counting ways to reach a state.",
+            children: [{ label: "Memoization (Top-Down)" }, { label: "Tabulation (Bottom-Up)" }],
+          },
+          {
+            label: "Interval DP & Matrix Chain",
+            description: "Problems defined over segments or sub-matrices.",
+            children: [{ label: "Interval DP" }, { label: "Space Optimization (Rolling Array)" }],
+          },
+        ],
+      },
+      {
+        label: "🕸️ Graphs",
+        children: [
+          {
+            label: "Traversal & Connectivity",
+            description: "Flood-fill, finding components, or basic path-finding.",
+            children: [
+              { label: "BFS (Breadth-First Search)" },
+              { label: "DFS (Depth-First Search)" },
+              { label: "Union-Find (Disjoint Set Union)" }, // Key for component checking
+            ],
+          },
+          {
+            label: "Shortest Path & Weighted Graphs",
+            description: "Finding the minimum cost path between nodes.",
+            children: [
+              { label: "Dijkstra's Algorithm" }, // Single-source shortest path (non-negative)
+              { label: "Bellman-Ford / Floyd-Warshall" }, // Added for completeness (negative edge/all-pairs)
+            ],
+          },
+          {
+            label: "Dependencies & Ordering (DAGs)",
+            description: "Solving problems with prerequisites or directed flow.",
+            children: [{ label: "Topological Sort (Kahn's or DFS)" }],
+          },
+        ],
+      },
+      {
+        label: "🗄️ Heaps & Specialized Queues",
+        children: [
+          {
+            label: "K-th Element & Priority Management",
+            description: "Finding the smallest/largest K elements, or managing task priorities.",
+            children: [
+              { label: "Heap / Priority Queue (Min-Heap/Max-Heap)" },
+              { label: "Heap-based Top-K" },
+            ],
+          },
+          {
+            label: "Median & Stream Data",
+            description: "Maintaining central tendency in dynamic data streams.",
+            children: [{ label: "Two Heaps Pattern (Min-Heap & Max-Heap)" }],
+          },
+        ],
+      },
+      {
+        label: "⏱️ Interval & Sweep Line",
+        children: [
+          {
+            label: "Scheduling & Overlap Management",
+            description: "Merging, inserting, or scheduling tasks/meetings.",
+            children: [
+              { label: "Merge Intervals Pattern" }, // Classic sorting and merging
+              { label: "Sweep Line / Difference Array" }, // For finding max overlaps
+            ],
+          },
+        ],
+      },
+      {
+        label: "🧠 Advanced Strings & Bitwise",
+        children: [
+          {
+            label: "Prefix & Dictionary Lookups",
+            description: "Efficient searching/storage for strings with common prefixes.",
+            children: [{ label: "Trie (Prefix Tree)" }],
+          },
+          {
+            label: "Pattern Matching & Automata",
+            description: "Searching for complex patterns within a larger text.",
+            children: [{ label: "KMP (Knuth-Morris-Pratt)" }, { label: "Rolling Hash (Rabin-Karp)" }],
+          },
+          {
+            label: "Binary Arithmetic & Properties",
+            description: "Utilizing bitwise operators for constant-time manipulation.",
+            children: [{ label: "Bitwise Operations" }, { label: "XOR Tricks (Finding Uniques)" }],
+          },
+        ],
+      },
+      // --- NEWLY ADDED CATEGORIES ---
+      {
+        label: "🧩 System Design/Math Concepts",
+        children: [
+          {
+            label: "Randomization & Sampling",
+            description: "Algorithms for shuffling, random selection, or simulation.",
+            children: [{ label: "Reservoir Sampling" }, { label: "Fisher-Yates Shuffle" }],
+          },
+          {
+            label: "Math & Geometry",
+            description: "Problems involving number theory, prime numbers, or coordinates.",
+            children: [{ label: "Prime Sieve / GCD" }, { label: "Modular Arithmetic" }],
+          },
+        ],
+      },
+    ],
+  };
+// export const DEFAULT_MINDMAP_DATA: MindmapNode = {
+//   label: "LeetCode Problem Classification",
+//   children: [
+//     {
+//       label: "Arrays & Strings",
+//       children: [
+//         {
+//           label: "Contiguous subarray / substring",
+//           description: "max length, sum, uniqueness",
+//           children: [
+//             { label: "Sliding Window" },
+//             { label: "Two Pointers" },
+//             { label: "Prefix Sums" },
+//           ],
+//         },
+//         {
+//           label: "Frequency / membership",
+//           description: "counts, duplicates, mappings",
+//           children: [{ label: "Hash Map / Set" }],
+//         },
+//         {
+//           label: "Pairs / triples / sums in sorted data",
+//           children: [{ label: "Two Pointers" }],
+//         },
+//         {
+//           label: "Next greater / smaller / histogram",
+//           children: [
+//             { label: "Monotonic Stack" },
+//             { label: "Monotonic Queue" },
+//           ],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Search & Sort",
+//       children: [
+//         {
+//           label: "Searching value / threshold",
+//           children: [{ label: "Binary Search" }, { label: "Modified Binary Search" }],
+//         },
+//         {
+//           label: "Local optima → global answer",
+//           children: [{ label: "Greedy" }],
+//         },
+//         {
+//           label: "Bounded range anomalies",
+//           description: "missing / duplicate",
+//           children: [{ label: "Cyclic Sort" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Dynamic Programming",
+//       children: [
+//         {
+//           label: "Counting combinations / overlapping states",
+//           children: [{ label: "Classic DP (tabulation / memoization)" }],
+//         },
+//         {
+//           label: "Optimization over sequences / paths",
+//           children: [{ label: "Advanced DP (Knapsack / LIS / interval)" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Graphs",
+//       children: [
+//         {
+//           label: "Connectivity / flood-fill / components",
+//           children: [{ label: "BFS" }, { label: "DFS" }, { label: "Union-Find" }],
+//         },
+//         {
+//           label: "Dependencies / prerequisites (DAG)",
+//           children: [{ label: "Topological Sort" }],
+//         },
+//         {
+//           label: "Cycles / shortest path / maze",
+//           children: [
+//             { label: "Graph Traversal (BFS / DFS)" },
+//             { label: "Fast & Slow Pointers" },
+//           ],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Trees",
+//       children: [
+//         {
+//           label: "Hierarchy / recursion / validation",
+//           children: [
+//             { label: "Tree DFS (pre / in / post)" },
+//             { label: "Stack-based Traversal" },
+//           ],
+//         },
+//         {
+//           label: "Level order / minimum depth",
+//           children: [{ label: "Tree BFS" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Heaps & Queues",
+//       children: [
+//         {
+//           label: "Min / max / k-th extreme",
+//           children: [
+//             { label: "Heap / Priority Queue" },
+//             { label: "Two Heaps (median)" },
+//             { label: "Monotonic Deque" },
+//           ],
+//         },
+//         {
+//           label: "Top-K frequent without full sort",
+//           children: [{ label: "Heap-based Top-K" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Backtracking & Combinatorics",
+//       children: [
+//         {
+//           label: "Permutations / combinations with pruning",
+//           children: [{ label: "Backtracking" }],
+//         },
+//         {
+//           label: "Subsets / powerset / combination sums",
+//           children: [{ label: "Recursion" }, { label: "Bit Manipulation" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Intervals",
+//       children: [
+//         {
+//           label: "Overlaps / merges / scheduling",
+//           children: [
+//             { label: "Merge Intervals Pattern" },
+//             { label: "Sweep Line / Overlapping Intervals" },
+//           ],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Linked Lists",
+//       children: [
+//         {
+//           label: "Cycle detection / midpoints",
+//           children: [{ label: "Fast & Slow Pointers" }],
+//         },
+//         {
+//           label: "Reordering / reversing segments",
+//           children: [{ label: "In-place Reversal" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Bit Manipulation",
+//       children: [
+//         {
+//           label: "Binary representation / parity / uniques",
+//           children: [{ label: "Bitwise Operations" }, { label: "XOR Tricks" }],
+//         },
+//       ],
+//     },
+//     {
+//       label: "Strings (Advanced)",
+//       children: [
+//         {
+//           label: "Prefix matching / dictionary search",
+//           children: [{ label: "Trie (Prefix Tree)" }],
+//         },
+//         {
+//           label: "Pattern matching / automata",
+//           children: [{ label: "KMP" }, { label: "Rolling Hash" }],
+//         },
+//       ],
+//     },
+//   ],
+// };
+
+const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindmapProps>(
+  (
+    {
+      data = DEFAULT_MINDMAP_DATA,
+      height,
+      className,
+      style,
+      collapseByDefaultMap = false,
+      collapseByDefaultRadial = false,
+      orientation = "vertical",
+      initialDepth = 0,
+      zoomable = true,
+      collapsible = true,
+      separation,
+      scaleExtent,
+      themeMode = "auto",
+      linkColor,
+      leafTint,
+      branchTint,
+      onNodeClick,
+      showControls = true,
+      letterSpacing = 0.012,
+      exportRef,
+      linkStyle = "default",
+      layout = "radial",
+      allowLayoutSwitch = true,
+    },
+    forwardedRef,
+  ) => {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [activeLayout, setActiveLayout] = useState<"mindmap" | "tidy" | "radial">(layout);
+    const treeOrientation = activeLayout === "mindmap" ? orientation : "vertical";
+    const isRadial = activeLayout === "radial";
+    const autoTranslate = useAutoTranslate(containerRef, treeOrientation);
+    const [translate, setTranslate] = useState<Point>(autoTranslate);
+    const [zoom, setZoom] = useState(1);
+
+    useEffect(() => {
+      setActiveLayout(layout);
+    }, [layout]);
+
+    useEffect(() => {
+      if (isRadial) {
+        setTranslate({ x: 0, y: 0 });
+      } else {
+        setTranslate(autoTranslate);
+      }
+    }, [autoTranslate, isRadial]);
+
+    useEffect(() => {
+      setZoom(1);
+    }, [activeLayout]);
+
+    useEffect(() => {
+      resetMeasurements();
+    }, [data]);
+
+    const isDark = useThemeMode(themeMode);
+    const palette = usePalette(isDark, branchTint, leafTint);
+
+    const treeData = useMemo(
+      () =>
+        buildAugmentedTree(data, {
+          collapseByDefault:
+            activeLayout === "radial" ? collapseByDefaultRadial : collapseByDefaultMap,
+        }),
+      [data, collapseByDefaultMap, collapseByDefaultRadial, activeLayout],
+    );
+
+    const nodeRenderer = useMemo(
+      () => createNodeRenderer({ palette, onNodeClick, letterSpacing }),
+      [palette, onNodeClick, letterSpacing],
+    );
+
+    const separationConfig = useMemo(() => {
+      const defaults =
+        activeLayout === "mindmap"
+          ? DEFAULT_SEPARATION
+          : {
+              siblings: 1.05,
+              nonSiblings: 1.45,
+            };
+      return { ...defaults, ...separation };
+    }, [activeLayout, separation]);
+    const scaleConfig = { ...DEFAULT_SCALE, ...scaleExtent };
+    const resolvedHeight = resolveHeight(height);
+
+    const containerStyles = useMemo(() => {
+      const baseStyles = {
+        ...BASE_CONTAINER_STYLES,
+        ...style,
+      };
+
+      if (activeLayout === "radial") {
+        return {
+          ...baseStyles,
+          height: "auto",
+          minHeight: resolvedHeight,
+          aspectRatio: "1 / 1",
+          overflow: "visible",
+        };
+      }
+
+      return {
+        ...baseStyles,
+        height: resolvedHeight,
+      };
+    }, [activeLayout, resolvedHeight, style]);
+
+    const effectiveLinkColor = linkColor ?? palette.link;
+
+    const handleUpdate = useCallback(
+      (target: { zoom: number; translate: Point }) => {
+        if (typeof target.zoom === "number") setZoom(target.zoom);
+        if (target.translate && !isRadial) setTranslate(target.translate);
+      },
+      [isRadial],
+    );
+
+    const adjustZoom = (delta: number) => {
+      if (!zoomable) return;
+      const next = Math.min(
+        scaleConfig.max ?? DEFAULT_SCALE.max,
+        Math.max(scaleConfig.min ?? DEFAULT_SCALE.min, zoom + delta),
+      );
+      setZoom(next);
+    };
+
+    const zoomIn = () => adjustZoom(0.12);
+    const zoomOut = () => adjustZoom(-0.12);
+
+    const resetView = () => {
+      setZoom(1);
+      if (isRadial) {
+        setTranslate({ x: 0, y: 0 });
+      } else {
+        setTranslate(autoTranslate);
+      }
+    };
+
+    const exportAs = async (format: ExportFormat) => {
+      if (typeof document === "undefined") return;
+      const svg = containerRef.current?.querySelector("svg");
+      if (!svg) return;
+      await exportSvgElement(svg, format, {
+        fileName: `mindmap-${format}`,
+        backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+        scale: 2,
+      });
+    };
+
+    const imperativeHandle = useMemo<InteractiveMindmapHandle>(
+      () => ({
+        exportAs,
+        resetView,
+      }),
+      [exportAs, resetView],
+    );
+
+    useImperativeHandle(forwardedRef, () => imperativeHandle, [imperativeHandle]);
+
+    useEffect(() => {
+      if (!exportRef) return undefined;
+      if (typeof exportRef === "function") {
+        exportRef(imperativeHandle);
+        return () => {
+          exportRef(null);
+        };
+      }
+      if (typeof exportRef === "object" && exportRef !== null) {
+        const mutableRef = exportRef as { current: InteractiveMindmapHandle | null };
+        mutableRef.current = imperativeHandle;
+        return () => {
+          mutableRef.current = null;
+        };
+      }
+      return undefined;
+    }, [exportRef, imperativeHandle]);
+
+    const graphContent = isRadial ? (
+      <RadialTree
+        data={treeData}
+        zoom={zoom}
+        linkColor={effectiveLinkColor}
+        containerRef={containerRef}
+        textColor={palette.leaf.name}
+        labelStroke={isDark ? "#0f172a" : "#ffffff"}
+        onNodeClick={onNodeClick}
+      />
+    ) : (
       <Tree
         data={treeData}
-        orientation={orientation}
+        orientation={treeOrientation}
         collapsible={collapsible}
         zoomable={zoomable}
         translate={translate}
         separation={separationConfig}
         nodeSize={DEFAULT_NODE_SIZE}
         scaleExtent={scaleConfig}
-        transitionDuration={320}
+        transitionDuration={300}
         initialDepth={initialDepth}
         renderCustomNodeElement={nodeRenderer}
-        pathClassFunc={() => "mindmap-link"}
+        pathFunc={linkStyle === "organic" ? organicPath : smoothStepPath}
+        zoom={zoom}
+        onUpdate={handleUpdate}
       />
-    </div>
-  );
-}
+    );
+
+    const controlLayout: "mindmap" | "radial" = isRadial ? "radial" : "mindmap";
+
+    return (
+      <div ref={containerRef} className={className} style={containerStyles}>
+        <style>
+          {`
+            .mindmap-link {
+              stroke: ${effectiveLinkColor};
+              stroke-width: 1px;
+              stroke-linecap: round;
+              stroke-opacity: 0.38;
+              fill: none;
+              pointer-events: none;
+              transition: stroke 180ms ease, stroke-width 180ms ease;
+            }
+
+            .mindmap-link:hover {
+              stroke-opacity: 0.54;
+              stroke-width: 1.18px;
+            }
+
+            .mindmap-radial {
+              transition: transform 220ms ease;
+            }
+
+            .mindmap-radial text {
+              transition: fill 160ms ease, stroke-width 160ms ease;
+            }
+
+            .mindmap-radial g[role="button"]:hover text,
+            .mindmap-radial g[role="button"]:focus-visible text {
+              stroke-width: 3.6;
+            }
+
+            .mindmap-radial g[role="button"]:hover circle,
+            .mindmap-radial g[role="button"]:focus-visible circle {
+              stroke-width: 1.4px;
+            }
+
+            .mindmap-node rect {
+              transition: fill 220ms ease, stroke 220ms ease, transform 220ms ease;
+              filter: drop-shadow(0 14px 24px rgba(15,23,42,0.12));
+            }
+
+            .mindmap-node:focus rect,
+            .mindmap-node:hover rect {
+              stroke-width: 1.5px;
+              stroke-opacity: 0.9;
+              transform: translateY(-1px);
+            }
+
+            .mindmap-controls {
+              position: absolute;
+              top: 1rem;
+              right: 1rem;
+              display: flex;
+              gap: 0.4rem;
+              align-items: center;
+              background: rgba(255, 255, 255, 0.85);
+              border: 1px solid rgba(148,163,184,0.25);
+              border-radius: 999px;
+              padding: 0.3rem 0.6rem;
+              backdrop-filter: blur(16px);
+              box-shadow: 0 18px 32px -28px rgba(15,23,42,0.4);
+            }
+
+            [data-theme="dark"] .mindmap-controls {
+              background: rgba(15,23,42,0.78);
+              border-color: rgba(148,163,184,0.35);
+            }
+
+            .mindmap-controls button {
+              font-family: ${DISPLAY_FONT_STACK};
+              font-size: 0.75rem;
+              font-weight: 500;
+              padding: 0.35rem 0.6rem;
+              border-radius: 999px;
+              border: none;
+              background: rgba(255,255,255,0.9);
+              color: rgba(15,23,42,0.8);
+              cursor: pointer;
+              transition: transform 0.18s ease, background 0.18s ease;
+            }
+
+            .mindmap-layout-switch {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.25rem;
+              margin-right: 0.45rem;
+              padding-right: 0.45rem;
+              border-right: 1px solid rgba(148,163,184,0.3);
+            }
+
+            .mindmap-layout-switch button {
+              padding: 0.28rem 0.6rem;
+              font-size: 0.7rem;
+              background: rgba(255,255,255,0.7);
+              color: rgba(15,23,42,0.75);
+            }
+
+            .mindmap-layout-switch button.active {
+              background: rgba(96,165,250,0.2);
+              color: rgba(37,99,235,0.95);
+            }
+
+            [data-theme="dark"] .mindmap-controls button {
+              background: rgba(30,41,59,0.95);
+              color: rgba(226,232,240,0.85);
+            }
+
+            .mindmap-controls button:hover,
+            .mindmap-controls button:focus-visible {
+              transform: translateY(-1px);
+              background: rgba(96,165,250,0.18);
+              color: rgba(37,99,235,0.9);
+              outline: none;
+            }
+
+            [data-theme="dark"] .mindmap-controls button:hover,
+            [data-theme="dark"] .mindmap-controls button:focus-visible {
+              background: rgba(56,189,248,0.22);
+              color: rgba(191,219,254,0.92);
+            }
+
+            [data-theme="dark"] .mindmap-layout-switch button {
+              background: rgba(30,41,59,0.88);
+              color: rgba(203,213,225,0.78);
+            }
+
+            [data-theme="dark"] .mindmap-layout-switch button.active {
+              background: rgba(56,189,248,0.28);
+              color: rgba(224,242,254,0.95);
+            }
+          `}
+        </style>
+        {graphContent}
+        {showControls && (
+          <Controls
+            layout={controlLayout}
+            onLayoutChange={
+              allowLayoutSwitch
+                ? (nextLayout) => {
+                    setActiveLayout(nextLayout);
+                  }
+                : undefined
+            }
+            onZoomIn={zoomIn}
+            onZoomOut={zoomOut}
+            onReset={resetView}
+            onExport={exportAs}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+InteractiveMindmap.displayName = "InteractiveMindmap";
+
+export default InteractiveMindmap;
 
