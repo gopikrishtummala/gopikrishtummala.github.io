@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import Tree from "react-d3-tree";
 
 const TREE_DATA = {
@@ -192,50 +193,70 @@ const TREE_DATA = {
   ],
 };
 
-const containerStyles: React.CSSProperties = {
+const containerStyles: CSSProperties = {
   width: "100%",
-  height: "520px",
-  borderRadius: "1.5rem",
+  height: "580px",
+  borderRadius: "1.75rem",
   border: "1px solid rgba(148,163,184,0.25)",
   background: "var(--code-bg)",
-  boxShadow: "0 30px 60px -32px rgba(15,23,42,0.35)",
+  boxShadow: "0 35px 70px -35px rgba(15,23,42,0.35)",
+  position: "relative",
 };
 
-const nodeSize = { x: 180, y: 110 };
+const nodeSize = { x: 210, y: 120 };
 
 export default function InteractiveMindmap() {
   const data = useMemo(() => TREE_DATA, []);
-  const [translate] = useState({ x: 220, y: 260 });
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [translate, setTranslate] = useState({ x: 280, y: 290 });
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const setFromRect = () => {
+      const { width, height } = element.getBoundingClientRect();
+      setTranslate({ x: width * 0.22, y: height / 2 });
+    };
+
+    setFromRect();
+
+    const observer = new ResizeObserver(() => setFromRect());
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div style={containerStyles}>
+    <div ref={containerRef} style={containerStyles}>
       <Tree
         data={data}
         orientation="horizontal"
         collapsible
         zoomable
         translate={translate}
-        separation={{ siblings: 1, nonSiblings: 1.5 }}
+        separation={{ siblings: 1, nonSiblings: 1.6 }}
         nodeSize={nodeSize}
-        shouldCollapseNeighborNodes={true}
+        scaleExtent={{ min: 0.5, max: 1.8 }}
+        transitionDuration={350}
         renderCustomNodeElement={({ nodeDatum, toggleNode }) => (
           <g onClick={toggleNode} style={{ cursor: "pointer" }}>
             <rect
-              width={160}
-              height={52}
-              x={-80}
-              y={-26}
+              width={170}
+              height={58}
+              x={-85}
+              y={-29}
               rx={18}
-              fill="rgb(30, 41, 59)"
-              stroke="rgba(148,163,184,0.35)"
+              fill="rgba(15,23,42,0.92)"
+              stroke="rgba(148,163,184,0.45)"
               strokeWidth={1}
             />
             <text
-              fill="rgb(226,232,240)"
+              fill="rgba(226,232,240,0.95)"
               textAnchor="middle"
               alignmentBaseline="middle"
               fontSize={11}
               fontFamily="var(--code-font)"
+              dy={nodeDatum.attributes?.clue ? -6 : 0}
             >
               {nodeDatum.name}
             </text>
@@ -246,7 +267,7 @@ export default function InteractiveMindmap() {
                 alignmentBaseline="middle"
                 fontSize={9}
                 fontFamily="var(--code-font)"
-                y={18}
+                dy={12}
               >
                 {nodeDatum.attributes.clue}
               </text>
