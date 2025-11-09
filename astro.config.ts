@@ -12,11 +12,13 @@ import {
 } from "@shikijs/transformers";
 import { transformerFileName } from "./src/utils/transformers/fileName";
 import { SITE } from "./src/config";
+import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
   integrations: [
+    react(),
     sitemap({
       filter: page => SITE.showArchives || !page.endsWith("/archives"),
     }),
