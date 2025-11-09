@@ -303,12 +303,15 @@ const RadialTree = memo(function RadialTree({
                 transform={flipped ? "rotate(180)" : undefined}
                 fill={textColor}
                 stroke={labelStroke}
-                strokeWidth={3}
+                strokeWidth={1.8}
                 paintOrder="stroke"
                 style={{
                   fontFamily: DISPLAY_FONT_STACK,
-                  fontSize: "0.68rem",
-                  letterSpacing: 0.02,
+                  fontSize: "0.64rem",
+                  fontWeight: 450,
+                  letterSpacing: 0.01,
+                  WebkitFontSmoothing: "antialiased",
+                  textRendering: "optimizeLegibility",
                   userSelect: "none",
                 }}
               >

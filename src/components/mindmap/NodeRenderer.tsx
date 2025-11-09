@@ -16,10 +16,10 @@ interface NodeRendererProps {
   onCenter?: (info: { x: number; y: number; depth: number }) => void;
 }
 
-const NAME_FONT_SIZE = 14;
-const DESCRIPTION_FONT_SIZE = 12;
-const NAME_WEIGHT = 250;
-const DESCRIPTION_WEIGHT = 230;
+const NAME_FONT_SIZE = 13;
+const DESCRIPTION_FONT_SIZE = 11.5;
+const NAME_WEIGHT = 450;
+const DESCRIPTION_WEIGHT = 380;
 const PADDING_X = 26;
 const PADDING_Y = 30;
 const NAME_LINE_HEIGHT = 24;
@@ -156,8 +156,8 @@ const renderFactory = ({
               fontSize={NAME_FONT_SIZE}
               fontFamily={DISPLAY_FONT_STACK}
               fontWeight={NAME_WEIGHT}
-              letterSpacing={letterSpacing * 0.8}
-              style={{ textRendering: "geometricPrecision" }}
+              letterSpacing={letterSpacing}
+              style={{ textRendering: "optimizeLegibility", WebkitFontSmoothing: "antialiased" }}
               y={nameStartY + index * NAME_LINE_HEIGHT}
             >
               {line}
@@ -172,8 +172,11 @@ const renderFactory = ({
               fontSize={DESCRIPTION_FONT_SIZE}
               fontFamily={DISPLAY_FONT_STACK}
               fontWeight={DESCRIPTION_WEIGHT}
-              letterSpacing={letterSpacing * 1.15}
-              style={{ textRendering: "geometricPrecision" }}
+              letterSpacing={letterSpacing * 1.05}
+              style={{
+                textRendering: "optimizeLegibility",
+                WebkitFontSmoothing: "antialiased",
+              }}
               y={descriptionStartY + index * DESCRIPTION_LINE_HEIGHT}
             >
               {line}
