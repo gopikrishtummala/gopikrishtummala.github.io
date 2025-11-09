@@ -7,6 +7,7 @@ const BASE_FONT_STACK =
 
 type MindmapNode = (RawNodeDatum & { children?: MindmapNode[] }) & {
   collapsed?: boolean;
+  hasChildren?: boolean;
 };
 
 const TREE_DATA: MindmapNode = {
@@ -259,6 +260,7 @@ const renderNode = (isDark: boolean) =>
   ({ nodeDatum, toggleNode }: any) => {
     const name = nodeDatum.name as string;
     const clue = nodeDatum.attributes?.clue as string | undefined;
+    const isLeaf = nodeDatum.hasChildren === false;
     const paddingX = 26;
     const paddingY = clue ? 30 : 20;
     const fontSize = 14;
@@ -273,10 +275,22 @@ const renderNode = (isDark: boolean) =>
     const width = Math.max(180, Math.min(320, textWidth + paddingX * 2));
     const height = clue ? paddingY * 2 + lineHeight * 2 : paddingY * 2 + lineHeight;
 
-    const bg = isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.96)";
-    const border = isDark ? "rgba(148,163,184,0.42)" : "rgba(15,23,42,0.14)";
-    const nameColor = isDark ? "rgba(248,250,252,0.95)" : "rgba(22,30,46,0.78)";
-    const clueColor = isDark ? "rgba(198,213,231,0.82)" : "rgba(71,85,105,0.72)";
+    const bg = isLeaf
+      ? isDark
+        ? "rgba(56,189,248,0.18)"
+        : "rgba(37,99,235,0.08)"
+      : isDark
+        ? "rgba(15,23,42,0.88)"
+        : "rgba(255,255,255,0.95)";
+    const border = isLeaf
+      ? isDark
+        ? "rgba(56,189,248,0.32)"
+        : "rgba(37,99,235,0.24)"
+      : isDark
+        ? "rgba(148,163,184,0.38)"
+        : "rgba(15,23,42,0.12)";
+    const nameColor = isDark ? "rgba(248,250,252,0.92)" : "rgba(22,30,46,0.76)";
+    const clueColor = isDark ? "rgba(198,213,231,0.78)" : "rgba(71,85,105,0.7)";
     const shadow = isDark
       ? "drop-shadow(0 18px 32px rgba(15,23,42,0.55))"
       : "drop-shadow(0 20px 38px rgba(15,23,42,0.18))";
@@ -326,9 +340,12 @@ const renderNode = (isDark: boolean) =>
   };
 
 const prepareTree = (node: MindmapNode, isRoot = true): MindmapNode => {
-  const children = node.children?.map((child) => prepareTree(child, false));
+  const originalChildren = node.children ?? [];
+  const hasChildren = originalChildren.length > 0;
+  const children = hasChildren ? originalChildren.map((child) => prepareTree(child, false)) : undefined;
   return {
     ...node,
+    hasChildren,
     ...(children ? { children } : {}),
     ...(isRoot ? {} : { collapsed: true }),
   };
