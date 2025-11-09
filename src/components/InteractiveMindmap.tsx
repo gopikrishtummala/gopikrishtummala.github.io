@@ -217,17 +217,17 @@ const nodeSize = { x: 260, y: 168 };
 const measureLabelWidth = (() => {
   let canvas: HTMLCanvasElement | null = null;
   let context: CanvasRenderingContext2D | null = null;
-  return (text: string, fontSize: number, fontWeight = 400) => {
+  return (text: string, fontSize: number, fontWeight = 300) => {
     if (!text) return 0;
     if (typeof document === "undefined") {
-      return text.length * fontSize * 0.6;
+      return text.length * fontSize * 0.58;
     }
     if (!canvas) {
       canvas = document.createElement("canvas");
       context = canvas.getContext("2d");
     }
     if (!context) {
-      return text.length * fontSize * 0.6;
+      return text.length * fontSize * 0.58;
     }
 
     context.font = `${fontWeight} ${fontSize}px ${BASE_FONT_STACK}`;
@@ -264,8 +264,8 @@ const renderNode = (isDark: boolean) =>
     const fontSize = 14;
     const clueFontSize = 12;
     const lineHeight = 20;
-    const nameWeight = 500;
-    const clueWeight = 400;
+    const nameWeight = 320;
+    const clueWeight = 300;
 
     const nameWidth = measureLabelWidth(name, fontSize, nameWeight);
     const clueWidth = clue ? measureLabelWidth(clue, clueFontSize, clueWeight) : 0;
@@ -275,8 +275,8 @@ const renderNode = (isDark: boolean) =>
 
     const bg = isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.96)";
     const border = isDark ? "rgba(148,163,184,0.42)" : "rgba(15,23,42,0.14)";
-    const nameColor = isDark ? "rgba(248,250,252,0.98)" : "rgba(22,30,46,0.9)";
-    const clueColor = isDark ? "rgba(198,213,231,0.9)" : "rgba(71,85,105,0.86)";
+    const nameColor = isDark ? "rgba(248,250,252,0.95)" : "rgba(22,30,46,0.78)";
+    const clueColor = isDark ? "rgba(198,213,231,0.82)" : "rgba(71,85,105,0.72)";
     const shadow = isDark
       ? "drop-shadow(0 18px 32px rgba(15,23,42,0.55))"
       : "drop-shadow(0 20px 38px rgba(15,23,42,0.18))";
@@ -300,7 +300,7 @@ const renderNode = (isDark: boolean) =>
           fontSize={fontSize}
           fontFamily={BASE_FONT_STACK}
           fontWeight={nameWeight}
-          letterSpacing="0.01em"
+          letterSpacing="0.03em"
           dy={clue ? -10 : 2}
           style={{ textRendering: "geometricPrecision" }}
         >
@@ -314,7 +314,7 @@ const renderNode = (isDark: boolean) =>
             fontSize={clueFontSize}
             fontFamily={BASE_FONT_STACK}
             fontWeight={clueWeight}
-            letterSpacing="0.02em"
+            letterSpacing="0.035em"
             dy={18}
             style={{ textRendering: "geometricPrecision" }}
           >
