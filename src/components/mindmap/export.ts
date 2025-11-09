@@ -90,11 +90,16 @@ const inlineStyles = (original: SVGSVGElement, clone: SVGSVGElement) => {
     if (!counterpart) return;
     copyComputedStyles(text, counterpart, [
       'fill',
+      'stroke',
+      'strokeWidth',
+      'strokeOpacity',
       'fontFamily',
       'fontSize',
       'fontWeight',
       'letterSpacing',
       'fontVariationSettings',
+      'fontStretch',
+      'fontStyle',
     ]);
   });
 
@@ -129,41 +134,30 @@ const inlineStyles = (original: SVGSVGElement, clone: SVGSVGElement) => {
       'fontWeight',
       'letterSpacing',
       'fontVariationSettings',
+      'fontStretch',
+      'fontStyle',
     ]);
   });
 };
 
-const cloneSvgForExport = (svg: SVGSVGElement, margin = 48) => {
+const cloneSvgForExport = (svg: SVGSVGElement) => {
   const clone = svg.cloneNode(true) as SVGSVGElement;
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   inlineStyles(svg, clone);
-  const graphGroup =
-    svg.querySelector<SVGGElement>(".rd3t-g") ??
-    svg.querySelector<SVGGElement>(".mindmap-radial") ??
-    svg.querySelector<SVGGElement>("svg > g");
-
-  if (graphGroup) {
-    const bbox = graphGroup.getBBox();
-    const width = bbox.width + margin * 2;
-    const height = bbox.height + margin * 2;
-    clone.setAttribute("viewBox", `${bbox.x - margin} ${bbox.y - margin} ${width} ${height}`);
-    clone.setAttribute("width", `${width}`);
-    clone.setAttribute("height", `${height}`);
-  } else {
-    const sourceViewBox = svg.getAttribute("viewBox");
-    if (sourceViewBox) {
-      clone.setAttribute("viewBox", sourceViewBox);
-      const [, , w, h] = sourceViewBox.trim().split(/\s+/);
-      clone.setAttribute("width", w ?? "0");
-      clone.setAttribute("height", h ?? "0");
-    } else {
-      const rect = svg.getBoundingClientRect();
-      clone.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
-      clone.setAttribute("width", `${rect.width}`);
-      clone.setAttribute("height", `${rect.height}`);
+  const sourceViewBox = svg.getAttribute('viewBox');
+  if (sourceViewBox) {
+    clone.setAttribute('viewBox', sourceViewBox);
+    const [, , w, h] = sourceViewBox.trim().split(/\s+/);
+    if (w && h) {
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
     }
+  } else {
+    const rect = svg.getBoundingClientRect();
+    clone.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    clone.setAttribute('width', `${rect.width}`);
+    clone.setAttribute('height', `${rect.height}`);
   }
-
   return clone;
 };
 
@@ -174,19 +168,20 @@ const svgToPngBlob = async (
 ) =>
   new Promise<Blob>((resolve, reject) => {
     const prepared = cloneSvgForExport(svg);
-    const svgBlob = svgElementToBlob(prepared);
+    const serialized = serializeSvg(prepared);
+    const svgBlob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
     const image = new Image();
-    image.crossOrigin = "anonymous";
+    image.crossOrigin = 'anonymous';
     image.onload = () => {
       URL.revokeObjectURL(url);
       const { width, height } = getSvgDimensions(prepared);
-      const canvas = document.createElement("canvas");
+      const canvas = document.createElement('canvas');
       canvas.width = Math.max(width * scale, 1);
       canvas.height = Math.max(height * scale, 1);
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       if (!ctx) {
-        reject(new Error("Unable to create canvas context"));
+        reject(new Error('Unable to create canvas context'));
         return;
       }
       ctx.save();
@@ -198,12 +193,12 @@ const svgToPngBlob = async (
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            reject(new Error("Unable to export canvas"));
+            reject(new Error('Unable to export canvas'));
             return;
           }
           resolve(blob);
         },
-        "image/png",
+        'image/png',
         0.95,
       );
     };
