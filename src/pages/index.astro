@@ -155,7 +155,7 @@ const timeline = [
       <div class="relative mt-10 sm:mt-12">
         <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-accent/60 via-accent/20 to-transparent sm:block" />
         <ul class="space-y-8 sm:space-y-12">
-        {[...timeline].reverse().map((item, index) => {
+          {timeline.map((item, index) => {
             const isLeft = index % 2 === 0;
             return (
               <li class="relative">
