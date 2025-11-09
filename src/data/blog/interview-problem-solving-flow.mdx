@@ -226,6 +226,191 @@ With deliberate practice, the flow becomes muscle memory. Pair it with behaviora
 
 ---
 
+## 🏆 LeetCode Problem Classification: An Interview Road Map
+
+This expanded guide distills each major pattern family into short, textbook-style chapters. Use it alongside the interactive mind map: classify the prompt, revisit the relevant section, and apply the “Understand → Classify → Prototype → Refine” mantra.
+
+### 📚 Arrays & Strings (Fundamental Patterns)
+
+#### What It’s About
+**Arrays** and **Strings** are contiguous sequences—every complex problem eventually touches them. Master indexing, boundary handling, and memory-aware iteration.
+
+#### How to Tackle
+- **See the indices.** Picture the array as numbered boxes.
+- **Decode keywords.** “Subarray/substring” ⇒ sliding window; “sorted/palindrome” ⇒ two pointers.
+- **Guard the edges.** Test empty, single-element, and boundary-crossing scenarios.
+- **Chase efficiency.** Replace naive $O(n^2)$ pair scans with $O(n)$ windows, prefix sums, or sorts.
+
+#### Core Subpatterns
+- **Sliding Window:** Expand/contract `[start, end]` to maintain constraints (no repeats, target sum).
+- **Two Pointers:** Move inward/outward on sorted or mirrored data.
+- **Prefix Sums:** Precompute `PrefixSum[i]` to answer range queries in $O(1)$.
+- **Hash Maps/Sets:** Track counts, membership, or complements in near-constant time.
+- **Monotonic Stack/Queue:** Maintain ordered candidates for “next greater” or window extrema problems.
+
+### 🌲 Trees (Binary & General)
+
+#### What It’s About
+Trees encode hierarchy; binary trees limit nodes to two children, while BSTs impose ordering.
+
+#### How to Tackle
+- **Recursive mindset.** Write helpers that solve for one node, trusting children’s results.
+- **Traversal fluency.** Preorder, inorder, postorder, and level-order are your templates.
+- **BST advantage.** Drop half the search space at each comparison.
+
+#### Core Subpatterns
+- **DFS/Recursion:** Traverse structure, compute subtree values, rebuild trees.
+- **BFS (Level Order):** Use queues for per-depth processing and shortest unweighted paths.
+- **BST Logic:** Validate, search, insert, or find successors in logarithmic time.
+- **Lowest Common Ancestor:** Find shared ancestry via recursion or parent tracking.
+
+### 🔗 Linked Lists
+
+#### What It’s About
+Nodes plus pointers. Excellent for practicing pointer discipline.
+
+#### How to Tackle
+- **Draw the list.** Visual aids prevent pointer loss.
+- **Protect `next`.** Save references before rewiring links.
+- **Handle head/tail edge cases** with dummy (sentinel) nodes.
+
+#### Core Subpatterns
+- **Fast & Slow Pointers:** Detect cycles, split lists, find middles.
+- **Reversal:** Iteratively flip links with `prev`, `curr`, `next`.
+- **Dummy Node:** Simplify insert/delete logic at the head.
+
+### 🔍 Search Algorithms & Divide & Conquer
+
+#### What It’s About
+Exploit order or self-similarity to cut work drastically.
+
+#### How to Tackle
+- **Binary Search:** Requires a monotonic predicate (“too small” vs. “big enough”).
+- **Divide & Conquer:** Split problems into similar subproblems; combine results.
+- **Greedy vs. D&C:** Greedy commits locally optimal moves—only trust it with proof.
+
+#### Core Subpatterns
+- **Binary Search:** Index-based or answer-based halving.
+- **Greedy:** Interval scheduling, coin change variants, activity selection.
+- **Classic D&C:** Mergesort, quickselect, recursive geometry.
+
+### 🔄 Backtracking & Recursion
+
+#### What It’s About
+Systematically explore decision trees; undo choices that fail constraints.
+
+#### How to Tackle
+- **State definition:** What parameters describe your position?
+- **Choice enumeration:** Iterate through valid next moves.
+- **Backtrack:** Restore state after each recursive call.
+
+#### Core Subpatterns
+- **Permutations/Subsets:** Generate orderings, combinations, power sets.
+- **DFS with Pruning:** Cut off branches that cannot succeed.
+- **Bitmasking:** Pack subset state into integers for constant-time operations.
+
+### 📈 Dynamic Programming (DP)
+
+#### What It’s About
+Memoize overlapping subproblems with optimal substructure.
+
+#### How to Tackle
+- **State & recurrence:** Define `dp[i]` or `dp[i][j]` and derive transitions.
+- **Memoize or tabulate:** Top-down recursion with caching or bottom-up tables.
+- **Optimize space:** Collapse dimensions when only prior rows/cols matter.
+
+#### Core Subpatterns
+- **1D DP:** LIS, House Robber, climb stairs.
+- **2D DP:** Edit distance, unique paths, DP on grids.
+- **Knapsack family:** 0/1, unbounded, multi-dimensional.
+- **Space optimization:** Rolling arrays, two-row DP.
+
+### 🕸️ Graphs
+
+#### What It’s About
+Vertices and edges model relationships, connectivity, and flow.
+
+#### How to Tackle
+- **Represent wisely:** Adjacency lists for sparse graphs; matrices for dense.
+- **Track visits:** Prevent infinite loops in cyclic graphs.
+- **Choose traversal:** BFS for shortest unweighted paths, DFS for structural exploration.
+
+#### Core Subpatterns
+- **DFS/BFS Traversal:** Connected components, cycle checks, flood fill.
+- **Union-Find:** Near-constant-time connectivity queries and Kruskal’s MST.
+- **Shortest Path:** BFS, Dijkstra, Bellman-Ford, Floyd–Warshall.
+- **Topological Sort:** Order DAGs with prerequisites (Kahn’s algorithm or DFS).
+
+### 🗄️ Heaps & Specialized Queues
+
+#### What It’s About
+Priority structures that surface extrema quickly.
+
+#### How to Tackle
+- **Match heap size/type** to the problem (min-heap for top K largest, max-heap for top K smallest).
+- **Balance dual heaps** to track medians in streaming data.
+
+#### Core Subpatterns
+- **Top-K Elements:** Maintain a heap of size `k`.
+- **Median of Stream:** Two heaps, rebalanced after each insertion.
+- **Priority Queue Scheduling:** Process jobs/events by priority.
+
+### ⏱️ Interval & Sweep Line
+
+#### What It’s About
+Manage overlapping ranges and time-based events.
+
+#### How to Tackle
+- **Sort intervals:** Usually by start time (or end time for greedy picks).
+- **Sweep line:** Convert starts/ends into events, maintain active counts.
+
+#### Core Subpatterns
+- **Merge Intervals:** Combine overlapping ranges greedily.
+- **Difference Array / Sweep:** Track concurrent intervals with +1/-1 events.
+- **Meeting Rooms:** Pair sorting with heaps to count rooms in use.
+
+### 🧠 Advanced Strings & Bitwise
+
+#### What It’s About
+Specialized pattern matching and low-level arithmetic.
+
+#### How to Tackle
+- **Prefix structures:** Tries, prefix tables (KMP) accelerate lookups.
+- **Bit tricks:** Encode sets, flip bits, and isolate uniques with XOR.
+
+#### Core Subpatterns
+- **Trie (Prefix Tree):** Shared-prefix dictionary lookups.
+- **KMP / Rolling Hash:** Linear-time pattern search.
+- **Bit Manipulation:** Masks, shifts, XOR-based uniqueness detection.
+
+### 🧩 System Design / Math Concepts
+
+#### What It’s About
+Randomness, probability, and number theory within coding rounds.
+
+#### How to Tackle
+- **Reservoir Sampling:** Uniformly sample from streams of unknown length.
+- **Fisher–Yates Shuffle:** Create unbiased shuffles in linear time.
+- **Modular Arithmetic:** Keep large-number math within constraints; work with GCD, modular inverses, and primes.
+
+#### Core Subpatterns
+- **Sampling Algorithms**
+- **Unbiased Shuffling**
+- **Math Foundations:** GCD, prime sieves, modular exponentiation.
+
+### 🧭 Putting It All Together
+
+| Phase | Topics | Focus & Goal |
+| :--- | :--- | :--- |
+| **I: Foundation** | Arrays & Strings, Linked Lists | Master basic data manipulation, indexing, and pointers. |
+| **II: Structure** | Recursion, Trees, Graphs | Model hierarchy and connectivity; gain DFS/BFS fluency. |
+| **III: Optimization** | Dynamic Programming, Heaps, Search/D&C | Move from brute force to optimal solutions. |
+| **IV: Specialization** | Intervals, Advanced Strings, Bitwise | Apply high-leverage techniques to niche prompts. |
+
+**Interview Mindset:** For every new prompt, pause and ask: *Which pattern family does this most resemble?* That single question bridges theory and on-the-spot execution.
+
+---
+
 ## Printable Mind Map
 
 Instead of a static image, explore the classification interactively below. Tap any node to expand or collapse its children, and drag or zoom to inspect different regions.

@@ -16,10 +16,11 @@ interface NodeRendererProps {
   onCenter?: (info: { x: number; y: number; depth: number }) => void;
 }
 
-const NAME_FONT_SIZE = 13;
-const DESCRIPTION_FONT_SIZE = 11.5;
-const NAME_WEIGHT = 450;
-const DESCRIPTION_WEIGHT = 380;
+const NAME_FONT_SIZE = 14;
+const DESCRIPTION_FONT_SIZE = 12.4;
+const NAME_WEIGHT_LEAF = 380;
+const NAME_WEIGHT_PARENT = 320;
+const DESCRIPTION_WEIGHT = 300;
 const PADDING_X = 26;
 const PADDING_Y = 30;
 const NAME_LINE_HEIGHT = 24;
@@ -79,7 +80,8 @@ const renderFactory = ({
       } = augmented;
       const { label, description } = payload;
 
-      const nameWrap = wrapText(label, NAME_FONT_SIZE, NAME_WEIGHT, MAX_CONTENT_WIDTH);
+      const nameFontWeight = hasChildren ? NAME_WEIGHT_PARENT : NAME_WEIGHT_LEAF;
+      const nameWrap = wrapText(label, NAME_FONT_SIZE, nameFontWeight, MAX_CONTENT_WIDTH);
       const descriptionWrap = description
         ? wrapText(description, DESCRIPTION_FONT_SIZE, DESCRIPTION_WEIGHT, MAX_CONTENT_WIDTH)
         : { lines: [] as string[], widths: [] as number[] };
@@ -156,9 +158,13 @@ const renderFactory = ({
               alignmentBaseline="middle"
               fontSize={NAME_FONT_SIZE}
               fontFamily={DISPLAY_FONT_STACK}
-              fontWeight={NAME_WEIGHT}
+              fontWeight={nameFontWeight}
               letterSpacing={letterSpacing}
-              style={{ textRendering: "optimizeLegibility", WebkitFontSmoothing: "antialiased" }}
+              style={{
+                textRendering: "optimizeLegibility",
+                WebkitFontSmoothing: "antialiased",
+                fontVariationSettings: `"wght" ${nameFontWeight}`,
+              }}
               y={nameStartY + index * NAME_LINE_HEIGHT}
               data-role="title"
             >
@@ -178,6 +184,7 @@ const renderFactory = ({
               style={{
                 textRendering: "optimizeLegibility",
                 WebkitFontSmoothing: "antialiased",
+                fontVariationSettings: `"wght" ${DESCRIPTION_WEIGHT}`,
               }}
               y={descriptionStartY + index * DESCRIPTION_LINE_HEIGHT}
               data-role="description"

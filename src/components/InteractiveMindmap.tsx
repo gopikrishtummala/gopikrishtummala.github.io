@@ -266,6 +266,7 @@ const RadialTree = memo(function RadialTree({
         </g>
         {nodes.map((node) => {
           const hasChildren = Boolean(node.children && node.children.length > 0);
+          const titleFontWeight = hasChildren ? 400 : 500;
           const rotation = (node.x * 180) / Math.PI - 90;
           const translate = `translate(${node.y},0)`;
           const flipped = node.x >= Math.PI;
@@ -309,8 +310,8 @@ const RadialTree = memo(function RadialTree({
                 style={{
                   fontFamily: DISPLAY_FONT_STACK,
                   fontSize: "0.64rem",
-                  fontWeight: 450,
-                  letterSpacing: 0.01,
+                  fontWeight: titleFontWeight,
+                  letterSpacing: 0.02,
                   WebkitFontSmoothing: "antialiased",
                   textRendering: "optimizeLegibility",
                   userSelect: "none",
@@ -1139,14 +1140,18 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
             .mindmap-node text,
             .mindmap-radial text {
               font-family: "Inter", "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
-              font-weight: 450;
               text-rendering: optimizeLegibility;
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
               letter-spacing: 0.01em;
             }
 
-            .mindmap-node text[data-role="description"],
+            .mindmap-node text[data-role="title"],
+            .mindmap-node text[data-role="description"] {
+              font-weight: 300 !important;
+              font-variation-settings: "wght" 300 !important;
+            }
+
             .mindmap-radial text[data-role="description"] {
               font-weight: 380;
               letter-spacing: 0.008em;
