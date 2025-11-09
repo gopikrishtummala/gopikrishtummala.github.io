@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "./typography.css";
 
@@ -14,6 +15,7 @@
   --muted: #cbd5f5;
   --border: rgba(15, 23, 42, 0.08);
   --shadow: 0 28px 60px -35px rgba(15, 23, 42, 0.45);
+  --display-font: "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --code-bg: #fafafa;
   --code-border: rgba(15, 23, 42, 0.08);
@@ -37,6 +39,7 @@ html[data-theme="dark"] {
   --muted: #475569;
   --border: rgba(148, 163, 184, 0.18);
   --shadow: 0 30px 60px -32px rgba(15, 23, 42, 0.9);
+  --display-font: "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --code-bg: #1f2430;
   --code-border: rgba(148, 163, 184, 0.25);

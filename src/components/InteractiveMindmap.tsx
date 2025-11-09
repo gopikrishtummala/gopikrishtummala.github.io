@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import Tree, { type RawNodeDatum } from "react-d3-tree";
 
 const BASE_FONT_STACK =
-  '"Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+  '"Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif';
 
 type MindmapNode = (RawNodeDatum & { children?: MindmapNode[] }) & {
   collapsed?: boolean;
@@ -217,17 +217,17 @@ const nodeSize = { x: 260, y: 168 };
 const measureLabelWidth = (() => {
   let canvas: HTMLCanvasElement | null = null;
   let context: CanvasRenderingContext2D | null = null;
-  return (text: string, fontSize: number, fontWeight = 300) => {
+  return (text: string, fontSize: number, fontWeight = 400) => {
     if (!text) return 0;
     if (typeof document === "undefined") {
-      return text.length * fontSize * 0.62;
+      return text.length * fontSize * 0.6;
     }
     if (!canvas) {
       canvas = document.createElement("canvas");
       context = canvas.getContext("2d");
     }
     if (!context) {
-      return text.length * fontSize * 0.62;
+      return text.length * fontSize * 0.6;
     }
 
     context.font = `${fontWeight} ${fontSize}px ${BASE_FONT_STACK}`;
@@ -264,9 +264,11 @@ const renderNode = (isDark: boolean) =>
     const fontSize = 14;
     const clueFontSize = 12;
     const lineHeight = 20;
+    const nameWeight = 500;
+    const clueWeight = 400;
 
-    const nameWidth = measureLabelWidth(name, fontSize, 300);
-    const clueWidth = clue ? measureLabelWidth(clue, clueFontSize, 300) : 0;
+    const nameWidth = measureLabelWidth(name, fontSize, nameWeight);
+    const clueWidth = clue ? measureLabelWidth(clue, clueFontSize, clueWeight) : 0;
     const textWidth = Math.max(nameWidth, clueWidth);
     const width = Math.max(180, Math.min(320, textWidth + paddingX * 2));
     const height = clue ? paddingY * 2 + lineHeight * 2 : paddingY * 2 + lineHeight;
@@ -297,8 +299,8 @@ const renderNode = (isDark: boolean) =>
           alignmentBaseline="middle"
           fontSize={fontSize}
           fontFamily={BASE_FONT_STACK}
-          fontWeight={300}
-          letterSpacing="0.015em"
+          fontWeight={nameWeight}
+          letterSpacing="0.01em"
           dy={clue ? -10 : 2}
           style={{ textRendering: "geometricPrecision" }}
         >
@@ -311,8 +313,8 @@ const renderNode = (isDark: boolean) =>
             alignmentBaseline="middle"
             fontSize={clueFontSize}
             fontFamily={BASE_FONT_STACK}
-            fontWeight={300}
-            letterSpacing="0.035em"
+            fontWeight={clueWeight}
+            letterSpacing="0.02em"
             dy={18}
             style={{ textRendering: "geometricPrecision" }}
           >
@@ -340,6 +342,11 @@ export default function InteractiveMindmap() {
   const linkStroke = isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.25)";
 
   useEffect(() => {
+    if (typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
+      return;
+    }
+
+    const ResizeObserverInstance = window.ResizeObserver;
     const element = containerRef.current;
     if (!element) return;
 
@@ -350,7 +357,7 @@ export default function InteractiveMindmap() {
 
     setFromRect();
 
-    const observer = new ResizeObserver(() => setFromRect());
+    const observer = new ResizeObserverInstance(() => setFromRect());
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
