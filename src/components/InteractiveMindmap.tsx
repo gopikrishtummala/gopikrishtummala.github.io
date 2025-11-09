@@ -1038,6 +1038,22 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
               stroke-width: 1.18px;
             }
 
+            .mindmap-node text,
+            .mindmap-radial text {
+              font-family: "Inter", "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+              font-weight: 450;
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+              letter-spacing: 0.01em;
+            }
+
+            .mindmap-node text[data-role="description"],
+            .mindmap-radial text[data-role="description"] {
+              font-weight: 380;
+              letter-spacing: 0.008em;
+            }
+
             .mindmap-radial {
               transition: transform 220ms ease;
             }

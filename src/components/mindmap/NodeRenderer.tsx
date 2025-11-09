@@ -135,7 +135,7 @@ const renderFactory = ({
           aria-expanded={hasChildren ? !augmented.__rd3t.collapsed : undefined}
           tabIndex={0}
           className="mindmap-node"
-          style={{ cursor: "pointer", filter: colors.shadow }}
+          style={{ cursor: "pointer" }}
         >
           <rect
             width={width}
@@ -146,6 +146,7 @@ const renderFactory = ({
             fill={colors.bg}
             stroke={colors.border}
             strokeWidth={0.9}
+            filter={colors.shadow}
           />
           {nameWrap.lines.map((line, index) => (
             <text
@@ -159,6 +160,7 @@ const renderFactory = ({
               letterSpacing={letterSpacing}
               style={{ textRendering: "optimizeLegibility", WebkitFontSmoothing: "antialiased" }}
               y={nameStartY + index * NAME_LINE_HEIGHT}
+              data-role="title"
             >
               {line}
             </text>
@@ -178,6 +180,7 @@ const renderFactory = ({
                 WebkitFontSmoothing: "antialiased",
               }}
               y={descriptionStartY + index * DESCRIPTION_LINE_HEIGHT}
+              data-role="description"
             >
               {line}
             </text>
