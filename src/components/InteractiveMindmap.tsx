@@ -2,7 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Tree from "react-d3-tree";
 
-const TREE_DATA = {
+type MindmapNode = {
+  name: string;
+  attributes?: {
+    clue?: string;
+  };
+  children?: MindmapNode[];
+  collapsed?: boolean;
+};
+
+const TREE_DATA: MindmapNode = {
   name: "LeetCode Problem Classification",
   children: [
     {
@@ -203,7 +212,7 @@ const containerStyles: CSSProperties = {
   position: "relative",
 };
 
-const nodeSize = { x: 210, y: 120 };
+const nodeSize = { x: 240, y: 150 };
 
 const useTheme = () => {
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -228,11 +237,11 @@ const renderNode = (isDark: boolean) =>
   ({ nodeDatum, toggleNode }: any) => {
     const name = nodeDatum.name as string;
     const clue = nodeDatum.attributes?.clue as string | undefined;
-    const paddingX = 16;
-    const paddingY = clue ? 20 : 12;
-    const fontSize = 12;
-    const clueFontSize = 10;
-    const lineHeight = 14;
+    const paddingX = 24;
+    const paddingY = clue ? 24 : 16;
+    const fontSize = 13;
+    const clueFontSize = 11;
+    const lineHeight = 18;
 
     const textWidth = Math.max(
       name.length * fontSize * 0.55,
@@ -263,7 +272,8 @@ const renderNode = (isDark: boolean) =>
           textAnchor="middle"
           alignmentBaseline="middle"
           fontSize={fontSize}
-          fontFamily="var(--code-font)"
+          fontFamily='"Fira Code", var(--code-font), "IBM Plex Mono", monospace'
+          fontWeight={400}
           dy={clue ? -6 : 0}
         >
           {name}
@@ -274,7 +284,8 @@ const renderNode = (isDark: boolean) =>
             textAnchor="middle"
             alignmentBaseline="middle"
             fontSize={clueFontSize}
-            fontFamily="var(--code-font)"
+          fontFamily='"Fira Code", var(--code-font), "IBM Plex Mono", monospace'
+          fontWeight={400}
             dy={16}
           >
             {clue}
@@ -284,8 +295,17 @@ const renderNode = (isDark: boolean) =>
     );
   };
 
+const prepareTree = (node: MindmapNode, isRoot = true): MindmapNode => {
+  const children = node.children?.map((child) => prepareTree(child, false));
+  return {
+    ...node,
+    ...(children ? { children } : {}),
+    ...(isRoot ? {} : { collapsed: true }),
+  };
+};
+
 export default function InteractiveMindmap() {
-  const data = useMemo(() => TREE_DATA, []);
+  const data = useMemo(() => prepareTree(TREE_DATA), []);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [translate, setTranslate] = useState({ x: 280, y: 290 });
   const isDark = useTheme();
@@ -318,6 +338,7 @@ export default function InteractiveMindmap() {
         nodeSize={nodeSize}
         scaleExtent={{ min: 0.5, max: 1.8 }}
         transitionDuration={350}
+        initialDepth={0}
         renderCustomNodeElement={renderNode(isDark)}
         linkSvgProps={{
           stroke: isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.25)",
