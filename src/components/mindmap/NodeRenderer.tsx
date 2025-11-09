@@ -21,7 +21,7 @@ const DESCRIPTION_FONT_SIZE = 12.4;
 const NAME_WEIGHT_LEAF = 380;
 const NAME_WEIGHT_PARENT = 320;
 const DESCRIPTION_WEIGHT = 300;
-const PADDING_X = 26;
+const PADDING_X = 30;
 const PADDING_Y = 30;
 const NAME_LINE_HEIGHT = 24;
 const DESCRIPTION_LINE_HEIGHT = 20;
@@ -68,7 +68,7 @@ const wrapText = (
 const renderFactory = ({
   palette,
   onNodeClick,
-  letterSpacing = 0.0085,
+  letterSpacing = 0.0075,
   onCenter,
 }: NodeRendererProps) => {
   const Renderer = memo(
@@ -106,6 +106,14 @@ const renderFactory = ({
         ? palette.branches[Math.min(depth, palette.branches.length - 1)]
         : palette.leaf;
 
+      const accentWidth = 5;
+      const textX = -width / 2 + PADDING_X;
+      const nameStartY = -height / 2 + PADDING_Y;
+      const descriptionStartY =
+        nameStartY +
+        nameWrap.lines.length * NAME_LINE_HEIGHT +
+        (descriptionWrap.lines.length ? DESCRIPTION_GAP : 0);
+
       const handleClick = useCallback(() => {
         toggleNode();
         if (hierarchyPointNode && onCenter) {
@@ -122,13 +130,6 @@ const renderFactory = ({
         }
       };
 
-      const textBlockHeight = nameHeight + descriptionHeight;
-      const nameStartY = -textBlockHeight / 2 + NAME_LINE_HEIGHT / 2;
-      const descriptionStartY =
-        nameStartY +
-        nameHeight / 2 +
-        (descriptionWrap.lines.length ? DESCRIPTION_GAP + NAME_LINE_HEIGHT / 2 : 0);
-
       return (
         <g
           onClick={handleClick}
@@ -139,6 +140,15 @@ const renderFactory = ({
           className="mindmap-node"
           style={{ cursor: "pointer" }}
         >
+          <rect
+            width={accentWidth}
+            height={height - PADDING_Y * 0.6}
+            x={-width / 2 + (PADDING_Y * 0.6) / 2}
+            y={-height / 2 + (PADDING_Y * 0.6) / 2}
+            rx={accentWidth / 2}
+            fill={hasChildren ? colors.border : palette.link}
+            opacity={0.65}
+          />
           <rect
             width={width}
             height={height}
@@ -180,7 +190,7 @@ const renderFactory = ({
               fontSize={DESCRIPTION_FONT_SIZE}
               fontFamily={DISPLAY_FONT_STACK}
               fontWeight={DESCRIPTION_WEIGHT}
-              letterSpacing={letterSpacing * 1.05}
+              letterSpacing={letterSpacing * 1.2}
               style={{
                 textRendering: "optimizeLegibility",
                 WebkitFontSmoothing: "antialiased",

@@ -61,39 +61,74 @@ const copyComputedStyles = (source: Element, target: Element, properties: string
 };
 
 const inlineStyles = (original: SVGSVGElement, clone: SVGSVGElement) => {
-  const originalLinks = original.querySelectorAll<SVGPathElement>(".rd3t-link");
-  const clonedLinks = clone.querySelectorAll<SVGPathElement>(".rd3t-link");
+  const originalLinks = original.querySelectorAll<SVGPathElement>('.rd3t-link');
+  const clonedLinks = clone.querySelectorAll<SVGPathElement>('.rd3t-link');
   originalLinks.forEach((link, index) => {
     const counterpart = clonedLinks[index];
     if (!counterpart) return;
     copyComputedStyles(link, counterpart, [
-      "stroke",
-      "strokeWidth",
-      "strokeOpacity",
-      "strokeLinecap",
+      'stroke',
+      'strokeWidth',
+      'strokeOpacity',
+      'strokeLinecap',
     ]);
-    counterpart.setAttribute("fill", "none");
+    counterpart.setAttribute('fill', 'none');
   });
 
-  const originalRects = original.querySelectorAll<SVGRectElement>(".mindmap-node rect");
-  const clonedRects = clone.querySelectorAll<SVGRectElement>(".mindmap-node rect");
+  const originalRects = original.querySelectorAll<SVGRectElement>('.mindmap-node rect');
+  const clonedRects = clone.querySelectorAll<SVGRectElement>('.mindmap-node rect');
   originalRects.forEach((rect, index) => {
     const counterpart = clonedRects[index];
     if (!counterpart) return;
-    copyComputedStyles(rect, counterpart, ["fill", "stroke", "strokeWidth", "strokeOpacity"]);
+    copyComputedStyles(rect, counterpart, ['fill', 'stroke', 'strokeWidth', 'strokeOpacity']);
   });
 
-  const originalTexts = original.querySelectorAll<SVGTextElement>(".mindmap-node text");
-  const clonedTexts = clone.querySelectorAll<SVGTextElement>(".mindmap-node text");
+  const originalTexts = original.querySelectorAll<SVGTextElement>('.mindmap-node text');
+  const clonedTexts = clone.querySelectorAll<SVGTextElement>('.mindmap-node text');
   originalTexts.forEach((text, index) => {
     const counterpart = clonedTexts[index];
     if (!counterpart) return;
     copyComputedStyles(text, counterpart, [
-      "fill",
-      "fontFamily",
-      "fontSize",
-      "fontWeight",
-      "letterSpacing",
+      'fill',
+      'fontFamily',
+      'fontSize',
+      'fontWeight',
+      'letterSpacing',
+      'fontVariationSettings',
+    ]);
+  });
+
+  const originalRadialPaths = original.querySelectorAll<SVGPathElement>('.mindmap-radial path');
+  const clonedRadialPaths = clone.querySelectorAll<SVGPathElement>('.mindmap-radial path');
+  originalRadialPaths.forEach((path, index) => {
+    const counterpart = clonedRadialPaths[index];
+    if (!counterpart) return;
+    copyComputedStyles(path, counterpart, ['stroke', 'strokeWidth', 'strokeOpacity', 'fill']);
+  });
+
+  const originalRadialCircles = original.querySelectorAll<SVGCircleElement>('.mindmap-radial circle');
+  const clonedRadialCircles = clone.querySelectorAll<SVGCircleElement>('.mindmap-radial circle');
+  originalRadialCircles.forEach((circle, index) => {
+    const counterpart = clonedRadialCircles[index];
+    if (!counterpart) return;
+    copyComputedStyles(circle, counterpart, ['fill', 'stroke', 'strokeWidth', 'strokeOpacity']);
+  });
+
+  const originalRadialTexts = original.querySelectorAll<SVGTextElement>('.mindmap-radial text');
+  const clonedRadialTexts = clone.querySelectorAll<SVGTextElement>('.mindmap-radial text');
+  originalRadialTexts.forEach((text, index) => {
+    const counterpart = clonedRadialTexts[index];
+    if (!counterpart) return;
+    copyComputedStyles(text, counterpart, [
+      'fill',
+      'stroke',
+      'strokeWidth',
+      'strokeOpacity',
+      'fontFamily',
+      'fontSize',
+      'fontWeight',
+      'letterSpacing',
+      'fontVariationSettings',
     ]);
   });
 };
@@ -102,7 +137,10 @@ const cloneSvgForExport = (svg: SVGSVGElement, margin = 48) => {
   const clone = svg.cloneNode(true) as SVGSVGElement;
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   inlineStyles(svg, clone);
-  const graphGroup = svg.querySelector<SVGGElement>(".rd3t-g");
+  const graphGroup =
+    svg.querySelector<SVGGElement>(".rd3t-g") ??
+    svg.querySelector<SVGGElement>(".mindmap-radial") ??
+    svg.querySelector<SVGGElement>("svg > g");
 
   if (graphGroup) {
     const bbox = graphGroup.getBBox();
@@ -112,10 +150,18 @@ const cloneSvgForExport = (svg: SVGSVGElement, margin = 48) => {
     clone.setAttribute("width", `${width}`);
     clone.setAttribute("height", `${height}`);
   } else {
-    const rect = svg.getBoundingClientRect();
-    clone.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
-    clone.setAttribute("width", `${rect.width}`);
-    clone.setAttribute("height", `${rect.height}`);
+    const sourceViewBox = svg.getAttribute("viewBox");
+    if (sourceViewBox) {
+      clone.setAttribute("viewBox", sourceViewBox);
+      const [, , w, h] = sourceViewBox.trim().split(/\s+/);
+      clone.setAttribute("width", w ?? "0");
+      clone.setAttribute("height", h ?? "0");
+    } else {
+      const rect = svg.getBoundingClientRect();
+      clone.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+      clone.setAttribute("width", `${rect.width}`);
+      clone.setAttribute("height", `${rect.height}`);
+    }
   }
 
   return clone;
