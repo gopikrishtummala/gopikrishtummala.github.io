@@ -18,6 +18,72 @@ const posts = await getCollection("blog");
 const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+
+const timeline = [
+  {
+    title: "Senior Machine Learning Engineer",
+    subtitle: "Adobe · Creative Cloud & Firefly · San Jose, CA",
+    meta: "2025 — Present",
+    description:
+      "Leading large-scale data pipelines, training infrastructure, and responsible generative AI initiatives that power Firefly and Creative Cloud surfaces.",
+  },
+  {
+    title: "Software Engineer, Prediction",
+    subtitle: "Zoox · Bay Area, CA",
+    meta: "2022 — 2024",
+    description:
+      "Shipped multi-agent prediction models for L3/L4/L5 robotaxi fleets and co-designed the training framework and dataloaders that kept the stack fed with fresh data.",
+  },
+  {
+    title: "Senior Systems Engineer",
+    subtitle: "Qualcomm Research · San Diego, CA",
+    meta: "2018 — 2022",
+    description:
+      "Led prediction for Qualcomm’s L3 highway autonomous driving stack—owning forecasting models, simulation harnesses, and post-drive analytics. Earlier built integration and test automation for the stack.",
+  },
+  {
+    title: "Graduated from The Ohio State University",
+    subtitle: "Ph.D. Computer Science & Engineering",
+    meta: "2018",
+    description:
+      "Dissertation on collaborative perception and behavior prediction for intelligent transportation systems.",
+  },
+  {
+    title: "Research Intern",
+    subtitle: "Microsoft Research · Bangalore, India",
+    meta: "2016",
+    description:
+      "Designed AutoCalib—large-scale traffic camera calibration with <10% speed error—in Microsoft’s video analytics platform.",
+  },
+  {
+    title: "Graduate Research Assistant",
+    subtitle: "The Ohio State University · Columbus, OH",
+    meta: "2013 — 2018",
+    description:
+      "Built SmartDashCam, Soft-Swipe, RoadView, and RoadMap; taught introductory programming; collaborated with Honda on live calibration and lane-level localization.",
+  },
+  {
+    title: "Software Analyst",
+    subtitle: "Standard Chartered Bank · Chennai, India",
+    meta: "2012 — 2013",
+    description:
+      "Developed reporting systems and automation scripts for global private banking infrastructure.",
+  },
+  {
+    title: "Project Intern",
+    subtitle: "Tata Elxsi · Chennai, India",
+    meta: "2011",
+    description:
+      "Optimized LTE PDCCH blind decoding algorithms and explored DSP-based radio prototyping.",
+  },
+  {
+    title: "B.Tech Electrical Engineering & Minor in Mathematics",
+    subtitle: "Indian Institute of Technology Madras · Chennai, India",
+    meta: "2008 — 2012",
+    description:
+      "Graduated with honors; led hostel council committees and secured top-1% rankings in national olympiads.",
+  },
+];
 ---
 
 <Layout>
@@ -76,6 +142,54 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
             Always learning
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="mt-16">
+      <h2 class="text-2xl font-semibold text-foreground sm:text-3xl">
+        Journey at a glance
+      </h2>
+      <p class="mt-2 max-w-3xl text-sm text-secondary-foreground sm:text-base">
+        A quick tour through the roles, research labs, and collaborations that shaped my path in AI and autonomous systems.
+      </p>
+      <div class="relative mt-10 sm:mt-12">
+        <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-accent/60 via-accent/20 to-transparent sm:block" />
+        <ul class="space-y-8 sm:space-y-12">
+        {[...timeline].reverse().map((item, index) => {
+            const isLeft = index % 2 === 0;
+            return (
+              <li class="relative">
+                <div
+                  class:list={[
+                    "relative flex flex-col gap-2 rounded-3xl border border-white/30 bg-white/70 p-5 text-sm text-secondary-foreground shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 dark:border-slate-700/40 dark:bg-slate-900/70 sm:max-w-[43%]",
+                    isLeft
+                      ? "sm:ml-0 sm:mr-auto sm:items-end sm:text-right sm:pr-8"
+                      : "sm:ml-auto sm:mr-0 sm:items-start sm:text-left sm:pl-8",
+                  ]}
+                >
+                  <span class="text-xs font-semibold uppercase tracking-[0.26em] text-secondary-foreground/70">
+                    {item.meta}
+                  </span>
+                  <h3 class="text-lg font-semibold text-foreground">
+                    {item.title}
+                  </h3>
+                  <p class="text-sm text-secondary-foreground">{item.subtitle}</p>
+                  {item.description && (
+                    <p class="text-xs text-secondary-foreground/90 sm:text-sm">
+                      {item.description}
+                    </p>
+                  )}
+                  <span
+                    class="absolute top-1/2 hidden size-3 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_0_6px_rgba(59,130,246,0.25)] sm:block"
+                    class:list={[
+                      isLeft ? "right-[-2.2rem]" : "left-[-2.2rem]",
+                    ]}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
 

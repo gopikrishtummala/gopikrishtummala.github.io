@@ -14,6 +14,16 @@
   --muted: #cbd5f5;
   --border: rgba(15, 23, 42, 0.08);
   --shadow: 0 28px 60px -35px rgba(15, 23, 42, 0.45);
+  --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --code-bg: #fafafa;
+  --code-border: rgba(15, 23, 42, 0.08);
+  --code-text: #1f2933;
+  --code-line-highlight: rgba(37, 99, 235, 0.08);
+  --code-token-keyword: #1d4ed8;
+  --code-token-string: #047857;
+  --code-token-comment: #94a3b8;
+  --code-token-number: #b91c1c;
+  --code-token-function: #7c3aed;
 }
 
 html[data-theme="dark"] {
@@ -27,6 +37,16 @@ html[data-theme="dark"] {
   --muted: #475569;
   --border: rgba(148, 163, 184, 0.18);
   --shadow: 0 30px 60px -32px rgba(15, 23, 42, 0.9);
+  --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --code-bg: #1f2430;
+  --code-border: rgba(148, 163, 184, 0.25);
+  --code-text: #f8fafc;
+  --code-line-highlight: rgba(56, 189, 248, 0.18);
+  --code-token-keyword: #77b7ff;
+  --code-token-string: #c2d94c;
+  --code-token-comment: #5c6773;
+  --code-token-number: #d95757;
+  --code-token-function: #f0a988;
 }
 
 @theme inline {
@@ -77,6 +97,16 @@ html[data-theme="dark"] {
   section,
   footer {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  code,
+  kbd,
+  samp {
+    font-family: var(--code-font);
+  }
+
+  pre code {
+    font-family: inherit;
   }
 }
 
