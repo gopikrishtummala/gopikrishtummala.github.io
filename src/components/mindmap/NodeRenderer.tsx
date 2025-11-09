@@ -68,7 +68,7 @@ const wrapText = (
 const renderFactory = ({
   palette,
   onNodeClick,
-  letterSpacing = 0.0125,
+  letterSpacing = 0.0085,
   onCenter,
 }: NodeRendererProps) => {
   const Renderer = memo(

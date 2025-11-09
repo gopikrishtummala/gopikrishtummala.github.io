@@ -266,12 +266,14 @@ const RadialTree = memo(function RadialTree({
         </g>
         {nodes.map((node) => {
           const hasChildren = Boolean(node.children && node.children.length > 0);
-          const titleFontWeight = hasChildren ? 400 : 500;
+          const titleFontWeight = hasChildren ? 360 : 460;
           const rotation = (node.x * 180) / Math.PI - 90;
           const translate = `translate(${node.y},0)`;
           const flipped = node.x >= Math.PI;
+          const radialLabelOffset = labelPadding * 0.45 + (hasChildren ? 18 : 22);
+          const textOffset = flipped ? -radialLabelOffset : radialLabelOffset;
           const textAnchor = flipped ? "end" : "start";
-          const textOffset = flipped ? -8 : 8;
+          const textStrokeWidth = hasChildren ? 1 : 1.2;
 
           const handleKeyDown =
             onNodeClick !== undefined
@@ -293,27 +295,31 @@ const RadialTree = memo(function RadialTree({
               style={{ cursor: onNodeClick ? "pointer" : "default" }}
             >
               <circle
-                r={hasChildren ? 2.8 : 2.2}
-                fill={hasChildren ? linkColor : "#f8fafc"}
+                r={hasChildren ? 3.2 : 2.4}
+                fill={hasChildren ? linkColor : "#f9fbff"}
                 stroke={linkColor}
-                strokeWidth={hasChildren ? 0 : 0.9}
+                strokeWidth={hasChildren ? 1 : 0.9}
               />
               <text
-                dy="0.32em"
+                dy="0"
                 x={textOffset}
                 textAnchor={textAnchor}
+                dominantBaseline="middle"
                 transform={flipped ? "rotate(180)" : undefined}
                 fill={textColor}
                 stroke={labelStroke}
-                strokeWidth={1.8}
-                paintOrder="stroke"
+                strokeWidth={textStrokeWidth}
+                strokeOpacity={0.65}
+                paintOrder="stroke fill"
+                data-role="title"
                 style={{
                   fontFamily: DISPLAY_FONT_STACK,
-                  fontSize: "0.64rem",
+                  fontSize: "0.68rem",
                   fontWeight: titleFontWeight,
-                  letterSpacing: 0.02,
+                  letterSpacing: 0.012,
                   WebkitFontSmoothing: "antialiased",
                   textRendering: "optimizeLegibility",
+                  fontVariationSettings: `"wght" ${titleFontWeight}`,
                   userSelect: "none",
                 }}
               >
@@ -846,7 +852,7 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
       branchTint,
       onNodeClick,
       showControls = true,
-      letterSpacing = 0.012,
+      letterSpacing = 0.008,
       exportRef,
       linkStyle = "default",
       layout = "radial",
@@ -1143,17 +1149,28 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
               text-rendering: optimizeLegibility;
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
-              letter-spacing: 0.01em;
+              font-optical-sizing: auto;
+              font-feature-settings: "ss02", "tnum";
+              letter-spacing: 0.006em;
             }
 
-            .mindmap-node text[data-role="title"],
+            .mindmap-node text[data-role="title"] {
+              font-weight: 340 !important;
+              font-variation-settings: "wght" 340 !important;
+            }
+
             .mindmap-node text[data-role="description"] {
               font-weight: 300 !important;
               font-variation-settings: "wght" 300 !important;
             }
 
-            .mindmap-radial text[data-role="description"] {
+            .mindmap-radial text[data-role="title"] {
+              letter-spacing: 0.012em;
               font-weight: 380;
+            }
+
+            .mindmap-radial text[data-role="description"] {
+              font-weight: 360;
               letter-spacing: 0.008em;
             }
 
