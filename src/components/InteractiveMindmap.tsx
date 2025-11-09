@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import Tree, { type Orientation, type Point } from "react-d3-tree";
 import {
@@ -854,6 +855,7 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
   ) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const previousBodyOverflow = useRef<string | null>(null);
+    const fullscreenPortalRef = useRef<HTMLDivElement | null>(null);
     const [activeLayout, setActiveLayout] = useState<"mindmap" | "tidy" | "radial">(layout);
     const treeOrientation = activeLayout === "mindmap" ? orientation : "vertical";
     const isRadial = activeLayout === "radial";
@@ -905,6 +907,28 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
       };
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isFullscreen]);
+
+    useEffect(() => {
+      if (typeof document === "undefined") return;
+      if (isFullscreen) {
+        if (!fullscreenPortalRef.current) {
+          const el = document.createElement("div");
+          el.className = "mindmap-fullscreen-root";
+          document.body.appendChild(el);
+          fullscreenPortalRef.current = el;
+        }
+      } else if (fullscreenPortalRef.current) {
+        fullscreenPortalRef.current.remove();
+        fullscreenPortalRef.current = null;
+      }
+
+      return () => {
+        if (fullscreenPortalRef.current && !isFullscreen) {
+          fullscreenPortalRef.current.remove();
+          fullscreenPortalRef.current = null;
+        }
+      };
     }, [isFullscreen]);
 
     useEffect(() => {
@@ -1093,7 +1117,7 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
       return classes.filter(Boolean).join(" ");
     }, [className, isFullscreen]);
 
-    return (
+    const mindmapContent = (
       <div ref={containerRef} className={containerClassName} style={containerStyles}>
         <style>
           {`
@@ -1263,9 +1287,51 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
               top: clamp(1.25rem, 4vh, 3rem);
               right: clamp(1.25rem, 4vw, 3.25rem);
             }
+
+            .mindmap-fullscreen-overlay {
+              position: absolute;
+              inset: 0;
+              pointer-events: none;
+              background: radial-gradient(circle at center, rgba(15,23,42,0.12) 0%, rgba(15,23,42,0.22) 55%, rgba(15,23,42,0.36) 100%);
+            }
+
+            .mindmap-fullscreen-hint {
+              position: absolute;
+              left: 50%;
+              bottom: clamp(1.75rem, 5vh, 3.5rem);
+              transform: translateX(-50%);
+              padding: 0.5rem 0.95rem;
+              border-radius: 999px;
+              font-size: 0.72rem;
+              font-weight: 500;
+              letter-spacing: 0.04em;
+              text-transform: uppercase;
+              background: rgba(15,23,42,0.65);
+              color: rgba(241,245,249,0.92);
+              display: inline-flex;
+              align-items: center;
+              gap: 0.6rem;
+              pointer-events: none;
+              box-shadow: 0 12px 32px -24px rgba(15,23,42,0.9);
+            }
+
+            .mindmap-fullscreen-hint span {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.28rem;
+              white-space: nowrap;
+            }
           `}
         </style>
+        {isFullscreen ? <div className="mindmap-fullscreen-overlay" aria-hidden="true" /> : null}
         {graphContent}
+        {isFullscreen ? (
+          <div className="mindmap-fullscreen-hint">
+            <span>Drag to move</span>
+            <span>Scroll to zoom</span>
+            <span>Press ESC to exit</span>
+          </div>
+        ) : null}
         {showControls && (
           <Controls
             layout={controlLayout}
@@ -1286,6 +1352,12 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
         )}
       </div>
     );
+
+    if (isFullscreen && typeof document !== "undefined" && fullscreenPortalRef.current) {
+      return createPortal(mindmapContent, fullscreenPortalRef.current);
+    }
+
+    return mindmapContent;
   },
 );
 
