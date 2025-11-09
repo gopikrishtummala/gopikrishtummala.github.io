@@ -322,6 +322,8 @@ const createNodeRenderer =
       onNodeClick?.(node.payload);
     };
 
+    const textTransform = description ? "translateY(-2px)" : "translateY(0)";
+
     return (
       <g onClick={handleClick} style={{ cursor: "pointer", filter: colors.shadow }}>
         <rect
@@ -334,34 +336,36 @@ const createNodeRenderer =
           stroke={colors.border}
           strokeWidth={0.9}
         />
-        <text
-          fill={colors.name}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fontSize={fontSize}
-          fontFamily={DISPLAY_FONT_STACK}
-          fontWeight={nameWeight}
-          letterSpacing="0.03em"
-          dy={description ? -10 : 2}
-          style={{ textRendering: "geometricPrecision" }}
-        >
-          {label}
-        </text>
-        {description && (
+        <g transform={textTransform}>
           <text
-            fill={colors.description}
+            fill={colors.name}
             textAnchor="middle"
             alignmentBaseline="middle"
-            fontSize={descriptionFontSize}
+            fontSize={fontSize}
             fontFamily={DISPLAY_FONT_STACK}
-            fontWeight={descriptionWeight}
-            letterSpacing="0.035em"
-            dy={18}
+            fontWeight={nameWeight}
+            letterSpacing="0.03em"
+            dy={description ? -10 : 2}
             style={{ textRendering: "geometricPrecision" }}
           >
-            {description}
+            {label}
           </text>
-        )}
+          {description && (
+            <text
+              fill={colors.description}
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              fontSize={descriptionFontSize}
+              fontFamily={DISPLAY_FONT_STACK}
+              fontWeight={descriptionWeight}
+              letterSpacing="0.035em"
+              dy={18}
+              style={{ textRendering: "geometricPrecision" }}
+            >
+              {description}
+            </text>
+          )}
+        </g>
       </g>
     );
   };
