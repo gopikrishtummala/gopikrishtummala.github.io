@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import Tree from "react-d3-tree";
+import Tree, { type RawNodeDatum } from "react-d3-tree";
 
-type MindmapNode = {
-  name: string;
-  attributes?: {
-    clue?: string;
-  };
-  children?: MindmapNode[];
+const BASE_FONT_STACK =
+  '"Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+
+type MindmapNode = (RawNodeDatum & { children?: MindmapNode[] }) & {
   collapsed?: boolean;
 };
 
@@ -204,15 +202,39 @@ const TREE_DATA: MindmapNode = {
 
 const containerStyles: CSSProperties = {
   width: "100%",
-  height: "580px",
-  borderRadius: "1.75rem",
-  border: "1px solid rgba(148,163,184,0.25)",
-  background: "var(--code-bg)",
-  boxShadow: "0 35px 70px -35px rgba(15,23,42,0.35)",
+  height: "640px",
+  borderRadius: "1.9rem",
+  border: "1px solid rgba(148,163,184,0.24)",
+  background:
+    "linear-gradient(135deg, rgba(15,23,42,0.06) 0%, rgba(37,99,235,0.08) 55%, rgba(15,23,42,0.04) 100%)",
+  boxShadow: "0 45px 85px -45px rgba(15,23,42,0.42)",
   position: "relative",
+  overflow: "hidden",
 };
 
-const nodeSize = { x: 240, y: 150 };
+const nodeSize = { x: 260, y: 168 };
+
+const measureLabelWidth = (() => {
+  let canvas: HTMLCanvasElement | null = null;
+  let context: CanvasRenderingContext2D | null = null;
+  return (text: string, fontSize: number, fontWeight = 300) => {
+    if (!text) return 0;
+    if (typeof document === "undefined") {
+      return text.length * fontSize * 0.62;
+    }
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      context = canvas.getContext("2d");
+    }
+    if (!context) {
+      return text.length * fontSize * 0.62;
+    }
+
+    context.font = `${fontWeight} ${fontSize}px ${BASE_FONT_STACK}`;
+    const metrics = context.measureText(text);
+    return metrics.width;
+  };
+})();
 
 const useTheme = () => {
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -237,44 +259,48 @@ const renderNode = (isDark: boolean) =>
   ({ nodeDatum, toggleNode }: any) => {
     const name = nodeDatum.name as string;
     const clue = nodeDatum.attributes?.clue as string | undefined;
-    const paddingX = 24;
-    const paddingY = clue ? 24 : 16;
-    const fontSize = 13;
-    const clueFontSize = 11;
-    const lineHeight = 18;
+    const paddingX = 26;
+    const paddingY = clue ? 30 : 20;
+    const fontSize = 14;
+    const clueFontSize = 12;
+    const lineHeight = 20;
 
-    const textWidth = Math.max(
-      name.length * fontSize * 0.55,
-      clue ? clue.length * clueFontSize * 0.52 : 0,
-    );
-    const width = Math.max(150, textWidth + paddingX * 2);
+    const nameWidth = measureLabelWidth(name, fontSize, 300);
+    const clueWidth = clue ? measureLabelWidth(clue, clueFontSize, 300) : 0;
+    const textWidth = Math.max(nameWidth, clueWidth);
+    const width = Math.max(180, Math.min(320, textWidth + paddingX * 2));
     const height = clue ? paddingY * 2 + lineHeight * 2 : paddingY * 2 + lineHeight;
 
-    const bg = isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.98)";
-    const border = isDark ? "rgba(148,163,184,0.5)" : "rgba(15,23,42,0.12)";
-    const nameColor = isDark ? "rgba(248,250,252,0.96)" : "rgba(15,23,42,0.92)";
-    const clueColor = isDark ? "rgba(203,213,225,0.88)" : "rgba(71,85,105,0.82)";
+    const bg = isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.96)";
+    const border = isDark ? "rgba(148,163,184,0.42)" : "rgba(15,23,42,0.14)";
+    const nameColor = isDark ? "rgba(248,250,252,0.98)" : "rgba(22,30,46,0.9)";
+    const clueColor = isDark ? "rgba(198,213,231,0.9)" : "rgba(71,85,105,0.86)";
+    const shadow = isDark
+      ? "drop-shadow(0 18px 32px rgba(15,23,42,0.55))"
+      : "drop-shadow(0 20px 38px rgba(15,23,42,0.18))";
 
     return (
-      <g onClick={toggleNode} style={{ cursor: "pointer" }}>
+      <g onClick={toggleNode} style={{ cursor: "pointer", filter: shadow }}>
         <rect
           width={width}
           height={height}
           x={-width / 2}
           y={-height / 2}
-          rx={22}
+          rx={26}
           fill={bg}
           stroke={border}
-          strokeWidth={1}
+          strokeWidth={0.8}
         />
         <text
           fill={nameColor}
           textAnchor="middle"
           alignmentBaseline="middle"
           fontSize={fontSize}
-          fontFamily='"Fira Code", var(--code-font), "IBM Plex Mono", monospace'
-          fontWeight={400}
-          dy={clue ? -6 : 0}
+          fontFamily={BASE_FONT_STACK}
+          fontWeight={300}
+          letterSpacing="0.015em"
+          dy={clue ? -10 : 2}
+          style={{ textRendering: "geometricPrecision" }}
         >
           {name}
         </text>
@@ -284,9 +310,11 @@ const renderNode = (isDark: boolean) =>
             textAnchor="middle"
             alignmentBaseline="middle"
             fontSize={clueFontSize}
-          fontFamily='"Fira Code", var(--code-font), "IBM Plex Mono", monospace'
-          fontWeight={400}
-            dy={16}
+            fontFamily={BASE_FONT_STACK}
+            fontWeight={300}
+            letterSpacing="0.035em"
+            dy={18}
+            style={{ textRendering: "geometricPrecision" }}
           >
             {clue}
           </text>
@@ -309,6 +337,7 @@ export default function InteractiveMindmap() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [translate, setTranslate] = useState({ x: 280, y: 290 });
   const isDark = useTheme();
+  const linkStroke = isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.25)";
 
   useEffect(() => {
     const element = containerRef.current;
@@ -316,7 +345,7 @@ export default function InteractiveMindmap() {
 
     const setFromRect = () => {
       const { width, height } = element.getBoundingClientRect();
-      setTranslate({ x: width * 0.25, y: height / 2 });
+      setTranslate({ x: width * 0.32, y: Math.max(height * 0.5, 260) });
     };
 
     setFromRect();
@@ -328,22 +357,28 @@ export default function InteractiveMindmap() {
 
   return (
     <div ref={containerRef} style={containerStyles}>
+      <style>
+        {`
+          .mindmap-link {
+            stroke: ${linkStroke};
+            stroke-width: 1.25px;
+            fill: none;
+          }
+        `}
+      </style>
       <Tree
         data={data}
         orientation="horizontal"
         collapsible
         zoomable
         translate={translate}
-        separation={{ siblings: 1, nonSiblings: 1.7 }}
+        separation={{ siblings: 1.35, nonSiblings: 2.05 }}
         nodeSize={nodeSize}
-        scaleExtent={{ min: 0.5, max: 1.8 }}
+        scaleExtent={{ min: 0.55, max: 2 }}
         transitionDuration={350}
         initialDepth={0}
         renderCustomNodeElement={renderNode(isDark)}
-        linkSvgProps={{
-          stroke: isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.25)",
-          strokeWidth: 1.25,
-        }}
+        pathClassFunc={() => "mindmap-link"}
       />
     </div>
   );

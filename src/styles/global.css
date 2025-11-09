@@ -94,10 +94,11 @@ html[data-theme="dark"] {
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
-  section,
-  footer {
-    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
-  }
+section,
+footer {
+  @apply mx-auto w-full px-4 sm:px-8;
+  max-width: min(110rem, 96vw);
+}
 
   code,
   kbd,
