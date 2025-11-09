@@ -205,10 +205,53 @@ const containerStyles: CSSProperties = {
 
 const nodeSize = { x: 210, y: 120 };
 
+const renderNode = (isDark: boolean) =>
+  ({ nodeDatum, toggleNode }: any) => (
+    <g onClick={toggleNode} style={{ cursor: "pointer" }}>
+      <rect
+        width={176}
+        height={56}
+        x={-88}
+        y={-28}
+        rx={18}
+        fill={isDark ? "#111827" : "#1e293b"}
+        opacity={isDark ? 0.92 : 0.88}
+        stroke={isDark ? "rgba(148,163,184,0.5)" : "rgba(15,23,42,0.18)"}
+        strokeWidth={1}
+      />
+      <text
+        fill={isDark ? "rgba(226,232,240,0.95)" : "rgba(248,250,252,0.95)"}
+        textAnchor="middle"
+        alignmentBaseline="middle"
+        fontSize={11}
+        fontFamily="var(--code-font)"
+        dy={nodeDatum.attributes?.clue ? -6 : 0}
+      >
+        {nodeDatum.name}
+      </text>
+      {nodeDatum.attributes?.clue && (
+        <text
+          fill={isDark ? "rgba(148,163,184,0.85)" : "rgba(203,213,225,0.85)"}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fontSize={9}
+          fontFamily="var(--code-font)"
+          dy={12}
+        >
+          {nodeDatum.attributes.clue}
+        </text>
+      )}
+    </g>
+  );
+
 export default function InteractiveMindmap() {
   const data = useMemo(() => TREE_DATA, []);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [translate, setTranslate] = useState({ x: 280, y: 290 });
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.getAttribute("data-theme") === "dark";
+  });
 
   useEffect(() => {
     const element = containerRef.current;
@@ -226,6 +269,17 @@ export default function InteractiveMindmap() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const doc = document.documentElement;
+    const updateTheme = () => {
+      setIsDark(doc.getAttribute("data-theme") === "dark");
+    };
+    updateTheme();
+    const themeObserver = new MutationObserver(updateTheme);
+    themeObserver.observe(doc, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => themeObserver.disconnect();
+  }, []);
+
   return (
     <div ref={containerRef} style={containerStyles}>
       <Tree
@@ -238,42 +292,11 @@ export default function InteractiveMindmap() {
         nodeSize={nodeSize}
         scaleExtent={{ min: 0.5, max: 1.8 }}
         transitionDuration={350}
-        renderCustomNodeElement={({ nodeDatum, toggleNode }) => (
-          <g onClick={toggleNode} style={{ cursor: "pointer" }}>
-            <rect
-              width={170}
-              height={58}
-              x={-85}
-              y={-29}
-              rx={18}
-              fill="rgba(15,23,42,0.92)"
-              stroke="rgba(148,163,184,0.45)"
-              strokeWidth={1}
-            />
-            <text
-              fill="rgba(226,232,240,0.95)"
-              textAnchor="middle"
-              alignmentBaseline="middle"
-              fontSize={11}
-              fontFamily="var(--code-font)"
-              dy={nodeDatum.attributes?.clue ? -6 : 0}
-            >
-              {nodeDatum.name}
-            </text>
-            {nodeDatum.attributes?.clue && (
-              <text
-                fill="rgba(148,163,184,0.85)"
-                textAnchor="middle"
-                alignmentBaseline="middle"
-                fontSize={9}
-                fontFamily="var(--code-font)"
-                dy={12}
-              >
-                {nodeDatum.attributes.clue}
-              </text>
-            )}
-          </g>
-        )}
+        renderCustomNodeElement={renderNode(isDark)}
+        linkSvgProps={{
+          stroke: isDark ? "rgba(148,163,184,0.55)" : "rgba(15,23,42,0.28)",
+          strokeWidth: 1.4,
+        }}
       />
     </div>
   );
