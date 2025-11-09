@@ -241,10 +241,10 @@ const renderNode = (isDark: boolean) =>
     const width = Math.max(150, textWidth + paddingX * 2);
     const height = clue ? paddingY * 2 + lineHeight * 2 : paddingY * 2 + lineHeight;
 
-    const bg = isDark ? "var(--color-element)" : "rgba(15,23,42,0.88)";
-    const border = isDark ? "rgba(148,163,184,0.4)" : "rgba(15,23,42,0.2)";
-    const nameColor = isDark ? "rgba(226,232,240,0.96)" : "rgba(248,250,252,0.95)";
-    const clueColor = isDark ? "rgba(148,163,184,0.85)" : "rgba(203,213,225,0.85)";
+    const bg = isDark ? "rgba(15,23,42,0.92)" : "rgba(255,255,255,0.98)";
+    const border = isDark ? "rgba(148,163,184,0.5)" : "rgba(15,23,42,0.12)";
+    const nameColor = isDark ? "rgba(248,250,252,0.96)" : "rgba(15,23,42,0.92)";
+    const clueColor = isDark ? "rgba(203,213,225,0.88)" : "rgba(71,85,105,0.82)";
 
     return (
       <g onClick={toggleNode} style={{ cursor: "pointer" }}>
