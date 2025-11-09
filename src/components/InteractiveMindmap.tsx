@@ -331,6 +331,8 @@ const RadialTree = memo(function RadialTree({
 const Controls = ({
   layout,
   onLayoutChange,
+  isFullscreen,
+  onToggleFullscreen,
   onZoomIn,
   onZoomOut,
   onReset,
@@ -338,6 +340,8 @@ const Controls = ({
 }: {
   layout: "mindmap" | "radial";
   onLayoutChange?: (layout: "mindmap" | "radial") => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onReset: () => void;
@@ -361,6 +365,16 @@ const Controls = ({
           Radial
         </button>
       </div>
+    ) : null}
+    {onToggleFullscreen ? (
+      <button
+        type="button"
+        className={`fullscreen-toggle${isFullscreen ? " active" : ""}`}
+        onClick={onToggleFullscreen}
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        {isFullscreen ? "Close" : "Full"}
+      </button>
     ) : null}
     <button type="button" onClick={onZoomIn} aria-label="Zoom in">
       +
@@ -839,12 +853,14 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
     forwardedRef,
   ) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const previousBodyOverflow = useRef<string | null>(null);
     const [activeLayout, setActiveLayout] = useState<"mindmap" | "tidy" | "radial">(layout);
     const treeOrientation = activeLayout === "mindmap" ? orientation : "vertical";
     const isRadial = activeLayout === "radial";
     const autoTranslate = useAutoTranslate(containerRef, treeOrientation);
     const [translate, setTranslate] = useState<Point>(autoTranslate);
     const [zoom, setZoom] = useState(1);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     useEffect(() => {
       setActiveLayout(layout);
@@ -857,6 +873,39 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
         setTranslate(autoTranslate);
       }
     }, [autoTranslate, isRadial]);
+
+    useEffect(() => {
+      if (typeof document === "undefined") return;
+      const { body } = document;
+
+      if (isFullscreen) {
+        if (previousBodyOverflow.current === null) {
+          previousBodyOverflow.current = body.style.overflow;
+        }
+        body.style.overflow = "hidden";
+      } else if (previousBodyOverflow.current !== null) {
+        body.style.overflow = previousBodyOverflow.current;
+        previousBodyOverflow.current = null;
+      }
+
+      return () => {
+        if (previousBodyOverflow.current !== null) {
+          body.style.overflow = previousBodyOverflow.current;
+          previousBodyOverflow.current = null;
+        }
+      };
+    }, [isFullscreen]);
+
+    useEffect(() => {
+      if (!isFullscreen) return;
+      const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+        if (event.key === "Escape") {
+          setIsFullscreen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isFullscreen]);
 
     useEffect(() => {
       setZoom(1);
@@ -902,6 +951,25 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
         ...style,
       };
 
+      if (isFullscreen) {
+        return {
+          ...baseStyles,
+          position: "fixed" as const,
+          inset: 0,
+          width: "100vw",
+          height: "100vh",
+          minHeight: "100vh",
+          borderRadius: 0,
+          boxShadow: "none",
+          margin: 0,
+          aspectRatio: "auto",
+          overflow: "hidden",
+          zIndex: 9999,
+          background:
+            "linear-gradient(135deg, rgba(10,18,36,0.92) 0%, rgba(37,99,235,0.48) 50%, rgba(10,18,36,0.92) 100%)",
+        };
+      }
+
       if (activeLayout === "radial") {
         return {
           ...baseStyles,
@@ -916,7 +984,7 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
         ...baseStyles,
         height: resolvedHeight,
       };
-    }, [activeLayout, resolvedHeight, style]);
+    }, [activeLayout, isFullscreen, resolvedHeight, style]);
 
     const effectiveLinkColor = linkColor ?? palette.link;
 
@@ -1019,8 +1087,14 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
 
     const controlLayout: "mindmap" | "radial" = isRadial ? "radial" : "mindmap";
 
+    const containerClassName = useMemo(() => {
+      const classes = [className];
+      if (isFullscreen) classes.push("mindmap-fullscreen");
+      return classes.filter(Boolean).join(" ");
+    }, [className, isFullscreen]);
+
     return (
-      <div ref={containerRef} className={className} style={containerStyles}>
+      <div ref={containerRef} className={containerClassName} style={containerStyles}>
         <style>
           {`
             .mindmap-link {
@@ -1138,6 +1212,15 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
               color: rgba(37,99,235,0.95);
             }
 
+            .mindmap-controls button.fullscreen-toggle {
+              min-width: 2.7rem;
+            }
+
+            .mindmap-controls button.fullscreen-toggle.active {
+              background: rgba(96,165,250,0.24);
+              color: rgba(37,99,235,0.95);
+            }
+
             [data-theme="dark"] .mindmap-controls button {
               background: rgba(30,41,59,0.95);
               color: rgba(226,232,240,0.85);
@@ -1166,6 +1249,20 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
               background: rgba(56,189,248,0.28);
               color: rgba(224,242,254,0.95);
             }
+
+            [data-theme="dark"] .mindmap-controls button.fullscreen-toggle.active {
+              background: rgba(56,189,248,0.35);
+              color: rgba(224,242,254,0.95);
+            }
+
+            .mindmap-fullscreen {
+              backdrop-filter: blur(18px);
+            }
+
+            .mindmap-fullscreen .mindmap-controls {
+              top: clamp(1.25rem, 4vh, 3rem);
+              right: clamp(1.25rem, 4vw, 3.25rem);
+            }
           `}
         </style>
         {graphContent}
@@ -1179,6 +1276,8 @@ const InteractiveMindmap = forwardRef<InteractiveMindmapHandle, InteractiveMindm
                   }
                 : undefined
             }
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={() => setIsFullscreen((value) => !value)}
             onZoomIn={zoomIn}
             onZoomOut={zoomOut}
             onReset={resetView}
