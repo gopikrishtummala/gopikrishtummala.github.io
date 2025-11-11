@@ -11,7 +11,7 @@ tags:
   - multimodal
   - deep-learning
   - large-language-models
-description: A Feynman-style chapter on how modern vision-language models connect pixels and prose, from CLIP and BLIP to Flamingo, MiniGPT-4, Kosmos, and Gemini.
+description: A high level view on how modern vision-language models connect pixels and prose, from CLIP and BLIP to Flamingo, MiniGPT-4, Kosmos, and Gemini.
 ---
 
 # When AI Sees and Speaks: The Rise of Vision-Language Models

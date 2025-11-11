@@ -11,7 +11,7 @@ tags:
   - deep-learning
   - systems
   - performance
-description: A Feynman-style exploration of why modern AI teams are handcrafting GPU kernels—from FlashAttention to TPU Pallas code—and how smarter tooling is making silicon-level tuning accessible.
+description: Why modern AI teams are handcrafting GPU kernels—from FlashAttention to TPU Pallas code—and how smarter tooling is making silicon-level tuning accessible.
 ---
 
 Modern AI looks like software, but its limits are set by physics. Today’s breakthrough models are powered by GPUs and TPUs whose behavior is as finicky as a particle accelerator. This chapter explains, in plain language, why an ever-growing group of developers is abandoning “perfectly good” library kernels and diving headfirst into handcrafted GPU code.
@@ -171,7 +171,7 @@ autotuned_matmul = triton.autotune(
 
 Benchmark against `torch.matmul` on A100 or H100; you’ll often see 1.4–1.8× speed-ups just from tiling and fusion.
 
-The lesson is delightfully Feynman-esque: *to truly know what your GPU is doing, write the kernel yourself.* The physics of data movement is unforgiving, but when you align your code with the chip’s rhythms, the performance gains feel like discovering a new law of nature.
+The lesson is simple: *to truly know what your GPU is doing, write the kernel yourself.* The physics of data movement is unforgiving, but when you align your code with the chip’s rhythms, the performance gains feel like discovering a new law of nature.
 
 — Gopi Krishna Tummala, curious engineer exploring how machines learn to think (and how the silicon underneath keeps up)
 
