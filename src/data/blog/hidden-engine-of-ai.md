@@ -37,6 +37,17 @@ If you haven’t yet, read Part I to see how the data stack keeps models fed; th
 
 ## Part II — Training Frameworks: How Models Actually Learn
 
+### 🔭 Visual Summary — The Hidden Engine at a Glance
+
+```mermaid
+flowchart TD
+    A["Layer 1 — Data<br/>Goal: keep accelerators busy<br/>Tools: WebDataset, HF Datasets<br/>Mechanics: map/iterable loaders, prefetch, shuffle, cache"]
+    B["Layer 2 — Training<br/>Goal: maximize parallelism and capacity<br/>Core loop: backprop then optimizer step<br/>Parallelism: Data · Sharding (FSDP/ZeRO) · Tensor · Pipeline · Sequence<br/>Frameworks: PyTorch, TensorFlow, JAX, Ray Train, Accelerate, Lightning"]
+    C["Layer 3 — Resilience<br/>Goal: never lose work to faults<br/>Practices: checkpoint model+optimizer, mixed precision (BF16/FP16), elastic orchestration (Ray, TorchElastic)<br/>Mindset: PyTorch = flexible · TensorFlow = automatic · JAX = predictable"]
+
+    A --> B --> C
+```
+
 So you’ve got clean data streaming in — now what?
 The next job is to **teach** the model using those examples. This occurs within a *training loop*.
 
@@ -77,6 +88,14 @@ Best for researchers and anyone who wants to *tinker*.
 * Works great for big, long-running jobs.
 
 Many industry systems (like Google’s) rely on it.
+
+#### ⚡ **JAX — The New Wave of Performance and Simplicity**
+
+* Feels like **NumPy**, but compiles to blazingly fast accelerator code via `jit`.
+* Built-in primitives like `vmap`, `pmap`, and `pjit` make vectorization and multi-device scaling almost effortless.
+* The ecosystem—**Flax**, **Haiku**, **Optax**, **Orbax**—bridges the gap between rapid experimentation and production discipline.
+
+Think of JAX as “NumPy that learned to use GPUs and TPUs, then grew up into a full ML research stack.”
 
 #### 🌎 **Ray Train — Scaling Made Simple**
 
@@ -127,21 +146,40 @@ It’s efficient and reliable — the workhorse of today’s training clusters.
 
 ---
 
-### 💡 4. When Models Don’t Fit — FSDP and ZeRO
+### 💡 4. When Models Don’t Fit — The Big Split
 
-Big models (billions of parameters) can’t fit into one GPU’s memory.
-Solutions like **FSDP** and **DeepSpeed ZeRO** *split* the model, allowing each GPU to store only a **slice** of weights and gradients. Together, they act like one giant virtual GPU.
+Imagine trying to train a model so huge it can’t fit on a single GPU — like trying to pour an ocean into a bucket. Instead of one big bucket, we spread the water across many smaller ones.
 
-This makes it possible to train models that would otherwise be too large — even on regular hardware.
+#### 🧩 FSDP and ZeRO — “Sharing the Weight”
+
+When models swell, most memory is consumed by the **weights** (what the model knows), the **gradients** (what it’s learning right now), and the **optimizer states** (how it plans to adjust). Fully Sharded Data Parallel (FSDP) slices all three across GPUs so no device carries the full backpack. DeepSpeed ZeRO pushes the same idea further, removing duplication in stages so each GPU stores only what it must.
+
+Think of FSDP and ZeRO as friends carrying pieces of a piano instead of one person lifting the whole thing. Together they make mammoth models feasible even on commodity clusters or preemptible cloud instances.
 
 ---
 
 ### 🏗️ 5. Splitting Inside the Model
 
-* **Tensor Parallelism:** different GPUs handle different *parts* of each big matrix math operation.
-* **Pipeline Parallelism:** one GPU handles early layers, another handles later ones — like an assembly line.
+- **Tensor Parallelism:** each GPU works on a slice of the same matrix multiplication—like four people tackling different rows of one problem.
+- **Pipeline Parallelism:** GPUs form an assembly line; one handles the early layers, another finishes the later ones.
+- **Sequence / Expert Parallelism:** tokens or mixture-of-experts branches are routed to whichever GPU specializes in them.
 
-Frameworks like **Megatron-LM** and **DeepSpeed** mix these tricks to train trillion-parameter models.
+Together these tricks let hundreds or thousands of GPUs reason together—almost like a hive mind.
+
+#### ⚙️ The Big Players and Their Tricks
+
+| Player | Framework / System | What It Really Does |
+| :--- | :--- | :--- |
+| 🧬 **Meta (PyTorch team)** | **FSDP** | Splits big models so each GPU holds just a piece—used in LLaMA and many open models. |
+| 🏗️ **Microsoft** | **DeepSpeed (ZeRO, 3D parallelism)** | Removes memory duplication and blends tensor + pipeline + data parallelism. Powered BLOOM (176B). |
+| ⚡ **NVIDIA** | **Megatron-LM / NeMo** | Supplies ultra-fast fused kernels plus tensor/pipeline parallelism; muscle behind many GPT-style models. |
+| 🔭 **Google** | **JAX + XLA + Pathways** | Compiles training into blueprints that run across TPUs/GPUs via `pjit`/`pmap`; Pathways orchestrates the fleet. |
+| 🧠 **OpenAI** | **Megatron-DeepSpeed hybrid** | Mixes NVIDIA tensor parallelism with DeepSpeed ZeRO to push GPT-3/4-scale models. |
+| 🌐 **Others (Anthropic, MosaicML, etc.)** | **Ray Train, Alpa, Composer** | Open, composable systems that let smaller teams run large-scale experiments. |
+
+> If you remember one thing: **Meta** and **Microsoft** made huge training feasible, **NVIDIA** makes it fast, **Google** makes it elegant, and **OpenAI** pushes it to the edge of compute.
+
+Frameworks like Megatron-LM and DeepSpeed combine these approaches to train trillion-parameter models.
 
 ---
 
@@ -175,6 +213,20 @@ Used under the hood by **PyTorch Lightning**, it gives structure to training wit
 Think of it as: *“do-it-yourself Lightning.”*
 
 Together, these tools help you go from a laptop script → to a research cluster → to a cloud deployment, smoothly.
+
+---
+
+### 🧩 7. Training Resilience — When Things Break (and They Will)
+
+Scaling introduces failure. Power blips, flaky networks, or a preempted cloud instance can ruin a week-long run. Frameworks respond differently:
+
+- **PyTorch** keeps recovery *flexible*. You can `torch.save` model and optimizer state, then relaunch with helpers like **DeepSpeed**, **FSDP**, or torchrun to roll back only a few steps.
+- **TensorFlow** aims for *automatic* restarts. `tf.train.Checkpoint` and `tf.distribute.Strategy` can resume jobs mid-epoch with minimal fuss—part of why it remains popular for production pipelines.
+- **JAX** strives for *predictable* checkpoints. Functional training loops paired with **Orbax** or Flax’s `train_state` make recovering TPU/GPU pods deterministic, even across replica meshes powered by `pjit` or `pmap`.
+
+> PyTorch makes recovery easy, TensorFlow makes it automatic, and JAX makes it predictable.
+
+This mindset sets the stage for Part III, where we focus on the orchestration layers that keep long-running training jobs alive.
 
 ---
 
