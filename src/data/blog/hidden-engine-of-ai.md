@@ -146,13 +146,13 @@ It’s efficient and reliable — the workhorse of today’s training clusters.
 
 ---
 
-### 💡 4. When Models Don’t Fit — The Big Split
+### 💡 4. When Models Don’t Fit — Sharding the Model (FSDP & ZeRO)
 
 Imagine trying to train a model so huge it can’t fit on a single GPU — like trying to pour an ocean into a bucket. Instead of one big bucket, we spread the water across many smaller ones.
 
 #### 🧩 FSDP and ZeRO — “Sharing the Weight”
 
-When models swell, most memory is consumed by the **weights** (what the model knows), the **gradients** (what it’s learning right now), and the **optimizer states** (how it plans to adjust). Fully Sharded Data Parallel (FSDP) slices all three across GPUs so no device carries the full backpack. DeepSpeed ZeRO pushes the same idea further, removing duplication in stages so each GPU stores only what it must.
+When models swell, most memory is consumed by the **weights** (what the model knows), the **gradients** (what it’s learning right now), and the **optimizer states** (how it plans to adjust). Fully Sharded Data Parallel (FSDP) slices all three across GPUs so no device carries the full backpack. DeepSpeed ZeRO pushes the same idea further, removing duplication in stages so each GPU stores only what it must—usually by plugging directly into the PyTorch ecosystem as an advanced scaling library.
 
 Think of FSDP and ZeRO as friends carrying pieces of a piano instead of one person lifting the whole thing. Together they make mammoth models feasible even on commodity clusters or preemptible cloud instances.
 
@@ -171,13 +171,13 @@ Together these tricks let hundreds or thousands of GPUs reason together—almost
 | Player | Framework / System | What It Really Does |
 | :--- | :--- | :--- |
 | 🧬 **Meta (PyTorch team)** | **FSDP** | Splits big models so each GPU holds just a piece—used in LLaMA and many open models. |
-| 🏗️ **Microsoft** | **DeepSpeed (ZeRO, 3D parallelism)** | Removes memory duplication and blends tensor + pipeline + data parallelism. Powered BLOOM (176B). |
+| 🏗️ **Microsoft** | **DeepSpeed (ZeRO, 3D parallelism)** | Removes memory duplication and blends tensor + pipeline + data parallelism. Commonly layered on PyTorch; powered BLOOM (176B). |
 | ⚡ **NVIDIA** | **Megatron-LM / NeMo** | Supplies ultra-fast fused kernels plus tensor/pipeline parallelism; muscle behind many GPT-style models. |
 | 🔭 **Google** | **JAX + XLA + Pathways** | Compiles training into blueprints that run across TPUs/GPUs via `pjit`/`pmap`; Pathways orchestrates the fleet. |
 | 🧠 **OpenAI** | **Megatron-DeepSpeed hybrid** | Mixes NVIDIA tensor parallelism with DeepSpeed ZeRO to push GPT-3/4-scale models. |
 | 🌐 **Others (Anthropic, MosaicML, etc.)** | **Ray Train, Alpa, Composer** | Open, composable systems that let smaller teams run large-scale experiments. |
 
-> If you remember one thing: **Meta** and **Microsoft** made huge training feasible, **NVIDIA** makes it fast, **Google** makes it elegant, and **OpenAI** pushes it to the edge of compute.
+> If you remember one thing: **Meta** (with FSDP) and **Microsoft** (with DeepSpeed) made huge training feasible inside the PyTorch ecosystem, **NVIDIA** makes it fast, **Google** makes it elegant, and **OpenAI** pushes it to the edge of compute.
 
 Frameworks like Megatron-LM and DeepSpeed combine these approaches to train trillion-parameter models.
 
