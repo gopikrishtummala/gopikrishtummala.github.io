@@ -156,6 +156,15 @@ When models swell, most memory is consumed by the **weights** (what the model kn
 
 Think of FSDP and ZeRO as friends carrying pieces of a piano instead of one person lifting the whole thing. Together they make mammoth models feasible even on commodity clusters or preemptible cloud instances.
 
+**First-principles view of ZeRO**
+
+- **Stage 1 – Optimizer shards:** Each GPU keeps only its fraction of the optimizer state (the “memory book” of momentum, variance, etc.), instead of full copies.
+- **Stage 2 – Gradient shards:** Gradients are partitioned too, so GPUs exchange only the pieces they own when it’s time to apply updates.
+- **Stage 3 – Parameter shards:** Model weights themselves are scattered across devices; DeepSpeed briefly gathers the necessary slices, performs the forward/backward math, and returns them to their owners.
+- **Offload & Infinity:** If GPU memory is still tight, ZeRO can spill shards to CPU RAM or even NVMe, treating those as slow-but-available overflow storage.
+
+The practical effect: you can stretch the memory footprint of one GPU across many devices, or even onto disk, without rewriting your entire training loop. Libraries such as **Hugging Face Accelerate** expose these ZeRO stages through simple config switches, so you can adopt DeepSpeed’s sharding tricks with minimal code changes.
+
 ---
 
 ### 🏗️ 5. Splitting Inside the Model
