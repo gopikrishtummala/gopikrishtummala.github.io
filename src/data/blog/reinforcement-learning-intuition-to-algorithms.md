@@ -32,77 +32,68 @@ Over time the dog learns that earlier actions—sprinting toward the ball or ben
 
 ## 2. The Sandbox: Markov Decision Processes (MDPs)
 
-Think of an adventure game: you wander rooms, choose doors, bump into treasure or traps, and collect points. That world is the sandbox where the agent learns. In RL we formalise that sandbox as a **Markov Decision Process (MDP)**:
+Picture a video game where you walk through rooms, pick doors, bump into treasure or traps, and your score ticks up or down. That game world is the sandbox where an RL agent learns. We bundle that sandbox into a **Markov Decision Process (MDP)**:
 
 $$
 (\mathcal{S}, \mathcal{A}, P, R, \gamma)
 $$
 
-- $\mathcal{S}$ — the **states** (the rooms the agent can stand in; what it observes).
-- $\mathcal{A}$ — the **actions** (the doors available in each room).
-- $P(s' \mid s, a)$ — the **transition dynamics** (push door $a$ in room $s$, land in room $s'$ with some probability).
-- $R(s, a)$ — the **reward** (the immediate points for that action: +10 for treasure, −5 for a trap).
-- $\gamma \in [0, 1]$ — the **discount factor** (how much future points matter relative to immediate ones).
+- **States ($\mathcal{S}$)** — the rooms or situations you might be in; what the agent can observe.
+- **Actions ($\mathcal{A}$)** — the doors or moves you can take from that room.
+- **Transition dynamics ($P(s' \mid s, a)$)** — if you’re in room $s$ and push door $a$, what are the chances you arrive in room $s'$?
+- **Reward ($R(s, a)$)** — the immediate score for that choice (maybe +10 for treasure, −5 for a trap).
+- **Discount ($\gamma \in [0,1]$)** — how much future points matter compared with immediate ones. If $\gamma$ is close to 1 you plan long-term; near 0 you focus on instant payoff.
 
-The **Markov property** just says “the current state contains all the relevant history.” You don’t need to remember the entire path you took; knowing where you are now is enough. The agent wants to learn a **policy** $\pi(a \mid s)$ — a rulebook describing which action to take in each state — that maximises total accumulated reward.
+The **Markov property** is the fancy way of saying “your current room summarises all the useful history.” You don’t need to remember the entire path you took. The agent wants to learn a **policy** $\pi(a \mid s)$ — a rulebook stating how likely it is to pick each action in each state — so that total reward is maximised.
 
 ---
 
 ## 3. Value Functions and Bellman Recursion
 
-Once the agent plays the game you naturally ask:
+Once the agent is acting, you naturally want to grade how good different rooms or moves are.
 
-- “If I start in state $s$ and follow policy $\pi$, how many points do I expect?” → the **state value**.
-- “If I start in $s$, take action $a$ first, then follow $\pi$, how many points?” → the **action value** or **Q-value**.
-
-- **State value** under policy $\pi$:
+- “If I start in $s$ and follow policy $\pi$, how many points do I expect?” — the **state value**:
   $$
   V^\pi(s) = \mathbb{E}_\pi\Bigg[\sum_{t=0}^{\infty} \gamma^t R_{t+1} \,\Bigg|\, S_0 = s\Bigg]
   $$
-  Average the discounted future rewards if you start in $s$ and behave according to $\pi$.
-
-- **Action value (Q)**:
+- “If I start in $s$, first take action $a$, then follow $\pi$, how many points?” — the **action value**:
   $$
   Q^\pi(s, a) = \mathbb{E}_\pi\Bigg[\sum_{t=0}^{\infty} \gamma^t R_{t+1} \,\Bigg|\, S_0 = s, A_0 = a\Bigg]
   $$
-  Take action $a$ first, then follow $\pi$ thereafter.
 
-These values obey the **Bellman recursion**. It says: the value today equals the expected reward now plus the discounted value of tomorrow.
+These values obey the **Bellman recursion**—value now equals immediate reward plus the discounted value of where you land next.
 
-- Bellman expectation equation (for a fixed policy):
+- Under policy $\pi$:
   $$
   V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s', r} P(s', r \mid s, a) \big[r + \gamma V^\pi(s')\big]
   $$
-
-- Bellman optimality equation (for the best possible behaviour):
+- For the optimal policy:
   $$
   V^*(s) = \max_{a} \sum_{s', r} P(s', r \mid s, a)\big[r + \gamma V^*(s')\big]
   $$
 
-They are **fixed-point equations**: plug in the true value functions and the equations hold exactly. Learning is about finding functions that satisfy them.
+These are **fixed points**: plug in the true $V^\pi$ or $V^*$ and the equations hold exactly. Much of RL is about finding or approximating value functions that satisfy them.
 
 ---
 
 ## 4. Q-Learning — Learning Action Quality Without a Model
 
-**Q-learning** (Watkins) is what you use when you don’t know the map ahead of time. You just try actions and observe the outcome. The update rule is:
+Suppose you don’t know the map. You push a door, see what happens, and jot down whether it was good or bad. **Q-learning** turns that trial-and-error into a recipe for finding the best action in each state:
 
 $$
 Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \Big(R_{t+1} + \gamma \max_{a'} Q(S_{t+1}, a') - Q(S_t, A_t)\Big)
 $$
 
-Break it down:
-
-- $(S_t, A_t)$ — where you are and what you chose.
-- $R_{t+1}$ — the reward you just saw.
+- $(S_t, A_t)$ — the state and action you just took.
+- $R_{t+1}$ — the reward you observed.
 - $S_{t+1}$ — the next state you landed in.
-- The bracketed term is the **temporal-difference (TD) error**: a one-step lookahead ($R_{t+1} + \gamma \max_{a'} Q(S_{t+1}, a')$) minus your current guess $Q(S_t, A_t)$.
+- The bracketed term is the **temporal-difference (TD) error**: your one-step lookahead target minus your current guess.
 
-If the TD error is positive you underestimated, so you bump $Q$ up; if negative you overestimated, so you pull it down. The learning rate $\alpha$ controls how fast you adjust.
+If the TD error is positive you underestimated the action; if negative you overestimated it. Either way you adjust $Q(S_t, A_t)$ by a fraction $\alpha$ of that error.
 
-To learn well you must **explore**: ε-greedy means “with probability ε, pick a random action; otherwise pick $\arg\max_a Q(s,a)$.” Shrink ε over time so you exploit more as you learn.
+To learn well you must **explore**: ε-greedy means “with probability ε choose a random action; otherwise go with $\arg\max_a Q(s, a)$.” Shrink ε over time so you exploit more as the estimates mature.
 
-Q-learning is **off-policy**: it learns about the optimal policy $Q^*$ even while you explore randomly. The on-policy sibling **SARSA** replaces $\max_{a'}$ with $Q(S_{t+1}, A_{t+1})$, the value of the action you actually take next. That makes SARSA evaluate your real behaviour, which is safer if random actions could cause trouble.
+Because Q-learning uses $\max_{a'} Q(S_{t+1}, a')$ even when you’re exploring, it’s **off-policy**: it learns what the optimal strategy would do. The sibling algorithm **SARSA** plugs in the action you actually take next, $Q(S_{t+1}, A_{t+1})$, so it evaluates your real behaviour—helpful when random exploration might be dangerous.
 
 With sufficient exploration and diminishing learning rates, tabular Q-learning converges to the true $Q^*(s,a)$.
 
@@ -110,23 +101,22 @@ With sufficient exploration and diminishing learning rates, tabular Q-learning c
 
 ## 5. Deep Q-Networks (DQN) — Scaling with Neural Nets
 
-High-dimensional states (like images) make tables infeasible. DeepMind’s **Deep Q-Network (DQN)** replaces the table with a neural network $Q(s, a; \theta)$ that approximates Q-values.
+Tables break down when states are high-dimensional (images, sensor readings). DeepMind’s **Deep Q-Network (DQN)** replaces the table with a neural network $Q(s, a; \theta)$.
 
-Two stabilisers make it work:
+Two engineering tricks made DQN stable:
 
-1. **Experience Replay** — store transitions $(s, a, r, s')$ in a buffer and sample random mini-batches. This breaks correlations between successive experiences and lets you reuse data.
-2. **Target Network** — keep a lagged copy $Q(s, a; \theta^-)$ and produce the target
+1. **Experience replay** — stash transitions $(s, a, r, s')$ in a replay buffer and sample random mini-batches. This breaks correlation between successive experiences and lets you reuse data efficiently.
+2. **Target network** — keep a lagged copy $Q(s, a; \theta^-)$ to form the target
    $$
    y = r + \gamma \max_{a'} Q(s', a'; \theta^-).
    $$
-   Periodically copy $\theta \gets \theta^-$; between copies $\theta^-$ stays fixed. That keeps the target from chasing a moving estimate.
+   Every so often copy $\theta \gets \theta^-$. Between copies the target stays steady, preventing the network from chasing a moving goal.
 
-The loss over a mini-batch sampled from replay buffer $D$ is:
+Optimise
 $$
-L(\theta) = \mathbb{E}_{(s, a, r, s') \sim D}\Big[\big(y - Q(s, a; \theta)\big)^2\Big].
+L(\theta) = \mathbb{E}_{(s, a, r, s') \sim D}\Big[\big(y - Q(s, a; \theta)\big)^2\Big]
 $$
-
-With these two ideas DQN famously learned many Atari games from raw pixels. ([Mnih et al., 2015](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf))
+over mini-batches drawn from the buffer $D$. With experience replay and a target network, DQN famously learned dozens of Atari games straight from pixels. ([Mnih et al., 2015](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf))
 
 ---
 
