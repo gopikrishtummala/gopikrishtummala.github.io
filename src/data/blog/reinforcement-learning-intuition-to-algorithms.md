@@ -99,24 +99,50 @@ With sufficient exploration and diminishing learning rates, tabular Q-learning c
 
 ---
 
-## 5. Deep Q-Networks (DQN) — Scaling with Neural Nets
+## 5. Deep Q-Networks (DQN) — Scaling Q-learning with Neural Nets
 
-Tables break down when states are high-dimensional (images, sensor readings). DeepMind’s **Deep Q-Network (DQN)** replaces the table with a neural network $Q(s, a; \theta)$.
+### When tables collapse
 
-Two engineering tricks made DQN stable:
+Lookup tables work only when the state space is tiny. In games like Pong or Breakout a single state is an entire screen image (millions of pixels). The number of possible screens is astronomical—you can’t enumerate every $Q(s,a)$. This is the **curse of dimensionality**.
 
-1. **Experience replay** — stash transitions $(s, a, r, s')$ in a replay buffer and sample random mini-batches. This breaks correlation between successive experiences and lets you reuse data efficiently.
-2. **Target network** — keep a lagged copy $Q(s, a; \theta^-)$ to form the target
-   $$
-   y = r + \gamma \max_{a'} Q(s', a'; \theta^-).
-   $$
-   Every so often copy $\theta \gets \theta^-$. Between copies the target stays steady, preventing the network from chasing a moving goal.
+### Function approximation to the rescue
 
-Optimise
+DeepMind’s **Deep Q-Network (DQN)** tackled this by replacing the table with a neural network $Q(s, a; \theta)$. The network acts as a **function approximator**:
+
+- Early convolutional layers learn features (“ball heading toward paddle”, “enemy nearby”).
+- Later layers combine those features to estimate the value of states the agent has **never seen before**.
+- The agent still picks actions via $A_t = \arg\max_a Q(S_t, a; \theta)$, but now $Q$ generalises rather than memorises.
+
+Neural networks make the learning loop far more unstable, so DQN introduced two key stabilisers.
+
+### 💡 Experience replay — the flashcard shuffle
+
+Sequential experiences $(S_t, A_t, R_{t+1}, S_{t+1})$ are highly correlated. Training on the raw sequence is like studying only the last page of a textbook—you forget everything else. DQN stores each transition in a large **replay buffer** $D$ and trains on random mini-batches sampled from it.
+
+*Analogy:* Replay is like shuffling flashcards. You don’t cram the most recent experience; you revisit older, rarer experiences again and again, breaking correlation and preventing catastrophic forgetting.
+
+### 💡 Target network — stop chasing a moving goal
+
+The Q-learning target
 $$
-L(\theta) = \mathbb{E}_{(s, a, r, s') \sim D}\Big[\big(y - Q(s, a; \theta)\big)^2\Big]
+Y_t = R_{t+1} + \gamma \max_{a'} Q(S_{t+1}, a'; \theta)
 $$
-over mini-batches drawn from the buffer $D$. With experience replay and a target network, DQN famously learned dozens of Atari games straight from pixels. ([Mnih et al., 2015](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf))
+uses the same parameters $\theta$ you’re trying to update, so as you adjust $\theta$, the target moves immediately and optimisation becomes chaotic. DQN keeps a **lagged copy** $Q(s, a; \theta^-)$,
+$$
+Y_t = R_{t+1} + \gamma \max_{a'} Q(S_{t+1}, a'; \theta^-),
+$$
+and updates $\theta^- \leftarrow \theta$ only every few thousand steps.
+
+*Analogy:* It’s like shooting at a target that only moves occasionally. With the target network frozen, the main network can steadily reduce the error before the goalpost shifts again.
+
+### The loss you optimise
+
+With experience replay drawing mini-batches from $D$ and the target network providing a stable $Y_t$, the loss is simply the squared TD error:
+$$
+L(\theta) = \mathbb{E}_{(s, a, r, s') \sim D}\Big[\big(Y_t - Q(s, a; \theta)\big)^2\Big].
+$$
+
+By iterating this cycle—act, store, sample, compute stable targets, update $\theta$, slowly refresh $\theta^-$—DQN learned dozens of Atari games directly from pixels, showing that model-free RL could finally scale. ([Mnih et al., 2015](https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf))
 
 ---
 
