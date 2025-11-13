@@ -84,6 +84,19 @@ $$
 Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \Big(R_{t+1} + \gamma \max_{a'} Q(S_{t+1}, a') - Q(S_t, A_t)\Big)
 $$
 
+- $(a')$ just means “a possible next action in the next state.” In this update you look ahead one step, consider every action you could take in $S_{t+1}$, pick the one with the highest $Q$, and use that as the target.
+
+| Symbol | Meaning |
+| --- | --- |
+| $S_t$ | current state |
+| $A_t$ | action you just took |
+| $R_{t+1}$ | reward you just received |
+| $S_{t+1}$ | resulting next state |
+| $a'$ | candidate action you could take from $S_{t+1}$ |
+| $\max_{a'} Q(S_{t+1}, a')$ | best predicted future value if you act optimally from $S_{t+1}$ |
+
+Intuition: “I took $A_t$ in $S_t$, landed in $S_{t+1}$, and now I imagine choosing the best possible move $a'$ in that next state.” It’s like a dog thinking “I ran forward, now I’m near the ball — should I jump or keep running? I’ll assume the best choice.”
+
 - $(S_t, A_t)$ — the state and action you just took.
 - $R_{t+1}$ — the reward you observed.
 - $S_{t+1}$ — the next state you landed in.
