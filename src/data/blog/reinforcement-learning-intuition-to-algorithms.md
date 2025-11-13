@@ -100,9 +100,30 @@ Intuition: “I took $A_t$ in $S_t$, landed in $S_{t+1}$, and now I imagine choo
 - $(S_t, A_t)$ — the state and action you just took.
 - $R_{t+1}$ — the reward you observed.
 - $S_{t+1}$ — the next state you landed in.
-- The bracketed term is the **temporal-difference (TD) error**: your one-step lookahead target minus your current guess.
+- The bracketed term is the **temporal-difference (TD) error**: a one-step lookahead target minus your current estimate $Q(S_t, A_t)$.
+- If that error is positive you underestimated; if negative you overestimated. Either way you adjust $Q(S_t, A_t)$ by a fraction $\alpha$ of the error.
 
-If the TD error is positive you underestimated the action; if negative you overestimated it. Either way you adjust $Q(S_t, A_t)$ by a fraction $\alpha$ of that error.
+**Learning rate $\alpha$ — how fast you update**
+
+$\alpha$ controls how much weight you give to new information versus what you already believed:
+
+- $\alpha$ close to 1: you jump almost all the way to the new estimate. Fast but volatile—easy to overreact to noise.
+- $\alpha$ small (e.g., 0.1): you move slowly, trusting your accumulated experience. Stable but slower to adapt.
+
+Example: suppose $Q(S_t, A_t) = 5$, the target is $8$, and $\alpha = 0.2$:
+
+$$
+Q_{\text{new}} = 5 + 0.2 \times (8 - 5) = 5.6
+$$
+
+You moved 20% toward the new estimate, keeping 80% of your old value—like nudging your aim in a game of darts based on the latest throw.
+
+| Symbol | Meaning | Typical range |
+| --- | --- | --- |
+| $\alpha$ | learning rate; how much you update on each experience | 0.01–0.5 |
+| $\gamma$ | discount factor; how much you value future reward | 0.9–0.999 |
+
+Together, $\alpha$ (speed of learning) and $\gamma$ (patience) shape how quickly your agent adapts and how far ahead it plans.
 
 To learn well you must **explore**: ε-greedy means “with probability ε choose a random action; otherwise go with $\arg\max_a Q(s, a)$.” Shrink ε over time so you exploit more as the estimates mature.
 
