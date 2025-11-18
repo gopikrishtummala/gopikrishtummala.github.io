@@ -90,7 +90,7 @@ The agentic framework is powerful because it applies across various fields requi
 
 **Emergent Worlds and Dynamic NPCs:** Agent-based Non-Player Characters (NPCs) maintain long-term episodic memory and dynamic goals, allowing them to engage in social planning and create emergent, non-scripted narratives (Ramaseri-Chandra, 2023).
 
-**Multi-Step Asset Editing:** In design pipelines (film, animation), agents coordinate complex, multi-modal edits. An agent can call a sequence of specialized tools (vision models, 3D renderers, color graders) and use reflection to ensure visual fidelity and style consistency across large sets of assets.
+**Multi-Step Asset Editing:** In design pipelines (film, animation), agents coordinate complex, multi-modal edits. An agent can call a sequence of specialized tools (vision models, 3D renderers, color graders) and use reflection to ensure visual fidelity and style consistency across large sets of assets. Recent research demonstrates this through multi-agent frameworks like UniVA (Wu et al., 2025) for video creation, RefineEdit-Agent (Sun et al., 2025) for iterative image editing, and FilmAgent (Wang et al., 2025) for end-to-end film production. Commercial tools like Adobe Creative Cloud (Sensei), RunwayML, and Descript are incorporating AI-assisted automation into professional pipelines.
 
 ### 🔬 Scientific Discovery and Engineering
 
@@ -775,6 +775,28 @@ def simulate_rollout(node, goal, max_depth=10):
 **Ramaseri-Chandra, A. N. (2023).** Generative AI-based Non-person Character (NPC) For Navigating Virtual Worlds.  
 *Cyber Awareness and Research Symposium 2023, University of North Dakota.*  
 [ResearchGate](https://www.researchgate.net/publication/376030547_Generative_AI-based_Non-person_Character_NPC_For_Navigating_Generative_AI-based_Non-person_Character_NPC_For_Navigating_Virtual_Worlds_Virtual_Worlds)
+
+**Wu, Z., et al. (2025).** UniVA: Universal Video Agent towards Open-Source Next-Generation Video Generalist.  
+*Introduces a "Plan-and-Act" dual-agent architecture for automated and self-reflective video creation.*  
+[ResearchGate](https://www.researchgate.net/publication/397521474_UniVA_Universal_Video_Agent_towards_Open-Source_Next-Generation_Video_Generalist)
+
+**Sun, S., et al. (2025).** An LLM-LVLM Driven Agent for Iterative and Fine-Grained Image Editing.  
+*LLM-LVLM driven agent for iterative and fine-grained image editing with planning and execution.*  
+[arXiv:2508.17435](https://arxiv.org/html/2508.17435v1)
+
+**Wang, J., et al. (2025).** FilmAgent: A Multi-Agent Framework for End-to-End Film Production.  
+*Multi-agent framework designed for end-to-end film production, from script to final output.*  
+[arXiv](https://arxiv.org/html/2501.12909v1)
+
+**Additional References on Multi-Agent Systems and Reflection:**
+
+- **Anim-Director:** A Large Multimodal Model Powered Agent for Controllable Animation Video Generation.  
+  [ResearchGate](https://www.researchgate.net/publication/386398237_Anim-Director_A_Large_Multimodal_Model_Powered_Agent_for_Controllable_Animation_Video_Generation)
+
+- **Reflection in AI Agents:** Research on feedback loops, memory systems, and explicit self-critique in agent systems.  
+  See: [Akira AI Blog](https://www.akira.ai/blog/reflection-agent-prompting), [DeepLearning.AI](https://www.deeplearning.ai/the-batch/agentic-design-patterns-part-2-reflection/)
+
+- **Commercial Tools:** Adobe Creative Cloud (Sensei), RunwayML, Descript, Unreal Engine 5.4 (Modular Control Rig) demonstrate AI-driven automation in professional creative pipelines.
 
 ---
 
