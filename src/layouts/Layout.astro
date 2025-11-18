@@ -65,15 +65,12 @@ const structuredData = {
       async
       src="https://www.googletagmanager.com/gtag/js?id=G-NZSBC43PWN"
     ></script>
-    <script is:inline>
-      {`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-NZSBC43PWN');
-      `}
-    </script>
+    <script is:inline set:html={`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-NZSBC43PWN');
+    `}></script>
 
     <!-- General Meta Tags -->
     <title>{title}</title>
