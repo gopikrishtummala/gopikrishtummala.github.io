@@ -30,7 +30,11 @@ export default defineConfig({
     rehypePlugins: [rehypeKatex],
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
-      themes: { light: "min-light", dark: "night-owl" },
+      // Modern themes that look great with Fira Code:
+      // - catppuccin-latte / catppuccin-mocha (warm, modern)
+      // - rose-pine-dawn / rose-pine-moon (elegant)
+      // - one-light / one-dark-pro (VS Code style)
+      themes: { light: "catppuccin-latte", dark: "catppuccin-mocha" },
       defaultColor: false,
       wrap: false,
       transformers: [

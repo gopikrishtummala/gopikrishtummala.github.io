@@ -340,7 +340,7 @@ const nextPost =
       }
     }
 
-    function initializeMermaid() {
+    async function initializeMermaid() {
       // Wait for mermaid to be available
       if (typeof window.mermaid === "undefined") {
         setTimeout(initializeMermaid, 100);
@@ -354,9 +354,56 @@ const nextPost =
       window.mermaid.initialize({
         startOnLoad: false,
         theme: isDark ? "dark" : "default",
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: "basis",
+          padding: 25,
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          wrap: true,
+          // Force text wrapping
+          wrapPadding: 8
+        },
+        sequence: {
+          wrap: true,
+          wrapPadding: 8,
+          diagramMarginX: 50,
+          diagramMarginY: 10,
+          actorMargin: 50,
+          width: 150,
+          height: 65,
+          boxMargin: 10,
+          boxTextMargin: 5,
+          noteMargin: 10,
+          messageMargin: 35
+        },
+        er: {
+          wrap: true,
+          wrapPadding: 8
+        },
+        gantt: {
+          wrap: true
+        },
+        gitgraph: {
+          wrap: true
+        },
         themeVariables: {
           fontFamily: "inherit",
           fontSize: "14px",
+          lineHeight: "1.5",
+          // critical: prevents text from overflowing shape
+          // Lower width = more aggressive wrapping = less clipping
+          textWrapWidth: 80,
+          textWrapPadding: 8,
+          nodePadding: "14px",
+          width: "auto",
+          padding: 25,
+          // Additional spacing for better text display
+          primaryBorderRadius: "8px",
+          secondaryBorderRadius: "8px",
+          tertiaryBorderRadius: "8px",
+          // Theme colors
           primaryColor: isDark ? "#ff6b01" : "#006cac",
           primaryTextColor: isDark ? "#eaedf3" : "#282728",
           primaryBorderColor: isDark ? "#ab4b08" : "#006cac",
@@ -378,14 +425,6 @@ const nextPost =
           cScale0: isDark ? "#ff6b01" : "#006cac",
           cScale1: isDark ? "#343f60" : "#e6e6e6",
           cScale2: isDark ? "#ab4b08" : "#006cac",
-        },
-        flowchart: {
-          nodeSpacing: 50,
-          rankSpacing: 50,
-          curve: "basis",
-          padding: 8,
-          useMaxWidth: true,
-          htmlLabels: true,
         },
         securityLevel: "loose",
       });
@@ -471,10 +510,36 @@ const nextPost =
       // Render all Mermaid diagrams
       if (window.mermaid && window.mermaid.run) {
         try {
-          window.mermaid.run({
+          await window.mermaid.run({
             querySelector: ".mermaid",
             nodes: document.querySelectorAll(".mermaid"),
           });
+          
+          // Post-render fix: Ensure text doesn't get clipped
+          setTimeout(() => {
+            document.querySelectorAll(".mermaid svg").forEach((svg) => {
+              // Force overflow visible on all SVG elements
+              svg.style.overflow = "visible";
+              
+              // Fix foreignObject overflow
+              svg.querySelectorAll("foreignObject").forEach((fo) => {
+                fo.style.overflow = "visible";
+                const div = fo.querySelector("div");
+                if (div) {
+                  div.style.overflow = "visible";
+                  div.style.wordWrap = "break-word";
+                  div.style.overflowWrap = "break-word";
+                  div.style.whiteSpace = "normal";
+                }
+              });
+              
+              // Ensure text elements have proper wrapping
+              svg.querySelectorAll("text").forEach((text) => {
+                text.style.whiteSpace = "normal";
+                text.style.wordWrap = "break-word";
+              });
+            });
+          }, 100);
         } catch (e) {
           console.error("Error rendering Mermaid diagrams:", e);
         }
