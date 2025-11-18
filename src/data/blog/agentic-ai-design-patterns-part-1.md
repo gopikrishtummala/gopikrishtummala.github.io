@@ -88,7 +88,7 @@ The agentic framework is powerful because it applies across various fields requi
 
 ### 🎮 Gaming and Creative Content
 
-**Emergent Worlds and Dynamic NPCs:** Agent-based Non-Player Characters (NPCs) maintain long-term episodic memory and dynamic goals, allowing them to engage in social planning and create emergent, non-scripted narratives.
+**Emergent Worlds and Dynamic NPCs:** Agent-based Non-Player Characters (NPCs) maintain long-term episodic memory and dynamic goals, allowing them to engage in social planning and create emergent, non-scripted narratives (Ramaseri-Chandra, 2023).
 
 **Multi-Step Asset Editing:** In design pipelines (film, animation), agents coordinate complex, multi-modal edits. An agent can call a sequence of specialized tools (vision models, 3D renderers, color graders) and use reflection to ensure visual fidelity and style consistency across large sets of assets.
 
@@ -771,6 +771,10 @@ def simulate_rollout(node, goal, max_depth=10):
 
 **Yao, S., et al. (2024).** Tool Use: Large Language Models as Agents That Use External Tools.  
 [arXiv:2402.13962](https://arxiv.org/abs/2402.13962)
+
+**Ramaseri-Chandra, A. N. (2023).** Generative AI-based Non-person Character (NPC) For Navigating Virtual Worlds.  
+*Cyber Awareness and Research Symposium 2023, University of North Dakota.*  
+[ResearchGate](https://www.researchgate.net/publication/376030547_Generative_AI-based_Non-person_Character_NPC_For_Navigating_Generative_AI-based_Non-person_Character_NPC_For_Navigating_Virtual_Worlds_Virtual_Worlds)
 
 ---
 
