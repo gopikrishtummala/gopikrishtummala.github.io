@@ -1,7 +1,7 @@
 export const SITE = {
-  website: "https://gopikrishnatummala.com/", // replace this with your deployed domain
+  website: "https://gopikrishtummala.github.io/", // replace this with your deployed domain
   author: "Gopi Krishna Tummala",
-  profile: "https://gopikrishnatummala.com/",
+  profile: "https://gopikrishtummala.github.io/",
   desc: "Senior Machine Learning Engineer @ Adobe | PhD | Ex-Qualcomm | Ex-Zoox | IIT-Madras",
   title: "Gopi Krishna Tummala",
   ogImage: "astropaper-og.jpg",
