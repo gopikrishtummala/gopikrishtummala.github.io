@@ -90,7 +90,7 @@ The agentic framework is powerful because it applies across various fields requi
 
 **Emergent Worlds and Dynamic NPCs:** Agent-based Non-Player Characters (NPCs) maintain long-term episodic memory and dynamic goals, allowing them to engage in social planning and create emergent, non-scripted narratives (Ramaseri-Chandra, 2023).
 
-**Multi-Step Asset Editing:** In design pipelines (film, animation), agents coordinate complex, multi-modal edits. An agent can call a sequence of specialized tools (vision models, 3D renderers, color graders) and use reflection to ensure visual fidelity and style consistency across large sets of assets. Recent research demonstrates this through multi-agent frameworks like UniVA (Wu et al., 2025) for video creation, RefineEdit-Agent (Sun et al., 2025) for iterative image editing, and FilmAgent (Wang et al., 2025) for end-to-end film production. Commercial tools like Adobe Creative Cloud (Sensei), RunwayML, and Descript are incorporating AI-assisted automation into professional pipelines.
+**Multi-Step Asset Editing:** In design pipelines (film, animation), agents coordinate complex, multi-modal edits. An agent can call a sequence of specialized tools (vision models, 3D renderers, color graders) and use reflection to ensure visual fidelity and style consistency across large sets of assets. Recent research demonstrates this through multi-agent frameworks like UniVA (Wu et al., 2025) for video creation, RefineEdit-Agent (Sun et al., 2025) for iterative image editing, and FilmAgent (Wang et al., 2025) for end-to-end film production.
 
 ### 🔬 Scientific Discovery and Engineering
 
