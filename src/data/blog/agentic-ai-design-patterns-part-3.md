@@ -240,7 +240,19 @@ Agents reason about:
 
 ### **Citation:**
 
-*Recent CVPR 2024-2025 work on 3D scene understanding and grounded agents*
+Recent CVPR conferences (2024 and 2025) featured significant work on 3D scene understanding and grounded agents, with a strong focus on leveraging large language models (LLMs) and foundation models to enhance spatial reasoning and enable physical interaction.
+
+**Key Research Areas:**
+
+* **Zero-shot 3D Visual Grounding:** SeeGround (CVPR 2025) presents a zero-shot 3D visual grounding framework that dynamically selects viewpoints for query-relevant image rendering and integrates 2D images with 3D spatial descriptions to boost object localization performance significantly. [Li et al., CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/html/Li_SeeGround_See_and_Ground_for_Zero-Shot_Open-Vocabulary_3D_Visual_Grounding_CVPR_2025_paper.html)
+
+* **Functionality and Affordance Understanding:** Fun3DU (CVPR 2025) is a training-free method that uses an LLM for Chain-of-Thought reasoning to parse task descriptions and segment functional objects in 3D scenes by leveraging pre-trained VLMs. SceneFun3D (CVPR 2024) introduced a dataset and model for fine-grained functionality and affordance understanding in 3D scenes. [Corsetti et al., CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/papers/Corsetti_Functionality_Understanding_and_Segmentation_in_3D_Scenes_CVPR_2025_paper.pdf)
+
+* **Large-Scale Datasets and Benchmarks:** 3D-GRAND (CVPR 2025) is a pioneering million-scale dataset containing household scenes with densely grounded scene-language instructions, specifically designed to enhance grounding capabilities in 3D-LLMs and reduce hallucinations. The ScanNet++ benchmark offers high-fidelity data and challenges for novel view synthesis and 3D semantic understanding. [Yang et al., CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/html/Yang_3D-GRAND_A_Million-Scale_Dataset_for_3D-LLMs_with_Better_Grounding_and_CVPR_2025_paper.html)
+
+* **Embodied Agents and Spatial Reasoning:** Video-3D LLM (CVPR 2025) presents a position-aware model that treats 3D scenes as dynamic videos, achieving state-of-the-art results on several benchmarks by more accurately aligning video representations with real-world spatial contexts. SnapMem (CVPR 2025) proposed a snapshot-based 3D scene memory for embodied agents to support lifelong learning and active exploration in dynamic environments. [Zheng et al., CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/html/Zheng_Video-3D_LLM_Learning_Position-Aware_Video_Representation_for_3D_Scene_Understanding_CVPR_2025_paper.html)
+
+**Workshops:** CVPR 2025 workshops included "3D Scene Understanding," "Open-World 3D Scene Understanding with Foundation Models," "Embodied AI," and "3D-LLM/VLA: Bridging Language, Vision and Action in 3D Environments." [3D-LLM/VLA Workshop](https://3d-llm-vla.github.io/)
 
 ---
 
@@ -370,7 +382,19 @@ class SkillLibrary:
 
 ### **Citation:**
 
-*Recent CVPR/ICRA/CoRL 2024-2025 work on embodied AI and vision-language-action models*
+Recent work in CVPR/ICRA/CoRL 2024-2025 on embodied AI and vision-language-action (VLA) models focuses on improving reasoning, planning, and real-world generalization. Key advancements include incorporating explicit reasoning like "visual chain-of-thought" for complex tasks, developing more efficient models, and leveraging large foundation models to better bridge the gap between language instructions and low-level control.
+
+**Key Themes and Advancements:**
+
+* **Enhanced Reasoning and Planning:** Researchers are moving beyond simple input-output mappings to give VLA models more robust reasoning capabilities for complex manipulation tasks. The "visual chain-of-thought" (CoT-VLA) approach predicts future image frames as visual goals before generating a short action sequence to achieve them, significantly improving performance in real-world tasks. VLAs are being used for high-level task decomposition, breaking down complex, long-horizon instructions into a sequence of subtasks. [Zhao et al., CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/html/Zhao_CoT-VLA_Visual_Chain-of-Thought_Reasoning_for_Vision-Language-Action_Models_CVPR_2025_paper.html)
+
+* **Leveraging Foundation Models:** There's a strong trend of integrating Large Language Models (LLMs) and multimodal foundation models into embodied agents to support abilities like goal interpretation and action sequencing. One research direction explores a joint architecture of LLMs and "world models" to bridge the gap between specialized AI agents and general physical intelligence. [arXiv:2509.20021](https://arxiv.org/html/2509.20021v1)
+
+* **Generalization and Efficiency:** Efforts are being made to improve the generalization of VLAs across different tasks and environments. New methods are being developed to make VLA models more efficient, such as using experience-based retrieval for rapid action generation in repetitive scenarios. [arXiv:2510.17111](https://arxiv.org/html/2510.17111v1)
+
+* **Comprehensive Surveys:** Detailed surveys capture the rapidly evolving field, providing taxonomies of VLA models and their development trajectories, covering model structures, training datasets, pre-training methods, and evaluation benchmarks. [arXiv:2405.14093](https://arxiv.org/html/2405.14093v4)
+
+**Relevant Workshops:** CVPR 2025 featured prominent workshops including "Embodied AI Workshop," "3D-LLM/VLA Workshop," and "Foundation Models Meet Embodied Agents," exploring advances in embodied AI and its integration with multimodal foundation models. [Embodied AI Workshop](https://embodied-ai.org/) | [3D-LLM/VLA Workshop](https://3d-llm-vla.github.io/)
 
 ---
 
