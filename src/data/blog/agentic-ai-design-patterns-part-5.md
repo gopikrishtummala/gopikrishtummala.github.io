@@ -430,7 +430,7 @@ Real numbers from production deployments:
 
 Based on recent CVPR, NeurIPS, ICLR, and ICRA papers, here's where the field is heading:
 
-## **1. Convergence on Hybrid Architectures**
+## **1. Convergence on Hybrid Architectures** {#state-of-field}
 
 The field is converging on **hybrid systems** that combine:
 * **LLMs** for high-level reasoning
@@ -529,7 +529,7 @@ The next 12-18 months will likely see:
 
 After analyzing hundreds of production deployments, here's what actually works in late 2025:
 
-## ✅ **1. Use a Supervisor + Specialist Agents (SLM Where Possible)**
+## ✅ **1. Use a Supervisor + Specialist Agents (SLM Where Possible)** {#production-checklist}
 
 **Why:** 40-70% cost reduction, 88% reliability, production-proven.
 
