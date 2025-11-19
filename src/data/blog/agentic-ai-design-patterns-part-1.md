@@ -94,7 +94,7 @@ The agentic framework is powerful because it applies across various fields requi
 
 ### 🔬 Scientific Discovery and Engineering
 
-**Compound Search and Materials Discovery:** The agent acts as an autonomous chemist. It performs literature review (via Retrieval-Augmented Generation/RAG), formulates a hypothesis for a new material or drug candidate, designs the optimal multi-step synthesis procedure, and can even interface with robotic labs to execute the experiment—closing the loop from theoretical planning to physical action.
+**Compound Search and Materials Discovery:** The agent acts as an autonomous chemist. It performs literature review (via Retrieval-Augmented Generation/RAG), formulates a hypothesis for a new material or drug candidate, designs the optimal multi-step synthesis procedure, and can even interface with robotic labs to execute the experiment—closing the loop from theoretical planning to physical action. Recent research demonstrates this through multi-agent robotic AI chemists (Boiko et al.) that combine GPT-4-driven planning with robotic synthesis and analysis, enabling fully autonomous chemical research. AI agents in drug discovery can autonomously reason, act, and learn throughout the discovery pipeline, from hypothesis generation to experimental validation.
 
 **Electronic Design Automation (EDA):** Agents optimize electronic circuits or physical layouts based on high-level constraints (power, performance, and area—collectively known as PPA). They use EDA simulation tools as their "tools," running iterative simulations and refining the design using Reinforcement Learning signals derived from the simulation outputs. This approach is formulated as a Markov Decision Process (MDP), where the agent interacts with the design environment and receives rewards based on metrics like wirelength, congestion, and power consumption.
 
@@ -820,6 +820,40 @@ def simulate_rollout(node, goal, max_depth=10):
   - [ScienceDirect: Electronic Design Automation](https://www.sciencedirect.com/topics/computer-science/electronic-design-automation)  
   - [ACM Digital Library: ML in EDA](https://dl.acm.org/doi/10.1145/3736167)  
   - [IEEE Xplore: RL in EDA](https://ieeexplore.ieee.org/iel7/6287639/10005208/10272331.pdf)
+
+**Autonomous Scientific Discovery and AI Agents in Chemistry:**
+
+- **A Survey on Autonomous Scientific Discovery**  
+  *Domain-oriented review of autonomous scientific discovery across life sciences, chemistry, materials, and physics, including RAG-based knowledge ingestion.*  
+  [arXiv](https://arxiv.org/)
+
+- **Empowering biomedical discovery with AI agents**  
+  *Perspective on AI agents that formulate biomedical hypotheses, critically evaluate them, and characterize uncertainty.*  
+  [ScienceDirect](https://www.sciencedirect.com/)
+
+- **Boiko et al. - Autonomous Chemistry with GPT-4 and Robotics**  
+  *Demonstration of GPT-4-driven planner combined with robotic synthesis and analysis for autonomous chemistry.*  
+  See: [Frontiers](https://www.frontiersin.org/), [PMC/NIH](https://pmc.ncbi.nlm.nih.gov/)
+
+- **Multi-agent-driven robotic AI chemist**  
+  *A multi-agent-driven robotic AI chemist enabling autonomous chemical research on demand.*  
+  [ChemRxiv](https://chemrxiv.org/)
+
+- **DORA AI Scientist: Multi-agent Virtual Research Team**  
+  *Agent leveraging Retrieval-Augmented Generation (RAG) for thorough data collection and analysis in scientific discovery.*  
+  [bioRxiv](https://www.biorxiv.org/)
+
+- **AI Agents in Drug Discovery**  
+  *Review of AI agents as transformative tools in drug discovery, with ability to autonomously reason, act, and learn.*  
+  [arXiv](https://arxiv.org/)
+
+- **Large Language Models and Autonomous Agents in Chemistry**  
+  *Review covering recent history, current capabilities, and design of LLMs and autonomous agents in chemistry.*  
+  [Royal Society of Chemistry](https://pubs.rsc.org/)
+
+- **Autonomous Agents for Scientific Discovery**  
+  *View and vision of LLM-based scientific agents and their role in transforming the scientific discovery lifecycle.*  
+  [ResearchGate](https://www.researchgate.net/)
 
 ---
 
