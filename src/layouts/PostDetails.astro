@@ -787,6 +787,56 @@ const nextPost =
       });
     }
 
+    // Collapsible sections functionality
+    function setupCollapsibleSections() {
+      const tocNav = document.getElementById('toc-nav');
+      if (!tocNav) return;
+
+      // Find all list items with children
+      const itemsWithChildren = tocNav.querySelectorAll('li:has(ul)');
+      itemsWithChildren.forEach(item => {
+        item.classList.add('has-children');
+        
+        const link = item.querySelector('> a');
+        if (link) {
+          link.style.cursor = 'pointer';
+          link.addEventListener('click', (e) => {
+            // Don't navigate if clicking the toggle area
+            if (e.target === link || link.contains(e.target)) {
+              const isCollapsed = item.classList.contains('collapsed');
+              if (isCollapsed) {
+                item.classList.remove('collapsed');
+              } else {
+                item.classList.add('collapsed');
+              }
+            }
+          });
+        }
+      });
+
+      // Also set up for sticky nav
+      const stickyNav = document.getElementById('sticky-nav');
+      if (stickyNav) {
+        const stickyItemsWithChildren = stickyNav.querySelectorAll('li:has(ul)');
+        stickyItemsWithChildren.forEach(item => {
+          item.classList.add('has-children');
+          
+          const link = item.querySelector('> a');
+          if (link) {
+            link.style.cursor = 'pointer';
+            link.addEventListener('click', (e) => {
+              const isCollapsed = item.classList.contains('collapsed');
+              if (isCollapsed) {
+                item.classList.remove('collapsed');
+              } else {
+                item.classList.add('collapsed');
+              }
+            });
+          }
+        });
+      }
+    }
+
     // Initialize on page load
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -794,6 +844,7 @@ const nextPost =
         setTimeout(() => {
           updateActiveSection();
           setupSmoothScroll();
+          setupCollapsibleSections();
         }, 100);
       });
     } else {
@@ -801,6 +852,7 @@ const nextPost =
       setTimeout(() => {
         updateActiveSection();
         setupSmoothScroll();
+        setupCollapsibleSections();
       }, 100);
     }
 
@@ -810,6 +862,7 @@ const nextPost =
         createStickyNav();
         updateActiveSection();
         setupSmoothScroll();
+        setupCollapsibleSections();
       }, 200);
     });
   })();
@@ -827,11 +880,24 @@ const nextPost =
     box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
     overflow: hidden;
     transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .article-toc::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    opacity: 0.6;
   }
 
   .article-toc:hover {
     border-color: rgba(102, 126, 234, 0.25);
     box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
   }
 
   .toc-header {
@@ -965,8 +1031,9 @@ const nextPost =
 
   .toc-nav {
     padding: 1rem 1.5rem 1.5rem;
-    max-height: 500px;
+    max-height: 600px;
     overflow-y: auto;
+    scroll-behavior: smooth;
   }
 
   .toc-nav a {
@@ -977,11 +1044,12 @@ const nextPost =
     color: var(--secondary-foreground);
     text-decoration: none;
     border-radius: 8px;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.9375rem;
     line-height: 1.6;
     position: relative;
     margin: 0.25rem 0;
+    font-weight: 500;
   }
 
   .toc-nav a::before {
@@ -1014,27 +1082,62 @@ const nextPost =
     font-weight: 600;
     padding-left: 1.125rem;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    transform: translateX(2px);
   }
 
   .toc-nav a.active::before {
     height: 100%;
     width: 4px;
+    box-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
   }
 
   .toc-nav ul ul {
-    margin-left: 1rem;
+    margin-left: 1.25rem;
     margin-top: 0.25rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.2s ease;
   }
 
   .toc-nav ul ul a {
     font-size: 0.875rem;
-    padding: 0.375rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     color: var(--secondary-foreground);
-    opacity: 0.85;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  .toc-nav ul ul a:hover {
+    opacity: 1;
+    transform: translateX(3px);
   }
 
   .toc-nav ul ul a.active {
     opacity: 1;
+    font-weight: 500;
+  }
+
+  /* Collapsible sections */
+  .toc-nav li.has-children > a {
+    position: relative;
+    padding-right: 2rem;
+  }
+
+  .toc-nav li.has-children > a::after {
+    content: '▼';
+    position: absolute;
+    right: 0.75rem;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    transition: transform 0.2s ease;
+  }
+
+  .toc-nav li.has-children.collapsed > a::after {
+    transform: rotate(-90deg);
+  }
+
+  .toc-nav li.has-children.collapsed > ul {
+    display: none;
   }
 
   /* Sticky Sidebar Navigation */
