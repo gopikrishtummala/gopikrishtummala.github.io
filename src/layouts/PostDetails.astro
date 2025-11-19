@@ -799,16 +799,26 @@ const nextPost =
         
         const link = item.querySelector('> a');
         if (link) {
-          link.style.cursor = 'pointer';
-          link.addEventListener('click', (e) => {
-            // Don't navigate if clicking the toggle area
-            if (e.target === link || link.contains(e.target)) {
-              const isCollapsed = item.classList.contains('collapsed');
-              if (isCollapsed) {
-                item.classList.remove('collapsed');
-              } else {
-                item.classList.add('collapsed');
-              }
+          // Create a toggle button
+          const toggle = document.createElement('button');
+          toggle.className = 'toc-toggle-section';
+          toggle.innerHTML = '▼';
+          toggle.setAttribute('aria-label', 'Toggle section');
+          toggle.style.cssText = 'position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem; transition: transform 0.2s ease;';
+          
+          link.style.position = 'relative';
+          link.appendChild(toggle);
+          
+          toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isCollapsed = item.classList.contains('collapsed');
+            if (isCollapsed) {
+              item.classList.remove('collapsed');
+              toggle.style.transform = 'translateY(-50%) rotate(0deg)';
+            } else {
+              item.classList.add('collapsed');
+              toggle.style.transform = 'translateY(-50%) rotate(-90deg)';
             }
           });
         }
@@ -823,13 +833,25 @@ const nextPost =
           
           const link = item.querySelector('> a');
           if (link) {
-            link.style.cursor = 'pointer';
-            link.addEventListener('click', (e) => {
+            const toggle = document.createElement('button');
+            toggle.className = 'toc-toggle-section';
+            toggle.innerHTML = '▼';
+            toggle.setAttribute('aria-label', 'Toggle section');
+            toggle.style.cssText = 'position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem; transition: transform 0.2s ease;';
+            
+            link.style.position = 'relative';
+            link.appendChild(toggle);
+            
+            toggle.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               const isCollapsed = item.classList.contains('collapsed');
               if (isCollapsed) {
                 item.classList.remove('collapsed');
+                toggle.style.transform = 'translateY(-50%) rotate(0deg)';
               } else {
                 item.classList.add('collapsed');
+                toggle.style.transform = 'translateY(-50%) rotate(-90deg)';
               }
             });
           }
@@ -1120,24 +1142,42 @@ const nextPost =
   /* Collapsible sections */
   .toc-nav li.has-children > a {
     position: relative;
-    padding-right: 2rem;
+    padding-right: 2.5rem;
   }
 
-  .toc-nav li.has-children > a::after {
-    content: '▼';
+  .toc-toggle-section {
     position: absolute;
-    right: 0.75rem;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
     font-size: 0.75rem;
     opacity: 0.5;
-    transition: transform 0.2s ease;
+    padding: 0.25rem;
+    transition: all 0.2s ease;
+    color: var(--secondary-foreground);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
   }
 
-  .toc-nav li.has-children.collapsed > a::after {
-    transform: rotate(-90deg);
+  .toc-toggle-section:hover {
+    opacity: 1;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--accent);
   }
 
   .toc-nav li.has-children.collapsed > ul {
     display: none;
+  }
+
+  .toc-nav li.has-children.collapsed .toc-toggle-section {
+    transform: translateY(-50%) rotate(-90deg);
   }
 
   /* Sticky Sidebar Navigation */
