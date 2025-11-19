@@ -266,7 +266,7 @@ A comprehensive, verified survey with:
 
 ---
 
-# **2025 Production Trends: What Engineers Actually Deploy**
+# **2025 Production Trends: What Engineers Actually Deploy** {#trends-2025}
 
 Based on McKinsey Sept 2025 report, real enterprise deployments, and production systems, here are the trends that matter for shipping real systems:
 
@@ -636,7 +636,7 @@ Agentic AI is thus poised to become the foundational layer for all complex, high
 
 ---
 
-# **References: The Canon of Agentic AI (2023-2025)**
+# **References: The Canon of Agentic AI (2023-2025)** {#references}
 
 This curated list includes the most influential and practically useful papers that practitioners and researchers keep coming back to—the "canon" of modern agent systems as of November 2025.
 
