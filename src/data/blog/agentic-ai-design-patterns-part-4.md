@@ -65,7 +65,8 @@ The good news? They fail in predictable ways. The bad news? You have to plan for
 
 ---
 
-## **A. The "Tool Overuse" Trap** {#tool-overuse}
+<a id="tool-overuse"></a>
+## **A. The "Tool Overuse" Trap**
 
 ### **Failure:**
 
@@ -97,7 +98,8 @@ else:
 
 ---
 
-## **B. The Contextual Amnesia Loop** {#contextual-amnesia}
+<a id="contextual-amnesia"></a>
+## **B. The Contextual Amnesia Loop**
 
 ### **Failure:**
 
@@ -105,7 +107,7 @@ The LLM's finite context window forces it to "forget" crucial observations from 
 
 **Example:** Agent searches for flights, finds results, but 10 steps later forgets the search results and searches again.
 
-### **Mitigation (Pattern #6):**
+### **Mitigation (Pattern #7):**
 
 Implement **Structured Working Memory ($M_{work}$)**. Force the agent to distill the core findings of every $N$ steps into a structured JSON/YAML object that *always* gets injected into the next prompt.
 
@@ -138,7 +140,8 @@ Recent Decisions:
 
 ---
 
-## **C. The Goal Drift Problem (The Agent's "Shiny Object Syndrome")** {#goal-drift}
+<a id="goal-drift"></a>
+## **C. The Goal Drift Problem (The Agent's "Shiny Object Syndrome")**
 
 ### **Failure:**
 
@@ -174,7 +177,8 @@ class GoalAwareReflector:
 
 ---
 
-## **D. The Hallucinated API Call** {#hallucinated-api}
+<a id="hallucinated-api"></a>
+## **D. The Hallucinated API Call**
 
 ### **Failure:**
 
@@ -225,7 +229,8 @@ def safe_tool_call(user_request: str) -> FlightSearchTool:
 
 ---
 
-## **E. The Infinity Loop (The Circular Argument)** {#infinity-loop}
+<a id="infinity-loop"></a>
+## **E. The Infinity Loop (The Circular Argument)**
 
 ### **Failure:**
 
@@ -270,7 +275,8 @@ if loop_detector.detect_loop(action):
 
 ---
 
-## **F. Premature Termination** {#premature-termination}
+<a id="premature-termination"></a>
+## **F. Premature Termination**
 
 ### **Failure:**
 
@@ -295,7 +301,8 @@ def verify_completion(task: str, result: str) -> bool:
 
 ---
 
-## **G. Verifiable Agent Pipelines (Safety & Grounding)** {#verifiable-pipelines}
+<a id="verifiable-pipelines"></a>
+## **G. Verifiable Agent Pipelines (Safety & Grounding)**
 
 LLM output is stochastic (probabilistic). Modern systems are designed for explicit verification:
 
@@ -362,7 +369,8 @@ class VerifiableAgent:
 
 ---
 
-## **H. Safety-Aware Planning** {#safety-planning}
+<a id="safety-planning"></a>
+## **H. Safety-Aware Planning**
 
 Agents must assess risk before taking actions, especially in high-stakes environments.
 
@@ -423,12 +431,13 @@ Agents avoid actions where $\text{risk}(a) > \text{threshold}$.
 
 ---
 
-## **Summary: Failure Mode Mitigation Patterns** {#failure-summary}
+<a id="failure-summary"></a>
+## **Summary: Failure Mode Mitigation Patterns**
 
 | Failure Mode | Primary Mitigation Pattern | Key Technique |
 |:---|:---|:---|
 | Tool Overuse | Pattern #3 (Toolformer) | Triage prompt |
-| Contextual Amnesia | Pattern #6 (Memory) | Structured working memory |
+| Contextual Amnesia | Pattern #7 (Memory) | Structured working memory |
 | Goal Drift | Pattern #2 (PER) | Goal-aware reflection |
 | Hallucinated API Calls | Pattern #17 (Reflexes) | Pydantic schema enforcement |
 | Infinity Loops | Pattern #17 (Reflexes) | Loop detection + backtracking |
@@ -468,7 +477,7 @@ The planner is constrained to select a trajectory $\tau$ where the maximum predi
 
 | Failure Mode | Description | Mitigation Pattern |
 | :--- | :--- | :--- |
-| **Contextual Amnesia** | Forgetting crucial context due to context window limits. | Pattern #6 (Memory Rewriting), Structured Working Memory. |
+| **Contextual Amnesia** | Forgetting crucial context due to context window limits. | Pattern #8 (Memory Rewriting), Structured Working Memory. |
 | **Goal Drift** | Getting distracted by an interesting sub-task. | Pattern #2 (Reflector) constantly checks against original $g$. |
 | **Hallucinated API** | Inventing a non-existent tool or argument fields. | Pattern #17 (Reflexes), Pydantic/Schema validation for tool calls. |
 | **Grounding Failure** | Generating an action impossible in the environment (e.g., trying to grasp an unreachable object). | Pattern #14 (3D Scene Graph) for pre-action feasibility checks. |

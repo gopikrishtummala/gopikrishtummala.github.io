@@ -46,18 +46,19 @@ This part covers the patterns that make agents production-ready: memory manageme
   </div>
   <nav class="toc-nav" id="toc-nav">
     <ul>
-      <li><a href="#pattern-6-memory">Pattern #6: Memory-Attentive Agents</a></li>
-      <li><a href="#pattern-16-compression">Pattern #16: Memory Rewriting (Compression)</a></li>
-      <li><a href="#pattern-6-supervisor">Pattern #6: Supervisor / Orchestrator</a></li>
-      <li><a href="#pattern-7-parallel">Pattern #7: Parallel Tool Use / Fan-Out</a></li>
-      <li><a href="#pattern-8-hidden">Pattern #8: Hidden Reasoning (2025 Edition)</a></li>
+      <li><a href="#pattern-7-memory">Pattern #7: Memory-Attentive Agents</a></li>
+      <li><a href="#pattern-8-compression">Pattern #8: Memory Rewriting (Compression)</a></li>
+      <li><a href="#pattern-9-supervisor">Pattern #9: Supervisor / Orchestrator</a></li>
+      <li><a href="#pattern-10-parallel">Pattern #10: Parallel Tool Use / Fan-Out</a></li>
+      <li><a href="#pattern-11-hidden">Pattern #11: Hidden Reasoning (2025 Edition)</a></li>
     </ul>
   </nav>
 </div>
 
 ---
 
-## **Pattern #6 — Memory-Attentive Agents** {#pattern-6-memory}
+<a id="pattern-7-memory"></a>
+## **Pattern #7 — Memory-Attentive Agents**
 
 You know how you have different kinds of memory? Your phone number (long-term), what you had for breakfast (short-term), and that thing you're actively thinking about right now (working memory)?
 
@@ -139,7 +140,8 @@ A scientist with notebooks (long-term memory), lab records (episodic memory), an
 
 ---
 
-## **Pattern #16 — Memory Rewriting (Compression as Control)** {#pattern-16-compression}
+<a id="pattern-8-compression"></a>
+## **Pattern #8 — Memory Rewriting (Compression as Control)**
 
 You know how your phone storage fills up and you have to delete old photos? Agents have the same problem, but worse.
 
@@ -241,7 +243,8 @@ class MemoryCompressor:
 
 ---
 
-## **Pattern #6 — Supervisor / Orchestrator (The #1 Production Pattern in 2025)** {#pattern-6-supervisor}
+<a id="pattern-9-supervisor"></a>
+## **Pattern #9 — Supervisor / Orchestrator (The #1 Production Pattern in 2025)**
 
 Remember the chef-cooks-critic pattern? This is like that, but the chef is also a traffic controller.
 
@@ -371,7 +374,8 @@ app = workflow.compile()
 
 ---
 
-## **Pattern #7 — Parallel Tool Use / Fan-Out (2025 Standard)** {#pattern-7-parallel}
+<a id="pattern-10-parallel"></a>
+## **Pattern #10 — Parallel Tool Use / Fan-Out (2025 Standard)**
 
 You know how when you're cooking, you don't wait for the water to boil before you start chopping vegetables? You do things in parallel.
 
@@ -452,7 +456,8 @@ async def parallel_tool_execution(prompt: str, tools: list):
 
 ---
 
-## **Pattern #8 — The Big Secret Nobody Says Out Loud (2025 Edition)** {#pattern-8-hidden}
+<a id="pattern-11-hidden"></a>
+## **Pattern #11 — The Big Secret Nobody Says Out Loud (2025 Edition)**
 
 Here's the part that will sound like science fiction, but it's actually shipping today:
 

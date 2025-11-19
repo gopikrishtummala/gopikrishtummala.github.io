@@ -675,6 +675,9 @@ const nextPost =
 
     // Create sticky sidebar navigation
     function createStickyNav() {
+      // Check if sticky nav already exists
+      if (document.getElementById('sticky-nav')) return;
+      
       const toc = document.getElementById('article-toc');
       if (!toc) return;
 
@@ -713,17 +716,26 @@ const nextPost =
       // Insert sidebar after main content starts
       const main = document.getElementById('main-content');
       if (main) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'article-wrapper';
-        wrapper.style.position = 'relative';
+        // Check if wrapper already exists
+        let wrapper = main.querySelector('.article-wrapper');
+        if (!wrapper) {
+          wrapper = document.createElement('div');
+          wrapper.className = 'article-wrapper';
+          wrapper.style.position = 'relative';
+        }
         
         const article = document.querySelector('#article');
         if (article && article.parentNode) {
-          // Wrap article content
-          const articleParent = article.parentNode;
-          articleParent.insertBefore(wrapper, article);
-          wrapper.appendChild(article);
-          wrapper.appendChild(sidebarNav);
+          // Only wrap if not already wrapped
+          if (!article.parentNode.classList.contains('article-wrapper')) {
+            const articleParent = article.parentNode;
+            articleParent.insertBefore(wrapper, article);
+            wrapper.appendChild(article);
+          }
+          // Only append sidebar if it's not already there
+          if (!wrapper.querySelector('#sticky-nav')) {
+            wrapper.appendChild(sidebarNav);
+          }
         }
       }
     }
@@ -880,6 +892,20 @@ const nextPost =
 
     // Re-initialize after Astro page swaps
     document.addEventListener('astro:page-load', () => {
+      // Remove existing sticky nav and wrapper if they exist
+      const existingStickyNav = document.getElementById('sticky-nav');
+      if (existingStickyNav) {
+        existingStickyNav.remove();
+      }
+      const existingWrapper = document.querySelector('.article-wrapper');
+      if (existingWrapper) {
+        const article = existingWrapper.querySelector('#article');
+        if (article && existingWrapper.parentNode) {
+          existingWrapper.parentNode.insertBefore(article, existingWrapper);
+          existingWrapper.remove();
+        }
+      }
+      
       setTimeout(() => {
         createStickyNav();
         updateActiveSection();

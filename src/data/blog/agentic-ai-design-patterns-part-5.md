@@ -66,20 +66,21 @@ This final part covers what actually ships in 2025: real-world trends, cost opti
 
 ---
 
-# **Putting It All Together: A Modern Agent Stack (2025)** {#modern-stack}
+<a id="modern-stack"></a>
+# **Putting It All Together: A Modern Agent Stack (2025)**
 
 ## **Architecture Diagram:**
 
 ```mermaid
 flowchart TD
-    Goal([Goal]) --> Supervisor[Supervisor<br/>Pattern #6]
+    Goal([Goal]) --> Supervisor[Supervisor<br/>Pattern #9]
     Supervisor --> Budget[Budget Guardrail<br/>Stop if > $2]
-    Budget --> Memory[Memory<br/>Pattern #6, #16]
+    Budget --> Memory[Memory<br/>Pattern #7, #8]
     Memory --> Specialist{Route to Specialist}
     Specialist -->|Research| Researcher[Researcher Agent<br/>SLM]
     Specialist -->|Code| Coder[Coder Agent<br/>SLM]
     Specialist -->|Write| Writer[Writer Agent<br/>SLM]
-    Researcher --> ParallelTools[Parallel Tools<br/>Pattern #7]
+    Researcher --> ParallelTools[Parallel Tools<br/>Pattern #10]
     Coder --> ParallelTools
     Writer --> ParallelTools
     ParallelTools --> SelfEval[Self-Eval / Correction<br/>Pattern #2, #18]
@@ -106,11 +107,11 @@ flowchart TD
 ## **Component Flow:**
 
 1. **Goal** → Input objective
-2. **Supervisor** (Pattern #6) → Routes to specialist
+2. **Supervisor** (Pattern #9) → Routes to specialist
 3. **Budget Guardrail** → Stops if cost exceeds limit
-4. **Memory** (Pattern #6, #16) → Retrieves and compresses context
+4. **Memory** (Pattern #7, #8) → Retrieves and compresses context
 5. **Specialist Agents** → Execute domain-specific tasks
-6. **Parallel Tools** (Pattern #7) → Execute multiple tools simultaneously
+6. **Parallel Tools** (Pattern #10) → Execute multiple tools simultaneously
 7. **Self-Evaluation** (Pattern #2, #18) → Checks and corrects
 8. **Verification** → Multi-layer safety checks
 9. **Loop Detection** → Prevents infinite loops
@@ -130,18 +131,19 @@ This stack can solve tasks like:
 
 Let's walk through a concrete example of how these patterns combine in practice.
 
-## **Task:** "Create a comprehensive survey of vision-language agents for CVPR 2025" {#case-study}
+<a id="case-study"></a>
+## **Task:** "Create a comprehensive survey of vision-language agents for CVPR 2025"
 
 ### **Agent Workflow:**
 
 ```mermaid
 flowchart TD
     Start([Task: CVPR Survey]) --> Plan[1. Planning<br/>Pattern #2]
-    Plan --> Memory[2. Memory Retrieval<br/>Pattern #6]
-    Memory --> Tools[3. Tool Use<br/>Pattern #3, #13]
+    Plan --> Memory[2. Memory Retrieval<br/>Pattern #7]
+    Memory --> Tools[3. Tool Use<br/>Pattern #3, #16]
     Tools --> ReAct[4. ReAct Loop<br/>Pattern #1]
     ReAct --> SelfConsist[5. Self-Consistency<br/>Pattern #4]
-    SelfConsist --> Compress[6. Memory Compression<br/>Pattern #16]
+    SelfConsist --> Compress[6. Memory Compression<br/>Pattern #8]
     Compress --> Verify[7. Verification<br/>Pattern #18]
     Verify --> Reflect[8. Reflection<br/>Pattern #2]
     Reflect --> Check{Complete?}
@@ -176,7 +178,7 @@ plan = {
 }
 ```
 
-### **Step 2: Memory Retrieval (Pattern #6)**
+### **Step 2: Memory Retrieval (Pattern #7)**
 
 ```python
 # Agent retrieves relevant context
@@ -212,7 +214,7 @@ outlines = [llm.generate_outline() for _ in range(5)]
 best_outline = mode(outlines)  # Most common structure
 ```
 
-### **Step 6: Memory Compression (Pattern #16)**
+### **Step 6: Memory Compression (Pattern #8)**
 
 ```python
 # Compress findings as we go
@@ -266,11 +268,13 @@ A comprehensive, verified survey with:
 
 ---
 
-# **2025 Production Trends: What Engineers Actually Deploy** {#trends-2025}
+<a id="trends-2025"></a>
+# **2025 Production Trends: What Engineers Actually Deploy**
 
 Based on McKinsey Sept 2025 report, real enterprise deployments, and production systems, here are the trends that matter for shipping real systems:
 
-## **1. Small Language Models (SLMs) Are Eating Agent Backbones** {#slms}
+<a id="slms"></a>
+## **1. Small Language Models (SLMs) Are Eating Agent Backbones**
 
 **The Shift:** Phi-4, Llama-3.2-8B, Qwen2.5-14B + tool-calling fine-tunes now outperform GPT-4o on agent benchmarks at 1/30th the cost.
 
@@ -296,7 +300,8 @@ researcher_agent = create_agent(model=model, tools=[search_tool, pdf_parser])
 
 ---
 
-## **2. Cost-Aware / Budgeted Agents** {#cost-aware}
+<a id="cost-aware"></a>
+## **2. Cost-Aware / Budgeted Agents**
 
 **The Reality:** Every enterprise now enforces token budgets. Agents must stop before exceeding cost limits.
 
@@ -331,7 +336,8 @@ if not budget.check_budget(model, input_tokens, output_tokens):
 
 ---
 
-## **3. Observability is the New Unit Test** {#observability}
+<a id="observability"></a>
+## **3. Observability is the New Unit Test**
 
 **The Shift:** LangSmith, Helicone, PromptLayer datasets are standard. Every agent deployment includes comprehensive logging.
 
@@ -374,7 +380,8 @@ def log_agent_execution(prompt, tools, trajectory, score):
 
 ---
 
-## **4. Agent Distillation / Compilation** {#distillation}
+<a id="distillation"></a>
+## **4. Agent Distillation / Compilation**
 
 **The Trend:** Turning a slow o1 agent into a fast Llama-3.2-8B agent via synthetic trajectories.
 
@@ -387,7 +394,8 @@ def log_agent_execution(prompt, tools, trajectory, score):
 
 ---
 
-## **5. Self-Evolving Agents** {#self-evolving}
+<a id="self-evolving"></a>
+## **5. Self-Evolving Agents**
 
 **The Innovation:** Agents that write their own improver prompt (AgentOptimizer, EvoAgent style).
 
@@ -430,7 +438,8 @@ Real numbers from production deployments:
 
 Based on recent CVPR, NeurIPS, ICLR, and ICRA papers, here's where the field is heading:
 
-## **1. Convergence on Hybrid Architectures** {#state-of-field}
+<a id="state-of-field"></a>
+## **1. Convergence on Hybrid Architectures**
 
 The field is converging on **hybrid systems** that combine:
 * **LLMs** for high-level reasoning
@@ -529,7 +538,8 @@ The next 12-18 months will likely see:
 
 After analyzing hundreds of production deployments, here's what actually works in late 2025:
 
-## ✅ **1. Use a Supervisor + Specialist Agents (SLM Where Possible)** {#production-checklist}
+<a id="production-checklist"></a>
+## ✅ **1. Use a Supervisor + Specialist Agents (SLM Where Possible)**
 
 **Why:** 40-70% cost reduction, 88% reliability, production-proven.
 
@@ -636,7 +646,8 @@ Agentic AI is thus poised to become the foundational layer for all complex, high
 
 ---
 
-# **References: The Canon of Agentic AI (2023-2025)** {#references}
+<a id="references"></a>
+# **References: The Canon of Agentic AI (2023-2025)**
 
 This curated list includes the most influential and practically useful papers that practitioners and researchers keep coming back to—the "canon" of modern agent systems as of November 2025.
 
