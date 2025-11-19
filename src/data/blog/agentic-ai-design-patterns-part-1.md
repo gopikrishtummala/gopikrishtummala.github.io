@@ -96,7 +96,9 @@ The agentic framework is powerful because it applies across various fields requi
 
 **Compound Search and Materials Discovery:** The agent acts as an autonomous chemist. It performs literature review (via Retrieval-Augmented Generation/RAG), formulates a hypothesis for a new material or drug candidate, designs the optimal multi-step synthesis procedure, and can even interface with robotic labs to execute the experiment—closing the loop from theoretical planning to physical action.
 
-**Electronic Design Automation (EDA):** Agents optimize electronic circuits or physical layouts based on high-level constraints (power, area). They use EDA simulation tools as their "tools," running iterative simulations and refining the design using Reinforcement Learning signals derived from the simulation outputs.
+**Electronic Design Automation (EDA):** Agents optimize electronic circuits or physical layouts based on high-level constraints (power, performance, and area—collectively known as PPA). They use EDA simulation tools as their "tools," running iterative simulations and refining the design using Reinforcement Learning signals derived from the simulation outputs. This approach is formulated as a Markov Decision Process (MDP), where the agent interacts with the design environment and receives rewards based on metrics like wirelength, congestion, and power consumption.
+
+Notable applications include Google's use of deep reinforcement learning to optimize the physical layouts of Tensor Processing Units (TPUs), and commercial products like Synopsys DSO.ai, which applies RL to automate chip implementation processes. Research in this area spans major EDA conferences (DAC, ICCAD) and demonstrates RL's effectiveness in tasks like floorplanning, placement, and routing optimization.
 
 ### 📐 Product Development and Code Generation
 
@@ -797,6 +799,27 @@ def simulate_rollout(node, goal, max_depth=10):
   See: [Akira AI Blog](https://www.akira.ai/blog/reflection-agent-prompting), [DeepLearning.AI](https://www.deeplearning.ai/the-batch/agentic-design-patterns-part-2-reflection/)
 
 - **Commercial Tools:** Adobe Creative Cloud (Sensei), RunwayML, Descript, Unreal Engine 5.4 (Modular Control Rig) demonstrate AI-driven automation in professional creative pipelines.
+
+**Electronic Design Automation (EDA) and Reinforcement Learning:**
+
+- **Machine Learning for Electronic Design Automation: A Survey**  
+  *Comprehensive overview of ML techniques, including RL, across the EDA design flow.*  
+  [ResearchGate](https://www.researchgate.net/publication/349106567_Machine_Learning_for_Electronic_Design_Automation_A_Survey)
+
+- **Application of Machine Learning in FPGA EDA Tool Development**  
+  *Research on ML applications in FPGA design automation.*  
+  [ResearchGate](https://www.researchgate.net/publication/374500231_Application_of_Machine_Learning_in_FPGA_EDA_Tool_Development)
+
+- **Google TPU Design:** Google's use of deep reinforcement learning for optimizing TPU physical layouts.  
+  See: [Wikipedia: Tensor Processing Unit](https://en.wikipedia.org/wiki/Tensor_Processing_Unit)
+
+- **Synopsys DSO.ai:** Commercial RL-based design-space optimization tool for chip implementation.  
+  See: [Wikipedia: Synopsys](https://en.wikipedia.org/wiki/Synopsys)
+
+- **General EDA References:**  
+  - [ScienceDirect: Electronic Design Automation](https://www.sciencedirect.com/topics/computer-science/electronic-design-automation)  
+  - [ACM Digital Library: ML in EDA](https://dl.acm.org/doi/10.1145/3736167)  
+  - [IEEE Xplore: RL in EDA](https://ieeexplore.ieee.org/iel7/6287639/10005208/10272331.pdf)
 
 ---
 
