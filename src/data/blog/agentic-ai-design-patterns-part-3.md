@@ -461,9 +461,9 @@ Recent work in CVPR/ICRA/CoRL 2024-2025 on embodied AI and vision-language-actio
 
 * **Enhanced Reasoning and Planning:** Researchers are moving beyond simple input-output mappings to give VLA models more robust reasoning capabilities for complex manipulation tasks. The "visual chain-of-thought" (CoT-VLA) approach predicts future image frames as visual goals before generating a short action sequence to achieve them, significantly improving performance in real-world tasks. VLAs are being used for high-level task decomposition, breaking down complex, long-horizon instructions into a sequence of subtasks. [Zhao et al., CVPR 2025](https://openaccess.thecvf.com/content/CVPR2025/html/Zhao_CoT-VLA_Visual_Chain-of-Thought_Reasoning_for_Vision-Language-Action_Models_CVPR_2025_paper.html)
 
-* **Leveraging Foundation Models:** There's a strong trend of integrating Large Language Models (LLMs) and multimodal foundation models into embodied agents to support abilities like goal interpretation and action sequencing. One research direction explores a joint architecture of LLMs and "world models" to bridge the gap between specialized AI agents and general physical intelligence. [arXiv:2509.20021](https://arxiv.org/html/2509.20021v1)
+* **Leveraging Foundation Models:** There's a strong trend of integrating Large Language Models (LLMs) and multimodal foundation models into embodied agents to support abilities like goal interpretation and action sequencing. One research direction explores a joint architecture of LLMs and "world models" to bridge the gap between specialized AI agents and general physical intelligence. *(Cite specific paper: [arXiv:2509.20021](https://arxiv.org/html/2509.20021v1) - add author names and title when available.)*
 
-* **Generalization and Efficiency:** Efforts are being made to improve the generalization of VLAs across different tasks and environments. New methods are being developed to make VLA models more efficient, such as using experience-based retrieval for rapid action generation in repetitive scenarios. [arXiv:2510.17111](https://arxiv.org/html/2510.17111v1)
+* **Generalization and Efficiency:** Efforts are being made to improve the generalization of VLAs across different tasks and environments. New methods are being developed to make VLA models more efficient, such as using experience-based retrieval for rapid action generation in repetitive scenarios. *(Cite specific paper: [arXiv:2510.17111](https://arxiv.org/html/2510.17111v1) - add author names and title when available.)*
 
 * **Comprehensive Surveys:** Detailed surveys capture the rapidly evolving field, providing taxonomies of VLA models and their development trajectories, covering model structures, training datasets, pre-training methods, and evaluation benchmarks. [arXiv:2405.14093](https://arxiv.org/html/2405.14093v4)
 
@@ -932,7 +932,11 @@ result = crew.kickoff()
 
 Recent work in 2024-2025 on Multi-Agent Societies focuses on architectural maturation (Supervisor, Hierarchical, Network, Hybrid patterns), solving the communication crisis through standardization (LACP/ACP protocols), and enabling model heterogeneity where different LLMs are chosen based on task requirements. The emergence of Safeguard Agents for compliance monitoring and the clear framework trade-offs between AutoGen (flexibility) and CrewAI (reliability) represent the field's evolution from experimentation to production-ready systems.
 
-*Wu et al. (2023). "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation." [arXiv:2308.08155](https://arxiv.org/abs/2308.08155)*
+**Key Citations:**
+
+*Wu, T., et al. (2023). "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation." [arXiv:2308.08155](https://arxiv.org/abs/2308.08155) — Multi-agent conversation framework. (Widely-used open-source framework; see [AutoGen GitHub](https://github.com/microsoft/autogen) for 2025 updates.)*
+
+*(Note: For LACP/ACP protocols and Safeguard Agents, cite specific papers/reports when published. For CrewAI, cite official documentation/GitHub repository.)*
 
 ---
 

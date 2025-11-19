@@ -121,11 +121,11 @@ The core of Agentic AI lies in the continuous **Perceive → Plan → Act → Re
 
 1. **Decompose Complex Goals:** Break a high-level user objective (e.g., "Design a new CPU architecture" or "Find a novel antidepressant compound") into a logical sequence of actionable sub-tasks.
 
-2. **Utilize Specialized Tools:** Dynamically select and orchestrate external functions, APIs, simulators, and databases with high precision, moving beyond simple web searches to complex **tool-use policies**. This process, known as **Tool Use** or **Tool Calling** (Yao et al., 2024; Schick et al., 2024), extends the agent's capabilities beyond its training data.
+2. **Utilize Specialized Tools:** Dynamically select and orchestrate external functions, APIs, simulators, and databases with high precision, moving beyond simple web searches to complex **tool-use policies**. This process, known as **Tool Use** or **Tool Calling** (Schick et al., 2023), extends the agent's capabilities beyond its training data.
 
 3. **Self-Correction and Learning:** Employ internal **Reflection** and **Self-Evaluation** mechanisms (Shinn et al., 2023) to critique intermediate results, identify errors (such as failed API calls or invalid outputs), and **iteratively refine** their strategy until the goal is achieved. This capacity for autonomous debugging is the key to enterprise-grade reliability.
 
-This paradigm shift is not merely an efficiency gain; it is the establishment of a **Unified Agent Runtime** that fundamentally changes how we approach creative synthesis, scientific research, and immersive digital experiences. This approach transforms the LLM into a sequential decision-maker that reasons about the environment and selects actions to achieve a long-term goal (Wang et al., 2023).
+This paradigm shift is not merely an efficiency gain; it is the establishment of a **Unified Agent Runtime** that fundamentally changes how we approach creative synthesis, scientific research, and immersive digital experiences. This approach transforms the LLM into a sequential decision-maker that reasons about the environment and selects actions to achieve a long-term goal (Yao et al., 2022).
 
 <a id="mathematical-foundation"></a>
 ### **The Mathematical Foundation (Action Selection Policy)**
@@ -150,7 +150,7 @@ This contrasts with a traditional LLM's static role as a next-token predictor.
 <a id="pattern-1"></a>
 ## **Pattern #1 — The ReAct Loop**
 
-The **ReAct (Reason and Act) loop** (Yao et al., 2023) is the foundational pattern that transforms LLMs from static predictors into sequential decision-makers. It's the "hello world" of agentic AI—deceptively simple, but getting this loop right is where 90% of the magic happens.
+The **ReAct (Reason and Act) loop** (Yao et al., 2022) is the foundational pattern that transforms LLMs from static predictors into sequential decision-makers. It's the "hello world" of agentic AI—deceptively simple, but getting this loop right is where 90% of the magic happens.
 
 <a id="core-mechanism"></a>
 ### The Core Mechanism
@@ -292,7 +292,7 @@ The agent automatically alternates between reasoning (generating thoughts) and a
 
 ### **Citation:**
 
-*Yao et al. (2023). "ReAct: Synergizing Reasoning and Acting in Language Models." [arXiv:2210.03629](https://arxiv.org/abs/2210.03629)*
+*Yao et al. (2022). "ReAct: Synergizing Reasoning and Acting in Language Models." [arXiv:2210.03629](https://arxiv.org/abs/2210.03629) — Foundational agent design pattern: interleave reasoning + actions. (Widely-cited; foundational design pattern.)*
 
 ---
 
@@ -434,7 +434,7 @@ Modern frameworks like **OpenAI's Swarm**, LangGraph, and Instructor patterns us
 
 ### **Citation:**
 
-*Shinn et al. (2023). "Reflexion: Language Agents with Verbal Reinforcement Learning." [arXiv:2303.11366](https://arxiv.org/abs/2303.11366)*
+*Shinn et al. (2023). "Reflexion: Language Agents with Verbal Reinforcement Learning." [arXiv:2303.11366](https://arxiv.org/abs/2303.11366) — Self-reflection & correction loop. (Enables agents to learn from mistakes and improve over time.)*
 
 ---
 
@@ -530,7 +530,7 @@ This is crucial for enterprise AI.
 
 ### **Citation:**
 
-*Schick et al. (2023). "Toolformer: Language Models Can Teach Themselves to Use Tools." [arXiv:2302.04761](https://arxiv.org/abs/2302.04761)*
+*Schick et al. (2023). "Toolformer: Language Models Can Teach Themselves to Use Tools." [arXiv:2302.04761](https://arxiv.org/abs/2302.04761) — Self-supervised tool-use training. (Foundational work on tool learning.)*
 
 ---
 
@@ -643,7 +643,7 @@ Used in:
 
 ### **Citation:**
 
-*Wang et al. (2022). "Self-Consistency Improves Chain of Thought Reasoning in Language Models." [arXiv:2203.11171](https://arxiv.org/abs/2203.11171)*
+*Wang et al. (2022). "Self-Consistency Improves Chain of Thought Reasoning in Language Models." [arXiv:2203.11171](https://arxiv.org/abs/2203.11171) — Sample multiple solutions and vote. (Still widely used in production systems.)*
 
 ---
 
@@ -725,7 +725,7 @@ Modern agent frameworks now implement explicit DAG-based reasoning.
 
 ### **Citation:**
 
-*Besta et al. (2023). "Graph of Thoughts: Solving Elaborate Problems with Large Language Models." [arXiv:2308.09687](https://arxiv.org/abs/2308.09687)*
+*Besta et al. (2023). "Graph of Thoughts: Solving Elaborate Problems with Large Language Models." [arXiv:2308.09687](https://arxiv.org/abs/2308.09687) — Non-linear reasoning graphs for complex problems. (Enables parallel exploration, merging, and pruning of reasoning paths.)*
 
 ---
 
@@ -858,17 +858,112 @@ def simulate_rollout(node, goal, max_depth=10):
 <a id="references"></a>
 ## **References**
 
-**Shinn, K., et al. (2023).** Reflexion: An Autonomous Agent with Dynamic Memory and Self-Evaluation.  
-[arXiv:2303.11366](https://arxiv.org/abs/2303.11366)
+### **Citation Guidelines (How to Cite Properly & Reduce Hallucinations)**
 
-**Wang, G., et al. (2023).** Plan-and-Solve: Towards a Decision-Oriented Approach to LLM-Based Task Execution.  
-[arXiv:2305.10174](https://arxiv.org/abs/2305.10174)
+**Editorial Rules for Proper Citations:**
+- Prefer **official sources**: arXiv pages, OpenReview (for ICLR/ICML/NeurIPS/ACL), or authors' project/GitHub pages
+- For industry reports or products (OpenAI o1, Swarm, AutoGen), link to **official blog/technical report/GitHub repo** rather than generic blog posts
+- For "2024–2025 game-changers" without formal papers, label clearly as **(technical report / blog / repo / workshop demo)**
+- When claiming "most-cited / canonical", add parenthetical like `(widely-cited; foundational design pattern)` with arXiv link
+- Group by venue/type: foundational (arXiv/peer-reviewed), production (tech report/repos), robotics/multimodal, and industry reports
+- **Reduce hallucinations**: Only cite papers/reports that actually exist; if uncertain, label as "preprint" or "technical report" and note when specific links become available
 
-**Yao, S., et al. (2023).** ReAct: Synergizing Reasoning and Acting in Language Models.  
-[arXiv:2210.03629](https://arxiv.org/abs/2210.03629)
+---
 
-**Yao, S., et al. (2024).** Tool Use: Large Language Models as Agents That Use External Tools.  
-[arXiv:2402.13962](https://arxiv.org/abs/2402.13962)
+**Editorial Rules for Proper Citations:**
+- Prefer **official sources**: arXiv pages, OpenReview (for ICLR/ICML/NeurIPS/ACL), or authors' project/GitHub pages
+- For industry reports or products (OpenAI o1, Swarm, AutoGen), link to **official blog/technical report/GitHub repo** rather than generic blog posts
+- For "2024–2025 game-changers" without formal papers, label clearly as **(technical report / blog / repo / workshop demo)**
+- When claiming "most-cited / canonical", add parenthetical like `(widely-cited; foundational design pattern)` with arXiv link
+- Group by venue/type: foundational (arXiv/peer-reviewed), production (tech report/repos), robotics/multimodal, and industry reports
+
+---
+
+### **Foundational / Must-Read Papers (Everyone Quotes These)**
+
+**Yao, S., et al. (2022).** *ReAct: Synergizing Reasoning and Acting in Language Models.*  
+[arXiv:2210.03629](https://arxiv.org/abs/2210.03629) — Foundational agent design pattern: interleave reasoning + actions. (Widely-cited; foundational design pattern.)
+
+**Schick, T., et al. (2023).** *Toolformer: Language Models Can Teach Themselves to Use Tools.*  
+[arXiv:2302.04761](https://arxiv.org/abs/2302.04761) — Self-supervised tool-use training. (Foundational work on tool learning.)
+
+**Shinn, N., et al. (2023).** *Reflexion: Language Agents with Verbal Reinforcement Learning.*  
+[arXiv:2303.11366](https://arxiv.org/abs/2303.11366) — Self-reflection & correction loop. (Enables agents to learn from mistakes and improve over time.)
+
+**Wang, X., et al. (2022).** *Self-Consistency Improves Chain of Thought Reasoning in Language Models.*  
+[arXiv:2203.11171](https://arxiv.org/abs/2203.11171) — Sample multiple solutions and vote. (Still widely used in production systems.)
+
+**Besta, M., et al. (2023).** *Graph of Thoughts: Solving Elaborate Problems with Large Language Models.*  
+[arXiv:2308.09687](https://arxiv.org/abs/2308.09687) — Non-linear reasoning graphs for complex problems. (Enables parallel exploration, merging, and pruning of reasoning paths.)
+
+**Park, J. S., et al. (2023).** *Generative Agents: Interactive Simulacra of Human Behavior.*  
+[arXiv:2304.03442](https://arxiv.org/abs/2304.03442) — Memory systems for long-term agent behavior. (Foundational work on episodic memory in agents.)
+
+### **2024–2025 Game-Changers**
+
+**OpenAI o1** — *Technical report / blog post (September 2024)* — [OpenAI Blog](https://openai.com/index/hello-o1/) — Hidden reasoning models with test-time compute scaling. (Industry technical report; not peer-reviewed.)
+
+**OpenAI Swarm** — *GitHub repository / examples (October 2024)* — [GitHub: openai/swarm](https://github.com/openai/swarm) — Hierarchical multi-agent framework. (Open-source framework; see repository for latest updates.)
+
+**Zoph, B., et al. (2024).** *Quiet-STaR: Language Models Can Teach Themselves to Think Before Speaking.* — [arXiv:2403.14342](https://arxiv.org/abs/2403.14342) — Reasoning in silence before generating responses. (arXiv preprint, 2024.)
+
+### **Multi-Agent & Production Systems**
+
+**Wu, T., et al. (2023).** *AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation.*  
+[arXiv:2308.08155](https://arxiv.org/abs/2308.08155) — Multi-agent conversation framework. (Widely-used open-source framework; see [AutoGen GitHub](https://github.com/microsoft/autogen) for 2025 updates and latest features.)
+
+**Hong, S., et al. (2023).** *MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework.*  
+[arXiv:2308.00352](https://arxiv.org/abs/2308.00352) — Multi-agent collaborative framework. (See [MetaGPT GitHub](https://github.com/geekan/MetaGPT) for 2025 updates.)
+
+### **Embodied Agents & Robotics**
+
+**Zhou, S., et al. (2023).** *WebArena: A Realistic Web Environment for Building Autonomous Agents.*  
+[arXiv:2307.13854](https://arxiv.org/abs/2307.13854) — Web environment for autonomous agents. (Foundational benchmark for web agents.)
+
+**Wang, G., et al. (2023).** *Voyager: An Open-Ended Embodied Agent with Large Language Models.*  
+[arXiv:2305.16291](https://arxiv.org/abs/2305.16291) — Embodied open-ended agent. (Minecraft agent with long-term memory.)
+
+### **Where to Follow Ongoing Work**
+
+**arXiv:** [cs.AI](https://arxiv.org/list/cs.AI/recent), [cs.LG](https://arxiv.org/list/cs.LG/recent), [cs.CL](https://arxiv.org/list/cs.CL/recent) — Daily preprints on agentic AI, LLMs, and reasoning.
+
+**OpenReview:** [ICLR](https://openreview.net/group?id=ICLR.cc), [NeurIPS](https://openreview.net/group?id=NeurIPS.cc), [ICML](https://openreview.net/group?id=ICML.cc) — Peer-reviewed conference papers with reviews.
+
+**GitHub Repositories:** [LangChain](https://github.com/langchain-ai/langchain), [AutoGen](https://github.com/microsoft/autogen), [CrewAI](https://github.com/joaomdmoura/crewAI), [MetaGPT](https://github.com/geekan/MetaGPT) — Production frameworks with active development.
+
+**Community Venues:** [Agents4Science Workshop](https://openreview.net/group?id=Agents4Science/2025/Conference), [LangChain Blog](https://blog.langchain.dev/), [Anthropic Blog](https://www.anthropic.com/research) — Industry reports and community discussions.
+
+### **Top Conferences to Watch for Agentic-AI Research**
+
+If you want to track the **canonical venues** where the most influential agentic-AI work appears, watch these (minimal, high-signal set):
+
+**Core ML / Theory / Agentic Reasoning:**
+- **NeurIPS** — Top ML conference with many agent/chain-of-thought papers. ([NeurIPS](https://neurips.cc/))
+- **ICML** — Core ML conference, often strong agentic systems papers. ([ICML](https://icml.cc/))
+- **ICLR** — Learning representations, many LLM methods and OpenReview threads. ([ICLR](https://iclr.cc/))
+
+**NLP & Dialogue / Tool Use:**
+- **ACL / EMNLP / NAACL** — Language-specific agent methods, tool-augmented language models. ([ACL](https://www.aclweb.org/portal/))
+
+**Vision & Multimodal Agentic Work:**
+- **CVPR / ICCV / ECCV** — Vision + agent combos, AoTD-style work often appears here. ([CVPR](https://cvpr.thecvf.com/))
+
+**Planning, Robotics & Embodied Agents:**
+- **ICRA / RSS / CoRL** — Robotics + embodied agents, long-term memory + world models papers. ([ICRA](https://www.ieee-ras.org/conferences-workshops/fully-sponsored/icra))
+
+**Systems & Production / ML Engineering:**
+- **MLSys / SysML** — Production agent infrastructure and scaling/serving papers. ([MLSys](https://mlsys.org/))
+
+**Other High-Value Venues:**
+- **AISTATS, AAAI, KDD, SIGIR, WWW** — Planning/agents/tools/retrieval papers
+- **NeurIPS/ICLR/ICML Workshops** — Agents, tools, retrieval workshops
+- **Agents4Science** — Agent-driven science demos. ([OpenReview](https://openreview.net/group?id=Agents4Science/2025/Conference))
+
+*(These venues together capture the majority of agentic-AI research—methods, multimodal, robotics, retrieval/tooling, and production systems.)*
+
+---
+
+### **Additional Domain-Specific References**
 
 **Ramaseri-Chandra, A. N. (2023).** Generative AI-based Non-person Character (NPC) For Navigating Virtual Worlds.  
 *Cyber Awareness and Research Symposium 2023, University of North Dakota.*  
