@@ -36,7 +36,37 @@ This final part covers what actually ships in 2025: real-world trends, cost opti
 
 ---
 
-# **Putting It All Together: A Modern Agent Stack (2025)**
+<div id="article-toc" class="article-toc">
+  <div class="toc-header">
+    <h3>Table of Contents</h3>
+    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents"><span>▼</span></button>
+  </div>
+  <div class="toc-search-wrapper">
+    <input type="text" id="toc-search" class="toc-search" placeholder="Search sections..." autocomplete="off">
+  </div>
+  <nav class="toc-nav" id="toc-nav">
+    <ul>
+      <li><a href="#modern-stack">A Modern Agent Stack (2025)</a></li>
+      <li><a href="#case-study">Case Study: Research Agent</a></li>
+      <li><a href="#trends-2025">2025 Trends</a>
+        <ul>
+          <li><a href="#slms">Small Language Models</a></li>
+          <li><a href="#cost-aware">Cost-Aware Agents</a></li>
+          <li><a href="#observability">Observability</a></li>
+          <li><a href="#distillation">Agent Distillation</a></li>
+          <li><a href="#self-evolving">Self-Evolving Agents</a></li>
+        </ul>
+      </li>
+      <li><a href="#state-of-field">State of the Field</a></li>
+      <li><a href="#production-checklist">Production Checklist</a></li>
+      <li><a href="#references">References</a></li>
+    </ul>
+  </nav>
+</div>
+
+---
+
+# **Putting It All Together: A Modern Agent Stack (2025)** {#modern-stack}
 
 ## **Architecture Diagram:**
 
@@ -100,7 +130,7 @@ This stack can solve tasks like:
 
 Let's walk through a concrete example of how these patterns combine in practice.
 
-## **Task:** "Create a comprehensive survey of vision-language agents for CVPR 2025"
+## **Task:** "Create a comprehensive survey of vision-language agents for CVPR 2025" {#case-study}
 
 ### **Agent Workflow:**
 
@@ -240,7 +270,7 @@ A comprehensive, verified survey with:
 
 Based on McKinsey Sept 2025 report, real enterprise deployments, and production systems, here are the trends that matter for shipping real systems:
 
-## **1. Small Language Models (SLMs) Are Eating Agent Backbones**
+## **1. Small Language Models (SLMs) Are Eating Agent Backbones** {#slms}
 
 **The Shift:** Phi-4, Llama-3.2-8B, Qwen2.5-14B + tool-calling fine-tunes now outperform GPT-4o on agent benchmarks at 1/30th the cost.
 
@@ -266,7 +296,7 @@ researcher_agent = create_agent(model=model, tools=[search_tool, pdf_parser])
 
 ---
 
-## **2. Cost-Aware / Budgeted Agents**
+## **2. Cost-Aware / Budgeted Agents** {#cost-aware}
 
 **The Reality:** Every enterprise now enforces token budgets. Agents must stop before exceeding cost limits.
 
@@ -301,7 +331,7 @@ if not budget.check_budget(model, input_tokens, output_tokens):
 
 ---
 
-## **3. Observability is the New Unit Test**
+## **3. Observability is the New Unit Test** {#observability}
 
 **The Shift:** LangSmith, Helicone, PromptLayer datasets are standard. Every agent deployment includes comprehensive logging.
 
@@ -344,7 +374,7 @@ def log_agent_execution(prompt, tools, trajectory, score):
 
 ---
 
-## **4. Agent Distillation / Compilation**
+## **4. Agent Distillation / Compilation** {#distillation}
 
 **The Trend:** Turning a slow o1 agent into a fast Llama-3.2-8B agent via synthetic trajectories.
 
@@ -357,7 +387,7 @@ def log_agent_execution(prompt, tools, trajectory, score):
 
 ---
 
-## **5. Self-Evolving Agents**
+## **5. Self-Evolving Agents** {#self-evolving}
 
 **The Innovation:** Agents that write their own improver prompt (AgentOptimizer, EvoAgent style).
 

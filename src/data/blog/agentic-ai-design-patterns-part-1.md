@@ -36,8 +36,11 @@ description: 'Part 1 of a comprehensive guide to agentic AI design patterns. Cov
 
 <div id="article-toc" class="article-toc">
   <div class="toc-header">
-    <h3>📑 Table of Contents</h3>
-    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents">▼</button>
+    <h3>Table of Contents</h3>
+    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents"><span>▼</span></button>
+  </div>
+  <div class="toc-search-wrapper">
+    <input type="text" id="toc-search" class="toc-search" placeholder="Search sections..." autocomplete="off">
   </div>
   <nav class="toc-nav" id="toc-nav">
     <ul>

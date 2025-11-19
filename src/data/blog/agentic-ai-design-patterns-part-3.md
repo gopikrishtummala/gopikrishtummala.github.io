@@ -36,7 +36,30 @@ This part covers specialized patterns for advanced applications: embodied agents
 
 ---
 
-## **Pattern #7 — Environment Loop (Agents That Touch the Real World)**
+<div id="article-toc" class="article-toc">
+  <div class="toc-header">
+    <h3>Table of Contents</h3>
+    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents"><span>▼</span></button>
+  </div>
+  <div class="toc-search-wrapper">
+    <input type="text" id="toc-search" class="toc-search" placeholder="Search sections..." autocomplete="off">
+  </div>
+  <nav class="toc-nav" id="toc-nav">
+    <ul>
+      <li><a href="#pattern-7-environment">Pattern #7: Environment Loop</a></li>
+      <li><a href="#pattern-14-3d">Pattern #14: 3D Grounded Agents</a></li>
+      <li><a href="#pattern-11-embodied">Pattern #11: Embodied Agent Loops</a></li>
+      <li><a href="#pattern-15-imagination">Pattern #15: Imagination Loop</a></li>
+      <li><a href="#pattern-13-multi-agent">Pattern #13: Multi-Agent Societies</a></li>
+      <li><a href="#pattern-17-reflexes">Pattern #17: Compensatory Reflexes</a></li>
+      <li><a href="#pattern-18-introspective">Pattern #18: Introspective Agents</a></li>
+    </ul>
+  </nav>
+</div>
+
+---
+
+## **Pattern #7 — Environment Loop (Agents That Touch the Real World)** {#pattern-7-environment}
 
 Agents interact with:
 
@@ -69,7 +92,7 @@ This is classic reinforcement learning but driven by LLM policies.
 
 ---
 
-## **Pattern #14 — 3D Grounded Agents (Scene Graph → Plan → Act)**
+## **Pattern #14 — 3D Grounded Agents (Scene Graph → Plan → Act)** {#pattern-14-3d}
 
 Modern agents operating in physical 3D spaces build **scene graphs** to reason about spatial relationships, affordances, and constraints.
 
@@ -219,7 +242,7 @@ Agents reason about:
 
 ---
 
-## **Pattern #11 — Embodied Agent Loops (LLMs + Perception + Control)**
+## **Pattern #11 — Embodied Agent Loops (LLMs + Perception + Control)** {#pattern-11-embodied}
 
 Remember the parrot that grew arms? This is that, but for robots.
 
@@ -348,7 +371,7 @@ class SkillLibrary:
 
 ---
 
-## **Pattern #15 — Imagination Loop (Predict → Simulate → Select)**
+## **Pattern #15 — Imagination Loop (Predict → Simulate → Select)** {#pattern-15-imagination}
 
 This is the ultimate self-correction mechanism: **the ability to mentally rehearse a future before living it.**
 
@@ -500,7 +523,7 @@ class WorldModel:
 
 ---
 
-## **Pattern #13 — Multi-Agent Societies (Specialists + Protocols)**
+## **Pattern #13 — Multi-Agent Societies (Specialists + Protocols)** {#pattern-13-multi-agent}
 
 You wouldn't ask a single person to run a startup. You need a CEO, a coder, a marketer, and an accountant. Agentic AI is moving to the same model: **societies of specialized LLMs**.
 
@@ -578,7 +601,7 @@ Modern examples:
 
 ---
 
-## **Pattern #17 — Compensatory Reflexes (Error Recovery)**
+## **Pattern #17 — Compensatory Reflexes (Error Recovery)** {#pattern-17-reflexes}
 
 When the agent touches the hot stove (an API call fails, a runtime error occurs, a key file is missing), it needs an instant, pre-programmed response.
 
@@ -644,7 +667,7 @@ This dramatically improves reliability.
 
 ---
 
-## **Pattern #18 — Introspective Agents (Self-Debugging AI)**
+## **Pattern #18 — Introspective Agents (Self-Debugging AI)** {#pattern-18-introspective}
 
 Agents must be their own critics, checking their output against constraints *before* delivery. This is the **unit test for thoughts**.
 

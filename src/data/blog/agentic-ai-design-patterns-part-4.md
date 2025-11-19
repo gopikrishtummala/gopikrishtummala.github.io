@@ -40,7 +40,32 @@ The good news? They fail in predictable ways. The bad news? You have to plan for
 
 ---
 
-## **A. The "Tool Overuse" Trap**
+<div id="article-toc" class="article-toc">
+  <div class="toc-header">
+    <h3>Table of Contents</h3>
+    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents"><span>▼</span></button>
+  </div>
+  <div class="toc-search-wrapper">
+    <input type="text" id="toc-search" class="toc-search" placeholder="Search sections..." autocomplete="off">
+  </div>
+  <nav class="toc-nav" id="toc-nav">
+    <ul>
+      <li><a href="#tool-overuse">A. The "Tool Overuse" Trap</a></li>
+      <li><a href="#contextual-amnesia">B. The Contextual Amnesia Loop</a></li>
+      <li><a href="#goal-drift">C. The Goal Drift Problem</a></li>
+      <li><a href="#hallucinated-api">D. The Hallucinated API Call</a></li>
+      <li><a href="#infinity-loop">E. The Infinity Loop</a></li>
+      <li><a href="#premature-termination">F. Premature Termination</a></li>
+      <li><a href="#verifiable-pipelines">G. Verifiable Agent Pipelines</a></li>
+      <li><a href="#safety-planning">H. Safety-Aware Planning</a></li>
+      <li><a href="#failure-summary">Summary: Failure Mode Mitigation</a></li>
+    </ul>
+  </nav>
+</div>
+
+---
+
+## **A. The "Tool Overuse" Trap** {#tool-overuse}
 
 ### **Failure:**
 
@@ -72,7 +97,7 @@ else:
 
 ---
 
-## **B. The Contextual Amnesia Loop**
+## **B. The Contextual Amnesia Loop** {#contextual-amnesia}
 
 ### **Failure:**
 
@@ -113,7 +138,7 @@ Recent Decisions:
 
 ---
 
-## **C. The Goal Drift Problem (The Agent's "Shiny Object Syndrome")**
+## **C. The Goal Drift Problem (The Agent's "Shiny Object Syndrome")** {#goal-drift}
 
 ### **Failure:**
 
@@ -149,7 +174,7 @@ class GoalAwareReflector:
 
 ---
 
-## **D. The Hallucinated API Call**
+## **D. The Hallucinated API Call** {#hallucinated-api}
 
 ### **Failure:**
 
@@ -200,7 +225,7 @@ def safe_tool_call(user_request: str) -> FlightSearchTool:
 
 ---
 
-## **E. The Infinity Loop (The Circular Argument)**
+## **E. The Infinity Loop (The Circular Argument)** {#infinity-loop}
 
 ### **Failure:**
 
@@ -245,7 +270,7 @@ if loop_detector.detect_loop(action):
 
 ---
 
-## **F. Premature Termination**
+## **F. Premature Termination** {#premature-termination}
 
 ### **Failure:**
 
@@ -270,7 +295,7 @@ def verify_completion(task: str, result: str) -> bool:
 
 ---
 
-## **G. Verifiable Agent Pipelines (Safety & Grounding)**
+## **G. Verifiable Agent Pipelines (Safety & Grounding)** {#verifiable-pipelines}
 
 LLM output is stochastic (probabilistic). Modern systems are designed for explicit verification:
 
@@ -337,7 +362,7 @@ class VerifiableAgent:
 
 ---
 
-## **H. Safety-Aware Planning**
+## **H. Safety-Aware Planning** {#safety-planning}
 
 Agents must assess risk before taking actions, especially in high-stakes environments.
 
@@ -398,7 +423,7 @@ Agents avoid actions where $\text{risk}(a) > \text{threshold}$.
 
 ---
 
-## **Summary: Failure Mode Mitigation Patterns**
+## **Summary: Failure Mode Mitigation Patterns** {#failure-summary}
 
 | Failure Mode | Primary Mitigation Pattern | Key Technique |
 |:---|:---|:---|

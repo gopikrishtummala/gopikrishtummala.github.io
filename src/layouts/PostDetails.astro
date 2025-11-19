@@ -609,12 +609,13 @@ const nextPost =
     }
   })();
 
-  /** Table of Contents and Sticky Navigation */
+  /** Enhanced Table of Contents with Search */
   (function() {
     // TOC Toggle functionality
     const tocToggle = document.getElementById('toc-toggle');
     const tocNav = document.getElementById('toc-nav');
     const articleToc = document.getElementById('article-toc');
+    const tocSearch = document.getElementById('toc-search');
     
     if (tocToggle && tocNav) {
       let tocExpanded = true;
@@ -622,7 +623,53 @@ const nextPost =
       tocToggle.addEventListener('click', () => {
         tocExpanded = !tocExpanded;
         tocNav.style.display = tocExpanded ? 'block' : 'none';
-        tocToggle.textContent = tocExpanded ? '▼' : '▶';
+        tocToggle.innerHTML = tocExpanded ? '<span>▼</span>' : '<span>▶</span>';
+        if (tocSearch) tocSearch.style.display = tocExpanded ? 'block' : 'none';
+      });
+    }
+
+    // Search functionality
+    if (tocSearch) {
+      tocSearch.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const links = tocNav.querySelectorAll('a');
+        let hasResults = false;
+
+        links.forEach(link => {
+          const text = link.textContent.toLowerCase();
+          const listItem = link.closest('li');
+          
+          if (searchTerm === '' || text.includes(searchTerm)) {
+            listItem.style.display = '';
+            hasResults = true;
+          } else {
+            listItem.style.display = 'none';
+          }
+        });
+
+        // Show/hide no results message
+        let noResults = document.getElementById('toc-no-results');
+        if (!hasResults && searchTerm !== '') {
+          if (!noResults) {
+            noResults = document.createElement('div');
+            noResults.id = 'toc-no-results';
+            noResults.className = 'toc-no-results';
+            noResults.textContent = 'No matching sections found';
+            tocNav.appendChild(noResults);
+          }
+          noResults.style.display = 'block';
+        } else if (noResults) {
+          noResults.style.display = 'none';
+        }
+      });
+
+      // Clear search on escape
+      tocSearch.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          tocSearch.value = '';
+          tocSearch.dispatchEvent(new Event('input'));
+          tocSearch.blur();
+        }
       });
     }
 
@@ -640,10 +687,27 @@ const nextPost =
       const sidebarToggle = sidebarNav.querySelector('.toc-toggle');
       if (sidebarToggle) sidebarToggle.remove();
       
-      // Hide header in sidebar (or style differently)
+      // Update header in sidebar
       const sidebarHeader = sidebarNav.querySelector('.toc-header');
       if (sidebarHeader) {
         sidebarHeader.innerHTML = '<h3>📑 Navigation</h3>';
+      }
+      
+      // Clone search input for sidebar
+      const originalSearch = document.getElementById('toc-search');
+      if (originalSearch) {
+        const sidebarSearch = originalSearch.cloneNode(true);
+        sidebarSearch.id = 'sticky-nav-search';
+        const sidebarHeaderDiv = sidebarNav.querySelector('.toc-header');
+        if (sidebarHeaderDiv) {
+          sidebarHeaderDiv.appendChild(sidebarSearch);
+        }
+        
+        // Add search functionality to sidebar search
+        sidebarSearch.addEventListener('input', (e) => {
+          originalSearch.value = e.target.value;
+          originalSearch.dispatchEvent(new Event('input'));
+        });
       }
 
       // Insert sidebar after main content starts
@@ -752,44 +816,135 @@ const nextPost =
 </script>
 
 <style>
-  /* Table of Contents Styling */
+  /* Enhanced Table of Contents Styling */
   .article-toc {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    border-radius: 12px;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    border-radius: 16px;
+    padding: 0;
     margin: 2rem 0;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .article-toc:hover {
+    border-color: rgba(102, 126, 234, 0.25);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
   }
 
   .toc-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.15);
   }
 
   .toc-header h3 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
     color: var(--foreground);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .toc-header h3::before {
+    content: '📑';
+    font-size: 1.25rem;
   }
 
   .toc-toggle {
-    background: rgba(102, 126, 234, 0.2);
-    border: 1px solid rgba(102, 126, 234, 0.3);
-    border-radius: 6px;
-    padding: 0.25rem 0.75rem;
+    background: rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
     cursor: pointer;
     font-size: 0.875rem;
     color: var(--foreground);
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
   }
 
   .toc-toggle:hover {
-    background: rgba(102, 126, 234, 0.3);
-    transform: scale(1.05);
+    background: rgba(102, 126, 234, 0.25);
+    transform: scale(1.1);
+    border-color: rgba(102, 126, 234, 0.4);
+  }
+
+  .toc-toggle span {
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  /* Search Input */
+  .toc-search-wrapper {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .dark .toc-search-wrapper {
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  .toc-search {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--foreground);
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .toc-search:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.5);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .dark .toc-search {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(102, 126, 234, 0.3);
+  }
+
+  .dark .toc-search:focus {
+    background: rgba(15, 23, 42, 1);
+  }
+
+  .toc-search-wrapper {
+    position: relative;
+  }
+
+  .toc-search-wrapper::before {
+    content: '🔍';
+    position: absolute;
+    left: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .toc-no-results {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--secondary-foreground);
+    font-size: 0.9375rem;
+    opacity: 0.7;
   }
 
   .toc-nav ul {
@@ -808,29 +963,62 @@ const nextPost =
     margin: 0.5rem 0;
   }
 
+  .toc-nav {
+    padding: 1rem 1.5rem 1.5rem;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
   .toc-nav a {
-    display: block;
-    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
     color: var(--secondary-foreground);
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.2s ease;
     font-size: 0.9375rem;
-    line-height: 1.5;
+    line-height: 1.6;
+    position: relative;
+    margin: 0.25rem 0;
+  }
+
+  .toc-nav a::before {
+    content: '';
+    width: 4px;
+    height: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+    transition: height 0.2s ease;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   .toc-nav a:hover {
-    background: rgba(102, 126, 234, 0.15);
+    background: rgba(102, 126, 234, 0.12);
     color: var(--accent);
-    transform: translateX(4px);
+    transform: translateX(6px);
+    padding-left: 1.125rem;
+  }
+
+  .toc-nav a:hover::before {
+    height: 60%;
   }
 
   .toc-nav a.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
     color: var(--accent);
     font-weight: 600;
-    border-left: 3px solid var(--accent);
-    padding-left: calc(0.75rem - 3px);
+    padding-left: 1.125rem;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  }
+
+  .toc-nav a.active::before {
+    height: 100%;
+    width: 4px;
   }
 
   .toc-nav ul ul {
@@ -868,12 +1056,13 @@ const nextPost =
     top: 120px;
     max-height: calc(100vh - 140px);
     overflow-y: auto;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+    overflow: hidden;
   }
 
   @media (min-width: 1024px) {
@@ -883,14 +1072,23 @@ const nextPost =
   }
 
   .dark .sticky-nav {
-    background: rgba(15, 23, 42, 0.9);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(102, 126, 234, 0.25);
   }
 
   .sticky-nav .toc-header {
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+    margin-bottom: 0;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  }
+
+  .sticky-nav .toc-search-wrapper {
+    padding: 0.75rem 1.25rem;
+  }
+
+  .sticky-nav .toc-nav {
+    padding: 0.75rem 1.25rem 1rem;
   }
 
   .sticky-nav .toc-header h3 {

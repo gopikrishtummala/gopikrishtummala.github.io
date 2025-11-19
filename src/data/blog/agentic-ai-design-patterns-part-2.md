@@ -36,7 +36,28 @@ This part covers the patterns that make agents production-ready: memory manageme
 
 ---
 
-## **Pattern #6 — Memory-Attentive Agents**
+<div id="article-toc" class="article-toc">
+  <div class="toc-header">
+    <h3>Table of Contents</h3>
+    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents"><span>▼</span></button>
+  </div>
+  <div class="toc-search-wrapper">
+    <input type="text" id="toc-search" class="toc-search" placeholder="Search sections..." autocomplete="off">
+  </div>
+  <nav class="toc-nav" id="toc-nav">
+    <ul>
+      <li><a href="#pattern-6-memory">Pattern #6: Memory-Attentive Agents</a></li>
+      <li><a href="#pattern-16-compression">Pattern #16: Memory Rewriting (Compression)</a></li>
+      <li><a href="#pattern-6-supervisor">Pattern #6: Supervisor / Orchestrator</a></li>
+      <li><a href="#pattern-7-parallel">Pattern #7: Parallel Tool Use / Fan-Out</a></li>
+      <li><a href="#pattern-8-hidden">Pattern #8: Hidden Reasoning (2025 Edition)</a></li>
+    </ul>
+  </nav>
+</div>
+
+---
+
+## **Pattern #6 — Memory-Attentive Agents** {#pattern-6-memory}
 
 You know how you have different kinds of memory? Your phone number (long-term), what you had for breakfast (short-term), and that thing you're actively thinking about right now (working memory)?
 
@@ -118,7 +139,7 @@ A scientist with notebooks (long-term memory), lab records (episodic memory), an
 
 ---
 
-## **Pattern #16 — Memory Rewriting (Compression as Control)**
+## **Pattern #16 — Memory Rewriting (Compression as Control)** {#pattern-16-compression}
 
 You know how your phone storage fills up and you have to delete old photos? Agents have the same problem, but worse.
 
@@ -220,7 +241,7 @@ class MemoryCompressor:
 
 ---
 
-## **Pattern #6 — Supervisor / Orchestrator (The #1 Production Pattern in 2025)**
+## **Pattern #6 — Supervisor / Orchestrator (The #1 Production Pattern in 2025)** {#pattern-6-supervisor}
 
 Remember the chef-cooks-critic pattern? This is like that, but the chef is also a traffic controller.
 
@@ -350,7 +371,7 @@ app = workflow.compile()
 
 ---
 
-## **Pattern #7 — Parallel Tool Use / Fan-Out (2025 Standard)**
+## **Pattern #7 — Parallel Tool Use / Fan-Out (2025 Standard)** {#pattern-7-parallel}
 
 You know how when you're cooking, you don't wait for the water to boil before you start chopping vegetables? You do things in parallel.
 
@@ -431,7 +452,7 @@ async def parallel_tool_execution(prompt: str, tools: list):
 
 ---
 
-## **Pattern #8 — The Big Secret Nobody Says Out Loud (2025 Edition)**
+## **Pattern #8 — The Big Secret Nobody Says Out Loud (2025 Edition)** {#pattern-8-hidden}
 
 Here's the part that will sound like science fiction, but it's actually shipping today:
 
