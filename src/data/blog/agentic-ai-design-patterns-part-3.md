@@ -480,6 +480,14 @@ This is the ultimate self-correction mechanism: **the ability to mentally rehear
 
 Before a surgeon makes an incision, they don't just guess. They study the medical model, visualize the outcome, and mentally rehearse the steps. Agents do this by incorporating a **World Model**—often a generative AI (like a Video-LLM or 3D Diffusion model).
 
+### **The Core Trend: LLM as Commonsense World Model and Policy Heuristic**
+
+The most significant recent trend (2024-2025) is the **integration of LLMs into classic search algorithms** like Monte Carlo Tree Search (MCTS) to facilitate scalable, informed planning. The LLM provides two crucial elements:
+
+1. **Commonsense World Model:** The LLM's vast knowledge base acts as a **prior belief** system to predict the next state $s'$ given the current state $s$ and action $a$. This drastically reduces the need for large training datasets to learn environment dynamics from scratch.
+
+2. **Policy Heuristic:** The LLM acts as an initial, powerful policy $\pi(a|s)$ to guide the MCTS to the most promising branches of the search tree, dramatically improving **search efficiency** compared to blind search.
+
 ### **The Loop:**
 
 1. **LLM Proposes Action ($a_t$):** "I think I should open the door."
@@ -490,106 +498,180 @@ Before a surgeon makes an incision, they don't just guess. They study the medica
 
 ### **Formal Structure:**
 
-The agent selects an action based on the predicted future return $R$ over a trajectory $\tau$:
+The agent selects an action based on the predicted future return $R$ over a trajectory $\tau$, now refined with cost awareness:
 
 $$
-\tau^* = \arg\max_{\tau} R(\tau)
+\tau^* = \arg\max_{\tau} \left[ R(\tau) - \text{Cost}(\tau) \right]
 $$
 
-Where $R(\tau)$ is calculated by rolling out the trajectory using the internal world model.
+Where $R(\tau)$ is calculated by rolling out the trajectory using the internal world model, and $\text{Cost}(\tau)$ represents the computational, financial, or risk cost of the trajectory.
 
 ### **Why it Matters:**
 
-This dramatically improves safety and planning quality in high-risk, real-world environments like robotics or autonomous driving, moving decision-making from *reactive* to *proactive*.
+This dramatically improves safety and planning quality in high-risk, real-world environments like robotics or autonomous driving, moving decision-making from *reactive* to *proactive*. Recent research shows it enables **error prevention** (catching bad actions before execution) and provides **audit-ready explainability** for enterprise applications.
 
-### **Imagination Loop Flow:**
+### **Modern Imagination Loop Flow (2025):**
+
+The basic **Predict → Simulate → Select** is now refined into a systematic search:
 
 ```mermaid
 flowchart TD
-    State[Current State] --> Propose[Propose Actions]
-    Propose --> Sim1[Simulate Action 1]
-    Propose --> Sim2[Simulate Action 2]
-    Propose --> Sim3[Simulate Action 3]
-    Sim1 --> Eval1[Evaluate Outcome 1]
-    Sim2 --> Eval2[Evaluate Outcome 2]
-    Sim3 --> Eval3[Evaluate Outcome 3]
-    Eval1 --> Select[Select Best]
-    Eval2 --> Select
-    Eval3 --> Select
-    Select --> Execute[Execute Action]
-    Execute --> NextState[Next State]
+    A["Current State: s"] --> B{"LLM Proposal: Candidate Actions a1..an"}
+    B --> C1["Simulation: World Model Rollout on a1"]
+    B --> C2["Simulation: World Model Rollout on an"]
+    C1 --> D1["Predicted Future Trajectory τ1"]
+    C2 --> D2["Predicted Future Trajectory τn"]
+    D1 --> E1["Value Network: Reward - Cost for τ1"]
+    D2 --> E2["Value Network: Reward - Cost for τn"]
+    E1 & E2 --> F{"Max Value Trajectory"}
+    F --> G["Select Best Action a*"]
+    G --> H["Execute Action"]
     
-    style State fill:#e1f5ff
-    style Propose fill:#fff4e1
-    style Sim1 fill:#e8f5e9
-    style Sim2 fill:#e8f5e9
-    style Sim3 fill:#e8f5e9
-    style Select fill:#f3e5f5
-    style Execute fill:#e8f5e9
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style E1 fill:#e8f5e9
+    style E2 fill:#e8f5e9
+    style G fill:#f3e5f5
 ```
+
+### **Key Research Advances (2024-2025):**
+
+#### **1. LLM-MCTS Integration**
+
+Recent papers have formalized using LLMs within Monte Carlo Tree Search:
+
+- **Commonsense World Model:** LLM's knowledge acts as prior belief to predict $s' = f(s, a)$
+- **Policy Heuristic:** LLM guides MCTS to promising branches, improving search efficiency
+- **Result:** Dramatically reduces need for large training datasets while maintaining planning quality
+
+#### **2. Cost-Augmented MCTS (CATS)**
+
+Addresses a major failure mode: **budget and cost awareness**. By integrating explicit cost models into the MCTS value function, agents optimize for **minimal cost** while achieving goals—critical for enterprise and robotics applications.
+
+$$
+V(\tau) = R(\tau) - \lambda \cdot \text{Cost}(\tau)
+$$
+
+Where $\lambda$ balances reward and cost.
+
+#### **3. Geometric Grounding (LGMCTS)**
+
+For embodied tasks like object rearrangement, LLM-guided MCTS is enhanced with **geometric priors**. This ensures imagined trajectories are:
+- **Semantically correct:** "Put the mug right of the bowl"
+- **Physically executable:** Avoiding collisions, ensuring reachability
+
+This bridges the gap between LLM reasoning and real-world physics.
+
+### **Maturing World Model Architectures:**
+
+#### **Taxonomy Shift:**
+
+Recent surveys formalize World Models using a new taxonomy:
+
+- **Decision-Coupled vs. General-Purpose:** Models designed specifically to support decision-making (predicting features relevant to reward) rather than just pixel prediction
+- **Modality Richness:** WMs now incorporate **Language** (goal conditioning), **Proprioception** (robot joint angles), and **Depth** (3D sensing) alongside RGB and action data
+
+#### **Generative World Models:**
+
+Modern implementations rely on generative architectures:
+
+- **Video Diffusion Models:** Generate future frames/trajectories (e.g., Pandora using Video Diffusion) for visual rehearsal
+- **3D Gaussian Splatting (ManiGaussian):** Predict how entire 3D scenes change after actions, vital for precise robot manipulation
+- **Discrete Codebook World Models:** Using discrete codebooks to represent world states, making models more stable and efficient for continuous control
+
+### **Safety, Robustness, and Evaluation:**
+
+#### **Embodied Agent Interface (EAI) Challenge (NeurIPS 2025):**
+
+Major competition featuring a prize category for **"Best Transition Modeling Logic"** (the world model), emphasizing evaluation of action sequencing and goal decomposition in complex virtual environments. This signifies the research community's acknowledgment of the World Model as a core, measurable skill.
+
+#### **Error Prevention and Auditing:**
+
+By simulating trajectories, agents catch bad actions before execution. This capability ties directly into enterprise requirements for:
+- **Audit-ready explainability**
+- **Safety controls against Runaway Autonomy**
 
 ### **Implementation:**
 
 ```python
-class ImaginationAgent:
+class LLMGuidedImaginationAgent:
+    """Modern Imagination Loop with LLM-MCTS integration"""
     def __init__(self):
-        self.llm = ChatOpenAI()
+        self.llm = ChatOpenAI()  # Commonsense world model + policy heuristic
         self.world_model = WorldModel()  # Video/3D diffusion model
         self.value_estimator = ValueNetwork()
+        self.cost_estimator = CostModel()  # Cost-aware planning
     
-    def imagine_and_select(self, state, goal: str):
-        """Imagine futures and select best action"""
-        # 1. LLM proposes candidate actions
+    def imagine_and_select(self, state, goal: str, budget: float = None):
+        """LLM-guided MCTS for action selection"""
+        # 1. LLM proposes candidate actions (policy heuristic)
         candidates = self.llm.invoke(
             f"State: {state}\n"
             f"Goal: {goal}\n"
-            "Propose 5 possible next actions:"
+            "Propose 5 most promising next actions:"
         )
         actions = parse_actions(candidates)
         
-        # 2. Simulate outcomes for each
+        # 2. Simulate outcomes for each (world model rollout)
         trajectories = []
         for action in actions:
-            # World model predicts future
+            # World model predicts future (commonsense prior)
             future_states = self.world_model.rollout(state, action, horizon=10)
             
-            # Estimate value
-            value = self.value_estimator(future_states[-1], goal)
+            # Estimate value and cost
+            reward = self.value_estimator(future_states[-1], goal)
+            cost = self.cost_estimator(action, future_states) if budget else 0
+            
+            # Cost-augmented value
+            value = reward - (0.1 * cost)  # λ = 0.1
             
             trajectories.append({
                 "action": action,
                 "future": future_states,
-                "value": value
+                "value": value,
+                "reward": reward,
+                "cost": cost
             })
         
-        # 3. Select best trajectory
+        # 3. Select best trajectory (maximize R(τ) - Cost(τ))
         best = max(trajectories, key=lambda t: t["value"])
+        
+        # 4. Check if within budget
+        if budget and best["cost"] > budget:
+            # Try alternative with lower cost
+            best = min([t for t in trajectories if t["cost"] <= budget], 
+                      key=lambda t: -t["value"], default=best)
         
         return best["action"]
     
-    def world_model_rollout(self, state, action, horizon: int):
-        """Simulate future states"""
-        states = [state]
-        for _ in range(horizon):
-            # Predict next state using world model
-            next_state = self.world_model.predict(states[-1], action)
-            states.append(next_state)
-        return states
+    def geometric_grounding(self, action: str, scene_graph: dict) -> bool:
+        """Check if action is physically executable"""
+        # Verify geometric constraints (collision, reachability)
+        if "grasp" in action.lower():
+            obj_pos = scene_graph.get_object_position(action.target)
+            robot_reach = self.robot.get_reach_range()
+            return is_reachable(obj_pos, robot_reach) and not has_collision(obj_pos)
+        return True
 
 class WorldModel:
-    """Learned or LLM-based world model"""
-    def __init__(self):
-        self.model = load_pretrained_world_model()
+    """Modern generative world model"""
+    def __init__(self, model_type: str = "video_diffusion"):
+        if model_type == "video_diffusion":
+            self.model = load_video_diffusion_model()  # Pandora-style
+        elif model_type == "3d_gaussian":
+            self.model = load_manigaussian_model()  # 3D scene prediction
+        elif model_type == "discrete_codebook":
+            self.model = load_codebook_model()  # Discrete state representation
     
     def predict(self, state, action):
         """Predict next state given current state and action"""
-        # Encode state (image, 3D scene, etc.)
-        state_encoding = self.encode_state(state)
+        # Encode state (image, 3D scene, language goal, etc.)
+        state_encoding = self.encode_multimodal_state(state)
         
         # Encode action
         action_encoding = self.encode_action(action)
         
-        # Predict next state
+        # Predict next state using generative model
         next_state_encoding = self.model(state_encoding, action_encoding)
         
         # Decode to observation space
@@ -606,21 +688,24 @@ class WorldModel:
 
 ### **World Model Types:**
 
-1. **Video Prediction Models:** Predict future frames
-2. **3D Diffusion Models:** Generate 3D scene futures
-3. **Physics Simulators:** Accurate physics-based prediction
-4. **Learned Dynamics:** Neural networks trained on experience
+1. **Video Diffusion Models:** Predict future frames (Pandora, WorldDreamer)
+2. **3D Gaussian Splatting:** Generate 3D scene futures (ManiGaussian)
+3. **Discrete Codebook Models:** Stable representation for continuous control
+4. **Physics Simulators:** Accurate physics-based prediction
+5. **Learned Dynamics:** Neural networks trained on experience
 
 ### **Benefits:**
 
 * **Error Prevention:** Catch bad actions before execution
-* **Better Planning:** Evaluate multiple futures
+* **Better Planning:** Evaluate multiple futures with cost awareness
 * **Sample Efficiency:** Learn from imagined experiences
 * **Robustness:** Handle unseen scenarios via simulation
+* **Enterprise-Ready:** Audit trails and explainable decisions
+* **Cost-Optimized:** Balance reward and resource consumption
 
 ### **Citation:**
 
-*Recent NeurIPS/ICLR 2024-2025 work on world models and imagination in agents*
+Recent work in ICLR/NeurIPS 2025 and arXiv 2024-2025 on the Imagination Loop and World Models in Agentic AI focuses on integrating LLMs into classic search algorithms like MCTS, developing cost-aware planning (CATS), geometric grounding for embodied tasks (LGMCTS), and maturing world model architectures with generative models (Video Diffusion, 3D Gaussian Splatting). The Embodied Agent Interface (EAI) Challenge at NeurIPS 2025 explicitly highlights the importance of transition modeling logic, signifying World Models as a core, measurable skill in agentic systems.
 
 ---
 
@@ -633,6 +718,71 @@ You wouldn't ask a single person to run a startup. You need a CEO, a coder, a ma
 
 A modern microservices architecture, but instead of software components, the services are specialized LLMs. Slack is their bloodstream.
 
+### **The Maturation: From Experimentation to Production (2024-2025)**
+
+The field is rapidly maturing from single-agent experimentation to the development of robust, production-ready Multi-Agent Systems (MAS). The trends focus on solving the systemic challenges of coordination, communication, and heterogeneity.
+
+---
+
+## **1. Architectural Maturation: Formalizing the Structure**
+
+The initial, flat "group chat" model is being superseded by highly structured architectures designed for specific quality attributes (e.g., reliability, scalability).
+
+| Architecture Pattern | Description | Primary Goal & Use Case | Trend Insight |
+| :--- | :--- | :--- | :--- |
+| **Supervisor (Centralized)** | A single, specialized Orchestrator agent (the CEO) manages task decomposition, assignment, and final output assembly. Workers communicate only with the supervisor. | **Control & Reliability.** Ideal for structured enterprise workflows (HR, supply chain) where monitoring and auditability are critical. | **CrewAI** is the prime example, prioritizing predictability and reproducibility for business process automation. |
+| **Hierarchical** | A tree-like structure where supervisors manage teams of sub-supervisors, delegating tasks down the chain. | **Scalability & Complexity.** Handles large-scale software development, complex research projects, or multi-department business processes. | Enables the system to scale effort proportional to query complexity, preventing "over-investment" in simple tasks. |
+| **Network (Decentralized)** | Every agent can communicate with every other agent. | **Flexibility & Emergence.** Best for creative collaboration, brainstorming, and open-ended research where emergent solutions are desired. | **AutoGen** (Microsoft Research) is a leading framework for this, favoring adaptive problem-solving and dynamic agent conversation. |
+| **Hybrid** | Combines LLM reasoning with traditional AI/ML paradigms (e.g., RL, Graph Policies). | **Robustness & Efficiency.** Used in real-time, dynamic environments like autonomous vehicles where LLM planning must integrate with fast, structured decision-making. | This is the direction for safety-critical, low-latency applications. |
+
+---
+
+## **2. The Communication Crisis: The Push for Standardization**
+
+The biggest systemic challenge identified in 2024–2025 is the fragmentation of communication protocols. Since agents have non-deterministic outputs and dynamic memory, reliable interaction requires more than simple JSON serialization.
+
+### **The Telecom Analogy (LACP/ACP):**
+
+Major research calls (e.g., NeurIPS community) are pushing for a unified, layered agent communication protocol—analogous to the OSI model in telecommunications. This proposed protocol (like **LACP: LLM Agent Communication Protocol** or **ACP**) aims to ensure:
+
+**Transactional Integrity:** Messages are secure and reliably delivered, crucial for safety-critical applications.
+
+**Interoperability:** Agents from different vendors (GPT, Claude, Llama) can seamlessly collaborate without custom adapters.
+
+**Agent Card/Schema:** Agents publish a machine-readable "digital resume" defining their skills, I/O formats, and communication rules, enabling dynamic discovery and negotiation.
+
+**Protocol Negotiation:** Advanced systems (e.g., Agora) are using the LLM's language skills to negotiate the protocol itself at runtime. If a complex task arises, the agents agree on a structured communication format (a "protocol document") before starting the work, balancing versatility and efficiency.
+
+### **Communication Protocol (Formal):**
+
+$$
+m_{i \rightarrow j} = \pi_i(o, g)
+$$
+
+Where $\pi_i$ is the policy of agent $i$ that generates a structured message $m$ intended for agent $j$ based on their shared observation $o$ and the global goal $g$.
+
+---
+
+## **3. Specialization and Heterogeneity (LLM-MAS)**
+
+The concept of the "specialist" is expanding to include more than just role definition; it now includes the underlying model itself.
+
+### **Model Heterogeneity:**
+
+The trend is to create heterogeneous agent systems where different models are chosen based on the task:
+
+- **GPT-4/Gemini:** Used for high-level planning, reasoning, and orchestrating decisions
+- **Claude:** Used for tasks prioritizing safety, alignment, or complex summarization
+- **LLaMA/Mistral:** Used for specialized, cost-sensitive sub-tasks like simple coding or data extraction
+
+### **The Safeguard Agent (Critical New Specialization):**
+
+A critical new specialization is the **Safeguard Agent** or **Critic Agent**. This agent is specifically responsible for:
+
+- **Monitoring all communication** for policy violations and harmful content
+- **Ensuring compliance** (e.g., redacting sensitive data)
+- **Flagging actions for human review**, acting as the system's ethical and compliance officer
+
 ### **Common Specializations:**
 
 | Role | Responsibility |
@@ -641,19 +791,27 @@ A modern microservices architecture, but instead of software components, the ser
 | **Researcher** | Calls search tools, synthesizes data |
 | **Coder** | Writes, executes, and debugs code |
 | **Verifier/Critic** | Checks facts, flags errors, performs self-evaluation |
+| **Safeguard Agent** | Monitors compliance, flags policy violations, ensures ethical alignment |
 | **Planner** | Generates high-level task sequences |
 
-### **Communication Protocol:**
+---
 
-$$
-m_{i \rightarrow j} = \pi_i(o, g)
-$$
+## **4. Framework Comparison: AutoGen vs. CrewAI**
 
-Where $\pi_i$ is the policy of agent $i$ that generates a structured message $m$ intended for agent $j$ based on their shared observation $o$ and the global goal $g$.
+The two leading open-source frameworks embody the core architectural trade-off:
 
-### **Implementation:**
+| Framework | Core Design Philosophy | Best For | Trend Positioning |
+| :--- | :--- | :--- | :--- |
+| **AutoGen** | Conversational/Dynamic (Decentralized/Network) | Open-ended research, dynamic problem-solving, code execution, adaptive workflows | Developer-centric and research-focused, emphasizing flexibility and complex, emergent interactions |
+| **CrewAI** | Role-Oriented/Structured (Supervisor/Centralized) | Structured business processes, reliable automation, clear role-based task delegation, production-ready pipelines | Enterprise-centric, prioritizing stability, lower latency, and ease of use for business users |
 
-Frameworks like AutoGen and CrewAI implement this by defining specific *roles* and *termination criteria*.
+**The trend shows that while AutoGen drives innovation in what agents can do, CrewAI drives adoption in how businesses implement them.**
+
+---
+
+## **5. Implementation Examples:**
+
+### **AutoGen (Network/Decentralized):**
 
 ```python
 from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
@@ -661,19 +819,27 @@ from autogen import UserProxyAgent, AssistantAgent, GroupChat, GroupChatManager
 # 1. Define Agents (Roles)
 researcher = AssistantAgent(
     name="Researcher",
-    system_message="Synthesizes web search results."
+    system_message="Synthesizes web search results.",
+    model="gpt-4"  # High-level reasoning
 )
 
 coder = AssistantAgent(
     name="Coder",
-    system_message="Writes and executes Python code in a sandbox."
+    system_message="Writes and executes Python code in a sandbox.",
+    model="llama-3.2-8b"  # Cost-effective for coding
+)
+
+safeguard = AssistantAgent(
+    name="Safeguard",
+    system_message="Monitors all communication for compliance and safety.",
+    model="claude-3.5"  # Safety-focused
 )
 
 user_proxy = UserProxyAgent(name="Client", human_input_mode="NEVER")
 
-# 2. Define the Protocol (GroupChat)
+# 2. Define the Protocol (GroupChat - Network Architecture)
 groupchat = GroupChat(
-    agents=[user_proxy, researcher, coder],
+    agents=[user_proxy, researcher, coder, safeguard],
     messages=[],
     max_round=12,
     speaker_selection_method="auto"  # LLM decides who talks next
@@ -687,17 +853,84 @@ user_proxy.initiate_chat(
     message="Find the latest stock price for NVDA and calculate its P/E ratio."
 )
 
-# The manager orchestrates Researcher (to get price) and Coder (to calculate P/E).
+# Agents communicate dynamically, with Safeguard monitoring all interactions
 ```
 
-Modern examples:
+### **CrewAI (Supervisor/Centralized):**
 
-* **AutoGen**
-* **OpenAI Swarm**
-* **CrewAI**
-* **LangGraph agent clusters**
+```python
+from crewai import Agent, Task, Crew
+
+# 1. Define Specialized Agents
+researcher = Agent(
+    role="Researcher",
+    goal="Gather accurate information",
+    backstory="Expert at finding and synthesizing data",
+    verbose=True
+)
+
+coder = Agent(
+    role="Coder",
+    goal="Write and execute code",
+    backstory="Python expert with attention to detail",
+    verbose=True
+)
+
+# 2. Define Tasks (Supervisor assigns these)
+research_task = Task(
+    description="Find NVDA stock price",
+    agent=researcher
+)
+
+coding_task = Task(
+    description="Calculate P/E ratio",
+    agent=coder
+)
+
+# 3. Create Crew (Supervisor orchestrates)
+crew = Crew(
+    agents=[researcher, coder],
+    tasks=[research_task, coding_task],
+    verbose=True
+)
+
+# 4. Execute (Supervisor manages flow)
+result = crew.kickoff()
+# Supervisor ensures tasks complete in order, monitors progress
+```
+
+### **Modern Examples:**
+
+* **AutoGen** (Microsoft Research) - Network architecture
+* **CrewAI** - Supervisor architecture
+* **OpenAI Swarm** - Hierarchical architecture
+* **LangGraph agent clusters** - Hybrid architectures
+
+---
+
+## **6. Key Challenges and Solutions:**
+
+### **Shared Memory Management:**
+- **Problem:** Agents need access to shared context without overwhelming each other
+- **Solution:** Centralized memory store with relevance filtering (Pattern #7, #8)
+
+### **Ethical Alignment:**
+- **Problem:** Ensuring all agents adhere to safety and compliance policies
+- **Solution:** Dedicated Safeguard Agent that monitors all communication
+
+### **Cost Optimization:**
+- **Problem:** Using expensive models (GPT-4) for simple tasks
+- **Solution:** Model heterogeneity - use SLMs for routine tasks, LLMs for complex reasoning
+
+### **Coordination Overhead:**
+- **Problem:** Too much communication slows down the system
+- **Solution:** Supervisor pattern reduces agent-to-agent communication by 40-70%
+
+---
 
 ### **Citation:**
+
+Recent work in 2024-2025 on Multi-Agent Societies focuses on architectural maturation (Supervisor, Hierarchical, Network, Hybrid patterns), solving the communication crisis through standardization (LACP/ACP protocols), and enabling model heterogeneity where different LLMs are chosen based on task requirements. The emergence of Safeguard Agents for compliance monitoring and the clear framework trade-offs between AutoGen (flexibility) and CrewAI (reliability) represent the field's evolution from experimentation to production-ready systems.
 
 *Wu et al. (2023). "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation." [arXiv:2308.08155](https://arxiv.org/abs/2308.08155)*
 

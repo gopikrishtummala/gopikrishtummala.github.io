@@ -257,6 +257,70 @@ Recent work in memory management for long-lived AI agents focuses on various com
 
 ---
 
+## **Context Engineering: The Strategic Art of Information Curation**
+
+Before diving into the Supervisor pattern, there's a crucial skill that Level 2 agents need: **Context Engineering**.
+
+### **What is Context Engineering?**
+
+Context engineering is the strategic process of selecting, packaging, and managing the most relevant information for each step. It's about curating the model's limited attention to prevent cognitive overload and ensure high-quality, efficient performance.
+
+**The Simple Idea:** Imagine you're a travel assistant processing a verbose flight confirmation email. Instead of dumping the entire 500-word email into every tool call, you strategically extract only the key details:
+- Flight numbers
+- Dates and times
+- Locations
+- Booking reference
+
+Then you package this focused context (maybe just 50 words) for subsequent tool calls to your calendar and weather API. This prevents the model from getting overwhelmed and ensures each step is efficient and accurate.
+
+### **Why It Matters:**
+
+**The Problem:** LLMs have limited context windows. If you feed them everything, they:
+- Get distracted by irrelevant information
+- Miss important details buried in noise
+- Take longer to process (higher latency)
+- Make more errors (cognitive overload)
+
+**The Solution:** Context engineering curates a short, focused, and powerful context for each step.
+
+### **Practical Example: Coffee Shop Finder**
+
+1. **Step 1:** Use mapping tool to find route between two locations
+   - Input: Full addresses
+   - Output: Route with street names
+
+2. **Step 2:** Engineer the context
+   - Extract: Just the street names (not the full route, not the addresses)
+   - Package: Short list of 3-5 street names
+
+3. **Step 3:** Feed curated context to local search tool
+   - Input: Focused list of street names
+   - Output: Coffee shops on those streets
+
+By engineering the context between steps, you prevent cognitive overload and ensure the second step is efficient and accurate.
+
+### **Context Engineering in Practice:**
+
+```python
+def engineer_context(raw_output: str, next_step: str) -> str:
+    """Extract and package only relevant information for next step"""
+    if next_step == "local_search":
+        # Extract only street names
+        streets = extract_street_names(raw_output)
+        return ", ".join(streets[:5])  # Focused context
+    
+    elif next_step == "calendar":
+        # Extract only date/time info
+        dates = extract_dates(raw_output)
+        return format_dates(dates)  # Minimal, focused
+    
+    return raw_output  # Fallback
+```
+
+**Key Principle:** To achieve maximum accuracy from an AI, it must be given a short, focused, and powerful context. Context engineering is the discipline that accomplishes this.
+
+---
+
 <a id="pattern-9-supervisor"></a>
 ## **Pattern #9 — Supervisor / Orchestrator (The #1 Production Pattern in 2025)**
 
@@ -273,6 +337,23 @@ Instead of having all your agents talk to each other in a chaotic free-for-all (
 The supervisor routes tasks to the right specialist, reducing token costs by 40-70% and dramatically improving reliability.
 
 It's like having a restaurant manager instead of letting all the chefs just yell at each other.
+
+### **The Routing Mechanism: Conditional Logic**
+
+At its core, the Supervisor pattern uses **routing**—conditional logic that dynamically decides which path to take based on the current situation. Unlike sequential prompt chaining (which always follows the same path), routing enables adaptive responses.
+
+**The Simple Idea:** Think of a customer service system. When someone calls, you don't have one person handle everything. Instead:
+- "Check order status?" → Route to the order database tool
+- "Product information?" → Route to the catalog search agent
+- "Technical support?" → Route to troubleshooting guides or human escalation
+- "Unclear request?" → Route to a clarification agent
+
+The supervisor analyzes the user's query and routes it to the right specialist, tool, or sub-process. This is **dynamic decision-making** based on context, not a fixed script.
+
+**Why Routing Matters:**
+- **Adaptive:** Responds differently based on what the user actually needs
+- **Efficient:** Only activates the right specialist, avoiding unnecessary processing
+- **Flexible:** Can handle unexpected inputs by routing to clarification or fallback handlers
 
 ### **Why It Matters:**
 
@@ -456,6 +537,40 @@ async def parallel_tool_execution(prompt: str, tools: list):
 | 3 tool calls | 450ms | 200ms | 56% faster |
 | 5 tool calls | 750ms | 250ms | 67% faster |
 | 10 tool calls | 1500ms | 400ms | 73% faster |
+
+### **Beyond Tool Calls: Parallelization Patterns**
+
+Parallelization isn't just about tool calls. Here are other powerful use cases:
+
+**1. Information Gathering and Research**
+- **Use Case:** Researching a company
+- **Parallel Tasks:** Search news articles, pull stock data, check social media mentions, query company database
+- **Benefit:** Gathers comprehensive view much faster than sequential lookups
+
+**2. Data Processing and Analysis**
+- **Use Case:** Analyzing customer feedback
+- **Parallel Tasks:** Run sentiment analysis, extract keywords, categorize feedback, identify urgent issues simultaneously
+- **Benefit:** Provides multi-faceted analysis quickly
+
+**3. Multi-API or Tool Interaction**
+- **Use Case:** Travel planning agent
+- **Parallel Tasks:** Check flight prices, search hotel availability, look up local events, find restaurant recommendations concurrently
+- **Benefit:** Presents complete travel plan faster
+
+**4. Content Generation with Multiple Components**
+- **Use Case:** Creating a marketing email
+- **Parallel Tasks:** Generate subject line, draft email body, find relevant image, create call-to-action button text simultaneously
+- **Benefit:** Assembles final email more efficiently
+
+**5. Validation and Verification**
+- **Use Case:** Verifying user input
+- **Parallel Tasks:** Check email format, validate phone number, verify address against database, check credit score
+- **Benefit:** Provides faster feedback on input validity
+
+**6. Multi-Modal Processing**
+- **Use Case:** Analyzing a social media post with text and image
+- **Parallel Tasks:** Analyze text for sentiment/keywords, analyze image for content, extract metadata
+- **Benefit:** Comprehensive understanding of multi-modal content quickly
 
 ### **When to Use:**
 

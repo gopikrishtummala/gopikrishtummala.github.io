@@ -58,6 +58,9 @@ The good news? They fail in predictable ways. The bad news? You have to plan for
       <li><a href="#premature-termination">F. Premature Termination</a></li>
       <li><a href="#verifiable-pipelines">G. Verifiable Agent Pipelines</a></li>
       <li><a href="#safety-planning">H. Safety-Aware Planning</a></li>
+      <li><a href="#exception-handling">I. Exception Handling and Recovery</a></li>
+      <li><a href="#human-in-loop">J. Human-in-the-Loop (HITL)</a></li>
+      <li><a href="#failure-taxonomy">K. Failure Taxonomy</a></li>
       <li><a href="#failure-summary">Summary: Failure Mode Mitigation</a></li>
     </ul>
   </nav>
@@ -473,7 +476,180 @@ $$
 
 The planner is constrained to select a trajectory $\tau$ where the maximum predicted risk is below a defined threshold.
 
-## **2. Failure Taxonomy in the Wild**
+<a id="exception-handling"></a>
+## **2. Exception Handling and Recovery**
+
+When things go wrong, agents need graceful recovery mechanisms. Unlike traditional software where exceptions are caught and handled, agentic systems must **detect, understand, and recover from failures autonomously**.
+
+### **The Simple Idea:**
+
+Think of exception handling like a safety net. When an agent tries to do something and it fails, instead of crashing, it should:
+1. **Detect the failure** (tool call failed, API error, invalid output)
+2. **Understand what went wrong** (analyze the error message, check logs)
+3. **Recover gracefully** (retry with different parameters, try alternative approach, or escalate to human)
+
+### **Common Exception Scenarios:**
+
+**1. Tool/API Failures**
+- **Problem:** External API is down, rate limited, or returns unexpected format
+- **Recovery:** Retry with exponential backoff, try alternative tool, or use cached data
+
+**2. Invalid Output**
+- **Problem:** LLM generates malformed JSON, invalid code, or nonsensical response
+- **Recovery:** Validate output against schema, request regeneration, or fallback to simpler approach
+
+**3. Context Overflow**
+- **Problem:** Conversation history exceeds context window
+- **Recovery:** Compress/summarize old messages, use memory retrieval, or reset with key facts
+
+**4. Goal Unreachable**
+- **Problem:** Task cannot be completed with available tools/resources
+- **Recovery:** Break into smaller sub-tasks, request additional permissions, or escalate to human
+
+### **Implementation Pattern:**
+
+```python
+def robust_agent_step(goal: str, tools: list, max_retries: int = 3):
+    """Agent step with exception handling"""
+    for attempt in range(max_retries):
+        try:
+            # Attempt the action
+            result = agent.execute(goal, tools)
+            
+            # Validate result
+            if validate_output(result):
+                return result
+            else:
+                raise ValueError("Invalid output format")
+                
+        except ToolError as e:
+            # Tool-specific error
+            if attempt < max_retries - 1:
+                # Try alternative tool
+                alternative_tool = find_alternative(tools, e.failed_tool)
+                tools = [alternative_tool] + [t for t in tools if t != e.failed_tool]
+                continue
+            else:
+                # Escalate to human
+                return request_human_intervention(goal, e)
+                
+        except ValidationError as e:
+            # Output validation failed
+            if attempt < max_retries - 1:
+                # Request regeneration with stricter constraints
+                goal = add_validation_constraints(goal)
+                continue
+            else:
+                return request_human_intervention(goal, e)
+                
+        except Exception as e:
+            # Unknown error
+            log_error(e)
+            if attempt < max_retries - 1:
+                # Simplify the goal and retry
+                goal = simplify_goal(goal)
+                continue
+            else:
+                return request_human_intervention(goal, e)
+    
+    return None  # All retries exhausted
+```
+
+**Key Principle:** Agents should fail gracefully, learn from errors, and know when to ask for help.
+
+---
+
+<a id="human-in-loop"></a>
+## **3. Human-in-the-Loop (HITL) Pattern**
+
+Not every decision should be fully automated. The **Human-in-the-Loop** pattern integrates human judgment at critical decision points, ensuring AI systems remain aligned with human values, ethics, and goals.
+
+### **The Simple Idea:**
+
+Think of HITL like having a supervisor review important decisions. The agent does most of the work autonomously, but for critical choices—especially those involving ethics, high risk, or ambiguity—it pauses and asks a human.
+
+### **When to Use HITL:**
+
+**1. High-Stakes Decisions**
+- Financial transactions above a threshold
+- Medical diagnoses or treatment recommendations
+- Legal document generation
+- Content moderation decisions
+
+**2. Ambiguous Situations**
+- When confidence is low (< 70%)
+- When multiple valid interpretations exist
+- When user intent is unclear
+
+**3. Ethical Boundaries**
+- Content that might be harmful or biased
+- Decisions affecting people's lives or livelihoods
+- Creative work that requires human judgment
+
+**4. Learning and Improvement**
+- Collecting human feedback for model refinement
+- Correcting errors to improve future performance
+- Validating novel approaches
+
+### **HITL Interaction Patterns:**
+
+**1. Human Oversight**
+- **What:** Monitor agent performance in real-time via dashboards
+- **When:** Continuous monitoring for adherence to guidelines
+- **Example:** Review agent logs, check outputs before deployment
+
+**2. Intervention and Correction**
+- **What:** Human steps in when agent encounters errors or ambiguous scenarios
+- **When:** Agent requests help or detects low confidence
+- **Example:** Agent asks "Should I proceed with this transaction?" and waits for approval
+
+**3. Human Feedback for Learning**
+- **What:** Collect human preferences to refine agent behavior
+- **When:** After agent actions, especially novel ones
+- **Example:** "Was this response helpful?" → Use feedback to improve
+
+**4. Decision Augmentation**
+- **What:** Agent provides analysis, human makes final decision
+- **When:** Complex decisions requiring human judgment
+- **Example:** Agent analyzes market data and recommends trades, human approves execution
+
+### **Implementation Example:**
+
+```python
+def agent_with_hitl(goal: str, confidence_threshold: float = 0.8):
+    """Agent that requests human input when needed"""
+    result = agent.execute(goal)
+    confidence = result.confidence
+    
+    if confidence < confidence_threshold:
+        # Request human review
+        human_decision = request_human_review(
+            goal=goal,
+            agent_result=result,
+            reason="Low confidence"
+        )
+        return human_decision
+    
+    if is_high_stakes(result):
+        # Require human approval
+        approved = request_human_approval(
+            action=result.action,
+            context=result.context
+        )
+        if approved:
+            return execute_action(result)
+        else:
+            return request_alternative_approach(goal)
+    
+    return result
+```
+
+**Key Principle:** HITL ensures AI systems remain trustworthy, ethical, and aligned with human values while maintaining efficiency through selective human involvement.
+
+---
+
+<a id="failure-taxonomy"></a>
+## **4. Failure Taxonomy in the Wild**
 
 | Failure Mode | Description | Mitigation Pattern |
 | :--- | :--- | :--- |
@@ -481,6 +657,8 @@ The planner is constrained to select a trajectory $\tau$ where the maximum predi
 | **Goal Drift** | Getting distracted by an interesting sub-task. | Pattern #2 (Reflector) constantly checks against original $g$. |
 | **Hallucinated API** | Inventing a non-existent tool or argument fields. | Pattern #17 (Reflexes), Pydantic/Schema validation for tool calls. |
 | **Grounding Failure** | Generating an action impossible in the environment (e.g., trying to grasp an unreachable object). | Pattern #14 (3D Scene Graph) for pre-action feasibility checks. |
+| **Exception Cascade** | One failure triggers multiple downstream failures. | Exception Handling pattern with circuit breakers and graceful degradation. |
+| **Human Overload** | Too many HITL requests overwhelm human operators. | Smart escalation: only critical decisions require human input, use confidence thresholds. |
 
 ---
 
