@@ -823,37 +823,37 @@ def simulate_rollout(node, goal, max_depth=10):
 
 **Autonomous Scientific Discovery and AI Agents in Chemistry:**
 
-- **A Survey on Autonomous Scientific Discovery**  
-  *Domain-oriented review of autonomous scientific discovery across life sciences, chemistry, materials, and physics, including RAG-based knowledge ingestion.*  
-  [arXiv](https://arxiv.org/)
+- **AutoLabs: A Self-Correcting, Multi-Agent Framework for Autonomous Chemical Experimentation**  
+  *Self-correcting, multi-agent architecture that translates natural-language instructions into executable protocols for high-throughput liquid handlers, achieving near-expert procedural accuracy.*  
+  [arXiv:2509.25651](https://arxiv.org/abs/2509.25651)
 
-- **Empowering biomedical discovery with AI agents**  
-  *Perspective on AI agents that formulate biomedical hypotheses, critically evaluate them, and characterize uncertainty.*  
-  [ScienceDirect](https://www.sciencedirect.com/)
+- **Autonomous LLM Agent for Chemical Literature Data Mining**  
+  *AI agent that performs high-fidelity extraction from extensive chemical literature, automating data collection and analysis with high accuracy, recall, and F1 scores.*  
+  [arXiv:2402.12993](https://arxiv.org/abs/2402.12993)
 
-- **Boiko et al. - Autonomous Chemistry with GPT-4 and Robotics**  
-  *Demonstration of GPT-4-driven planner combined with robotic synthesis and analysis for autonomous chemistry.*  
-  See: [Frontiers](https://www.frontiersin.org/), [PMC/NIH](https://pmc.ncbi.nlm.nih.gov/)
+- **Chemist-X: AI Agent for Automated Reaction Condition Recommendations**  
+  *AI agent that automates reaction condition recommendations using retrieval-augmented generation, interrogating molecular databases and distilling data from latest literature.*  
+  [arXiv:2311.10776](https://arxiv.org/abs/2311.10776)
+
+- **dZiner: AI Agent for Rational Inverse Design of Materials**  
+  *LLM-powered agent that facilitates rational inverse design of materials by leveraging domain-specific insights from scientific literature, proposing new materials with enhanced properties.*  
+  [arXiv:2410.03963](https://arxiv.org/abs/2410.03963)
+
+- **A Review of Large Language Models and Autonomous Agents in Chemistry**  
+  *Comprehensive review covering recent history, current capabilities, and design of LLMs and autonomous agents in chemistry, addressing challenges and future directions.*  
+  [Royal Society of Chemistry](https://pubs.rsc.org/doi/d4sc03921a)
 
 - **Multi-agent-driven robotic AI chemist**  
-  *A multi-agent-driven robotic AI chemist enabling autonomous chemical research on demand.*  
-  [ChemRxiv](https://chemrxiv.org/)
+  *A multi-agent-driven robotic AI chemist enabling autonomous chemical research on demand, operating through hierarchical multi-agent framework for complex, multi-step experiments.*  
+  [ChemRxiv](https://chemrxiv.org/engage/api-gateway/chemrxiv/assets/orp/resource/item/66a8c11bc9c6a5c07a7a59c0/original/a-multi-agent-driven-robotic-ai-chemist-enabling-autonomous-chemical-research-on-demand.pdf)
 
-- **DORA AI Scientist: Multi-agent Virtual Research Team**  
-  *Agent leveraging Retrieval-Augmented Generation (RAG) for thorough data collection and analysis in scientific discovery.*  
-  [bioRxiv](https://www.biorxiv.org/)
+- **Argonne National Laboratory - Self-Driving Chemist Platform**  
+  *Self-driving chemist platform that autonomously executes chemical reactions to improve processes and create new materials, with minimal human intervention.*  
+  [Argonne National Laboratory](https://www.anl.gov/autonomous-discovery/selfdriving-chemist)
 
-- **AI Agents in Drug Discovery**  
-  *Review of AI agents as transformative tools in drug discovery, with ability to autonomously reason, act, and learn.*  
-  [arXiv](https://arxiv.org/)
-
-- **Large Language Models and Autonomous Agents in Chemistry**  
-  *Review covering recent history, current capabilities, and design of LLMs and autonomous agents in chemistry.*  
-  [Royal Society of Chemistry](https://pubs.rsc.org/)
-
-- **Autonomous Agents for Scientific Discovery**  
-  *View and vision of LLM-based scientific agents and their role in transforming the scientific discovery lifecycle.*  
-  [ResearchGate](https://www.researchgate.net/)
+- **Empowering biomedical discovery with AI agents**  
+  *Perspective on AI agents that formulate biomedical hypotheses, critically evaluate them, and characterize uncertainty in biomedical research.*  
+  [ScienceDirect](https://www.sciencedirect.com/)
 
 ---
 
