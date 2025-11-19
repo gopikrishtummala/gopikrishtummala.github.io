@@ -239,7 +239,21 @@ class MemoryCompressor:
 
 ### **Citation:**
 
-*Recent work on memory management in long-lived agents (2024-2025)*
+Recent work in memory management for long-lived AI agents focuses on various compression and rewriting strategies to manage memory growth and improve performance. These techniques go beyond simple truncation to include intelligent summarization, relevance filtering, and dynamic memory organization.
+
+**Key Research and Citations (2024-2025):**
+
+* **Agentic Memory Systems:** A-MEM (Agentic Memory for LLM Agents, arXiv 2025) introduces a system where agents can dynamically organize and evolve their own memories, using an agentic approach to decide what information to store, update, or discard. This combines principles from knowledge management systems with agent-driven decision-making.
+
+* **Dynamic Memory Compression:** Research on "Dynamic Memory Compression: Retrofitting LLMs for Efficient Inference" (arXiv 2024) proposes online key-value cache compression during inference, allowing models to learn where and how much to compress memory dynamically across different layers, significantly increasing throughput without impacting performance.
+
+* **Forgetting Curve Models:** MemoryBank (Zhong et al., 2024) incorporates the Ebbinghaus forgetting curve into LLM memory, where memories decay unless accessed and reinforced. This helps prioritize relevant and recent information, preventing "memory rot" in long-term dialogue agents.
+
+* **Retrieval-Augmented Memory:** Retrieval-Augmented Embodied Agents (CVPR 2024) explores the use of retrieval-augmented generation (RAG) for embodied AI, where agents access relevant strategies from an external policy memory bank based on multi-modal inputs—a form of memory management through retrieval and synthesis of relevant experiences.
+
+* **Memory Drift and Structural Memory:** Empirical studies (Xiong et al., arXiv 2025) investigate how different memory management strategies affect agents' ability to follow past experiences, highlighting the problem of "memory drift" where excessive compression can lead to contradictions over time. Research on "On the Structural Memory of LLM Agents" (arXiv 2024) evaluates different memory structures (chunks, knowledge triples, facts, summaries) and retrieval methods, finding that mixed memory structures often show better performance and resilience.
+
+**Summary of Effective Strategies:** Research confirms that strategies such as relevance filtering (prioritizing information based on the current goal), summary compression (periodically distilling long conversations into concise digests), and forgetting curves (decaying less important or older memories) are effective in managing memory for long-running agents, preventing context overflow and memory degradation.
 
 ---
 
