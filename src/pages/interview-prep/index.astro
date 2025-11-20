@@ -24,13 +24,13 @@ const behavioralPosts = getPostsByInterviewType(allPosts, "Behavioral");
 const postSlugs = new Map<string, string[]>();
 const combinedPosts = [...theoryPosts, ...systemDesignPosts, ...mlInfraPosts, ...codingPosts, ...behavioralPosts];
 combinedPosts.forEach((post) => {
-  const slug = post.slug;
+  const slug = post.id;
   const categories: string[] = [];
-  if (theoryPosts.some(p => p.slug === slug)) categories.push("Theory");
-  if (systemDesignPosts.some(p => p.slug === slug)) categories.push("System Design");
-  if (mlInfraPosts.some(p => p.slug === slug)) categories.push("ML-Infra");
-  if (codingPosts.some(p => p.slug === slug)) categories.push("Coding");
-  if (behavioralPosts.some(p => p.slug === slug)) categories.push("Behavioral");
+  if (theoryPosts.some(p => p.id === slug)) categories.push("Theory");
+  if (systemDesignPosts.some(p => p.id === slug)) categories.push("System Design");
+  if (mlInfraPosts.some(p => p.id === slug)) categories.push("ML-Infra");
+  if (codingPosts.some(p => p.id === slug)) categories.push("Coding");
+  if (behavioralPosts.some(p => p.id === slug)) categories.push("Behavioral");
   postSlugs.set(slug, categories);
 });
 
@@ -105,8 +105,8 @@ const getCategories = (slug: string) => postSlugs.get(slug) ?? [];
       {theoryPosts.length > 0 ? (
         <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {theoryPosts.map((data) => {
-            const multiCat = isMultiCategory(data.slug);
-            const categories = getCategories(data.slug);
+            const multiCat = isMultiCategory(data.id);
+            const categories = getCategories(data.id);
             return (
               <li class="relative">
                 {multiCat && (
@@ -143,8 +143,8 @@ const getCategories = (slug: string) => postSlugs.get(slug) ?? [];
       {systemDesignPosts.length > 0 ? (
         <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {systemDesignPosts.map((data) => {
-            const multiCat = isMultiCategory(data.slug);
-            const categories = getCategories(data.slug);
+            const multiCat = isMultiCategory(data.id);
+            const categories = getCategories(data.id);
             return (
               <li class="relative">
                 {multiCat && (
@@ -182,8 +182,8 @@ const getCategories = (slug: string) => postSlugs.get(slug) ?? [];
           </div>
           <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {mlInfraPosts.map((data) => {
-              const multiCat = isMultiCategory(data.slug);
-              const categories = getCategories(data.slug);
+              const multiCat = isMultiCategory(data.id);
+              const categories = getCategories(data.id);
               return (
                 <li class="relative">
                   {multiCat && (
@@ -220,8 +220,8 @@ const getCategories = (slug: string) => postSlugs.get(slug) ?? [];
           </div>
           <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {codingPosts.map((data) => {
-              const multiCat = isMultiCategory(data.slug);
-              const categories = getCategories(data.slug);
+              const multiCat = isMultiCategory(data.id);
+              const categories = getCategories(data.id);
               return (
                 <li class="relative">
                   {multiCat && (
@@ -257,8 +257,8 @@ const getCategories = (slug: string) => postSlugs.get(slug) ?? [];
           </div>
           <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {behavioralPosts.map((data) => {
-              const multiCat = isMultiCategory(data.slug);
-              const categories = getCategories(data.slug);
+              const multiCat = isMultiCategory(data.id);
+              const categories = getCategories(data.id);
               return (
                 <li class="relative">
                   {multiCat && (
