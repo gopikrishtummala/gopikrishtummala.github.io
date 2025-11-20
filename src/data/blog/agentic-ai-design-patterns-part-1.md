@@ -58,11 +58,12 @@ description: 'Part 1 of a comprehensive guide to agentic AI design patterns. Cov
         </ul>
       </li>
       <li><a href="#pattern-overview">Pattern Overview: Beyond ReAct</a></li>
-      <li><a href="#pattern-2">Pattern #2: Plan-Execute-Reflect (PER)</a></li>
-      <li><a href="#pattern-3">Pattern #3: Tool Use</a></li>
-      <li><a href="#pattern-4">Pattern #4: Self-Consistency Sampling</a></li>
-      <li><a href="#pattern-5">Pattern #5: Graph-of-Thoughts (GoT)</a></li>
-      <li><a href="#pattern-6">Pattern #6: Search-Augmented Agents</a></li>
+      <li><a href="#pattern-2">Pattern #2: Language Agent Tree Search (LATS)</a></li>
+      <li><a href="#pattern-3">Pattern #3: Model Context Protocol (MCP)</a></li>
+      <li><a href="#pattern-4">Pattern #4: Reflexion (Verbal Reinforcement)</a></li>
+      <li><a href="#pattern-5">Pattern #5: Self-Consistency Sampling</a></li>
+      <li><a href="#pattern-6">Pattern #6: Graph-of-Thoughts (GoT)</a></li>
+      <li><a href="#pattern-7">Pattern #7: Search-Augmented Agents</a></li>
       <li><a href="#domain-applications">Domain-Specific Applications</a>
         <ul>
           <li><a href="#gaming">Gaming and Creative Content</a></li>
@@ -121,9 +122,9 @@ The core of Agentic AI lies in the continuous **Perceive → Plan → Act → Re
 
 1. **Decompose Complex Goals:** Break a high-level user objective (e.g., "Design a new CPU architecture" or "Find a novel antidepressant compound") into a logical sequence of actionable sub-tasks.
 
-2. **Utilize Specialized Tools:** Dynamically select and orchestrate external functions, APIs, simulators, and databases with high precision, moving beyond simple web searches to complex **tool-use policies**. This process, known as **Tool Use** or **Tool Calling** (Schick et al., 2023), extends the agent's capabilities beyond its training data.
+2. **Connect to Data Sources:** Use **Model Context Protocol (MCP)** to connect to external data sources, APIs, and services. MCP decouples agents from data sources, solving the N×M integration problem. Instead of custom integrations for every API, agents speak a universal protocol to MCP servers (Google Drive, Slack, PostgreSQL, etc.).
 
-3. **Self-Correction and Learning:** Employ internal **Reflection** and **Self-Evaluation** mechanisms (Shinn et al., 2023) to critique intermediate results, identify errors (such as failed API calls or invalid outputs), and **iteratively refine** their strategy until the goal is achieved. This capacity for autonomous debugging is the key to enterprise-grade reliability.
+3. **Self-Correction and Learning:** Employ the **Reflexion** framework (Shinn et al., 2023) for self-correction. Reflexion uses "verbal reinforcement"—storing a text summary of *why* a failure occurred—which is more effective for LLMs than numerical rewards because LLMs think in language, not scalars. The agent critiques intermediate results, identifies errors (such as failed API calls or invalid outputs), and **iteratively refines** its strategy until the goal is achieved. This capacity for autonomous debugging is the key to enterprise-grade reliability.
 
 This paradigm shift is not merely an efficiency gain; it is the establishment of a **Unified Agent Runtime** that fundamentally changes how we approach creative synthesis, scientific research, and immersive digital experiences. This approach transforms the LLM into a sequential decision-maker that reasons about the environment and selects actions to achieve a long-term goal (Yao et al., 2022).
 
@@ -162,7 +163,7 @@ ReAct enforces a structured, verifiable cycle that inherently reduces hallucinat
 | 1. | **Thought/Reasoning** | The LLM analyzes the current observation, determines the next logical step, and decides if a tool is necessary. | Inference, Planning |
 | 2. | **Action** | The agent executes the determined step, typically by calling a specialized function or API. | Execution, Tool Use |
 | 3. | **Observation** | The agent receives the output or result from the action (e.g., the result of a code run or an API call). | Perception, Feedback |
-| 4. | **Reflection** | An optional, but critical, meta-reasoning step where the agent critiques the Observation, identifies failures, and updates its internal plan for the next cycle. | Self-Correction, Debugging |
+| 4. | **Reflexion** | An optional, but critical, meta-reasoning step where the agent critiques the Observation using verbal reinforcement (text summaries of failures), identifies errors, and updates its internal plan for the next cycle. | Self-Correction, Debugging |
 
 <a id="mathematical-formulation"></a>
 ### The Mathematical Formulation
@@ -170,7 +171,7 @@ ReAct enforces a structured, verifiable cycle that inherently reduces hallucinat
 The ReAct loop implements the policy $\pi(a_t | o_{\le t}, g, M)$ through this iterative process:
 
 $$
-\text{Thought}_t \rightarrow \text{Action}_t \rightarrow \text{Observation}_{t+1} \rightarrow \text{Reflection}_{t+1}
+\text{Thought}_t \rightarrow \text{Action}_t \rightarrow \text{Observation}_{t+1} \rightarrow \text{Reflexion}_{t+1}
 $$
 
 Translation: **Think → Do → See what happened → Critique → Think again.**
@@ -304,248 +305,563 @@ While ReAct is the foundation, production systems require additional patterns to
 ---
 
 <a id="pattern-2"></a>
-## **Pattern #2 — Plan-Execute-Reflect (PER)**
+## **Pattern #2 — Language Agent Tree Search (LATS)**
 
-Sometimes the omelette is more complicated: you want a three-course dinner for six people.
+Simple "Plan-Execute" often gets stuck in local minima. The agent tries one approach, fails, and doesn't know what else to try.
 
-You don't want one frantic parrot running around the kitchen. You want:
+**LATS (Language Agent Tree Search)** solves this by combining **ReAct** with **Monte Carlo Tree Search (MCTS)**. Instead of a linear sequence of actions, the agent explores a *tree* of possible solutions, scores each path, and backtracks when a branch looks unpromising.
 
-- One calm **chef** who writes the full menu and timeline on a whiteboard (the Planner)
+### **The Simple Idea: Explore Multiple Paths**
 
-- Several **cooks** who actually chop onions and stir sauce (Executors)
+Think of solving a complex coding problem:
 
-- One annoying **food critic** who tastes everything and yells "THIS SOUP HAS NO SOUL!" (Reflector)
+* **Simple ReAct:** Try approach A → fails → try approach A again (doom loop)
+* **LATS:** Try approach A → score it → try approach B → score it → compare → pick best → refine
 
-Only when the critic finally says "Okay, I guess this is edible" do you serve the guests.
+The agent creates a **tree** of possible actions. It explores a path, scores it (using a value function), backs up if the score is low, and tries a different branch. This is critical for complex coding or reasoning tasks where the first attempt is rarely the best.
 
-This is the second big pattern: **Plan → Execute → Reflect**, repeated until the critic shuts up.
+### **Why LATS Matters**
 
-It sounds overkill, but it stops the agent from serving raw chicken because it got excited and skipped steps.
+**The Problem with Linear Planning:**
+- Agent commits to one plan early
+- If the plan is wrong, it wastes time on a dead end
+- No way to "undo" and try alternatives
 
-### **The Simple Idea: Divide and Conquer**
+**The LATS Solution:**
+- Agent explores multiple plans in parallel (or sequentially)
+- Each plan gets a score based on progress toward the goal
+- Agent can backtrack and try better branches
+- Eventually converges to the best solution
 
-At its core, PER uses a **divide-and-conquer strategy**. Instead of asking an LLM to solve a complex problem in one giant step, you break it down into smaller, manageable pieces. Each piece gets its own focused prompt, and the output from one step feeds into the next.
+### **How LATS Works**
 
-**Why this works:** Imagine asking someone to "analyze a market research report, summarize findings, identify trends with data points, and draft an email" all at once. They might summarize well but forget to extract data or draft the email properly. 
+LATS combines three components:
 
-**The PER solution:**
-1. **Plan:** Break the task into clear sub-tasks (like a recipe)
-2. **Execute:** Handle each sub-task one at a time with focused prompts
-3. **Reflect:** Check if the results actually solve the original goal
+1. **ReAct Loop:** The agent still reasons and acts, but now it does so across multiple branches
+2. **Tree Search:** Maintains a tree of explored states and actions
+3. **Value Function:** Scores each path to determine which branches to explore further
 
-This is like a computational pipeline where each function does one specific job before passing the result to the next. It's easier to understand, debug, and get right.
+**The Algorithm:**
+1. **Selection:** Choose a promising node in the tree (using UCB or similar)
+2. **Expansion:** Generate possible next actions from that node
+3. **Simulation:** Execute the action and observe the result
+4. **Backpropagation:** Update the value of nodes based on the outcome
 
-### **A Practical Example: Market Research Pipeline**
+This is like a chess engine exploring multiple moves ahead, but for language agents solving complex tasks.
 
-Here's how PER breaks down a complex task into sequential steps:
+### **A Practical Example: Complex Coding Task**
 
-**Step 1: Summarize** (Focused Prompt)
-```
-"Summarize the key findings of the following market research report: [text]"
-```
-The model's sole focus is summarization—no distractions.
+Here's how LATS explores multiple solutions for a coding problem:
 
-**Step 2: Extract Trends** (Builds on Step 1)
-```
-"Using this summary, identify the top three emerging trends and extract 
-the specific data points that support each trend: [output from step 1]"
-```
-Now the prompt is more constrained and builds directly on validated output.
+**Task:** "Write a function that finds the longest palindromic substring"
 
-**Step 3: Draft Email** (Uses Step 2's Output)
-```
-"Draft a concise email to the marketing team that outlines these trends 
-and their supporting data: [output from step 2]"
-```
-Each step is simpler, less ambiguous, and more reliable than trying to do everything at once.
+**LATS Exploration:**
+1. **Branch A:** Try dynamic programming approach → score: 0.7 (works but slow)
+2. **Branch B:** Try brute force → score: 0.4 (too slow for large inputs)
+3. **Backtrack to Branch A** → refine with optimizations → score: 0.9
+4. **Branch C:** Try expand-around-centers → score: 0.95 (best!)
 
-### **How It Works:**
+The agent doesn't commit to the first approach—it explores, scores, and picks the best.
 
-Formally:
+### **The LATS Algorithm:**
+
+Formally, LATS maintains a tree where each node represents a state (current code, partial solution, etc.):
 
 $$
-\pi_{plan}, \pi_{exec}, \pi_{reflect}
+\text{Node} = (s, a, Q(s,a), N(s,a))
 $$
 
-### **Plan-Execute-Reflect Flow:**
+where:
+- $s$ = state (current problem state)
+- $a$ = action (next code change or reasoning step)
+- $Q(s,a)$ = value estimate (how good is this path?)
+- $N(s,a)$ = visit count (how many times explored?)
+
+**Selection:** Choose node with highest UCB score:
+$$
+\text{UCB}(s,a) = Q(s,a) + c \sqrt{\frac{\log N(s)}{N(s,a)}}
+$$
+
+**Expansion:** Generate new actions from selected node
+
+**Simulation:** Execute action and observe result
+
+**Backpropagation:** Update $Q(s,a)$ based on outcome
+
+### **LATS Tree Search Flow:**
 
 ```mermaid
 flowchart TD
-    Start([Goal]) --> Planner[Planner LLM<br/>Create Sub-tasks]
-    Planner --> Executor[Executor LLM<br/>Perform Tasks]
-    Executor --> Reflector[Reflector LLM<br/>Critique Results]
-    Reflector --> Check{Goal Satisfied?}
-    Check -->|No| Executor
-    Check -->|Yes| End([Final Output])
+    Start([Problem]) --> Root[Root Node<br/>Initial State]
+    Root --> Branch1[Branch A<br/>Approach 1]
+    Root --> Branch2[Branch B<br/>Approach 2]
+    Root --> Branch3[Branch C<br/>Approach 3]
     
-    style Planner fill:#e1f5ff
-    style Executor fill:#fff4e1
-    style Reflector fill:#f3e5f5
+    Branch1 --> Score1{Score: 0.7}
+    Branch2 --> Score2{Score: 0.4}
+    Branch3 --> Score3{Score: 0.95}
+    
+    Score1 --> Refine1[Refine A]
+    Score2 --> Backtrack[Backtrack]
+    Score3 --> Best[Best Solution]
+    
+    Refine1 --> Score1
+    
+    style Root fill:#e1f5ff
+    style Best fill:#e8f5e9
+    style Backtrack fill:#ffebee
 ```
 
 ### **Implementation:**
 
-LangGraph's StateGraph provides a clean abstraction for PER:
+Here's a simplified LATS implementation:
 
 ```python
-from langgraph.graph import StateGraph, END
-from typing import TypedDict
+from typing import List, Dict, Tuple
+from dataclasses import dataclass
+import math
 
-class AgentState(TypedDict):
-    goal: str
-    plan: list[str]
-    results: dict
-    reflection: str
+@dataclass
+class Node:
+    state: str  # Current problem state
+    action: str  # Action taken to reach this state
+    value: float = 0.0  # Q(s,a)
+    visits: int = 0  # N(s,a)
+    children: List['Node'] = None
 
-def planner(state: AgentState) -> AgentState:
-    """Break goal into sub-tasks"""
-    plan = llm.invoke(f"Create a plan for: {state['goal']}")
-    return {"plan": parse_plan(plan)}
-
-def executor(state: AgentState) -> AgentState:
-    """Execute each task in the plan"""
-    results = {}
-    for task in state['plan']:
-        results[task] = execute_task(task)
-    return {"results": results}
-
-def reflector(state: AgentState) -> AgentState:
-    """Critique results against original goal"""
-    reflection = llm.invoke(
-        f"Goal: {state['goal']}\n"
-        f"Results: {state['results']}\n"
-        "Does this satisfy the goal? What's missing?"
-    )
-    return {"reflection": reflection}
-
-# Build the graph
-workflow = StateGraph(AgentState)
-workflow.add_node("planner", planner)
-workflow.add_node("executor", executor)
-workflow.add_node("reflector", reflector)
-workflow.set_entry_point("planner")
-workflow.add_edge("planner", "executor")
-workflow.add_edge("executor", "reflector")
-workflow.add_conditional_edges("reflector", 
-    lambda x: "executor" if needs_rework(x) else END)
+class LATS:
+    def __init__(self, llm, max_iterations=100, exploration_c=1.41):
+        self.llm = llm
+        self.max_iterations = max_iterations
+        self.c = exploration_c
+        self.root = Node(state="initial", action="start")
+    
+    def ucb_score(self, node: Node, parent_visits: int) -> float:
+        """Upper Confidence Bound for node selection"""
+        if node.visits == 0:
+            return float('inf')
+        exploitation = node.value / node.visits
+        exploration = self.c * math.sqrt(math.log(parent_visits) / node.visits)
+        return exploitation + exploration
+    
+    def select(self, node: Node) -> Node:
+        """Select best child using UCB"""
+        if not node.children:
+            return node
+        parent_visits = sum(c.visits for c in node.children)
+        return max(node.children, key=lambda c: self.ucb_score(c, parent_visits))
+    
+    def expand(self, node: Node) -> List[Node]:
+        """Generate possible next actions"""
+        # Use LLM to generate candidate actions
+        prompt = f"Given this state: {node.state}\nGenerate 3 different approaches to solve this."
+        actions = self.llm.generate_actions(prompt)
+        
+        children = []
+        for action in actions:
+            children.append(Node(
+                state=node.state,
+                action=action,
+                children=[]
+            ))
+        node.children = children
+        return children
+    
+    def simulate(self, node: Node) -> float:
+        """Execute action and get reward"""
+        # Execute the action (e.g., run code, test solution)
+        result = self.execute_action(node.action, node.state)
+        # Score the result (0.0 to 1.0)
+        return self.score_result(result)
+    
+    def backpropagate(self, node: Node, reward: float):
+        """Update value estimates up the tree"""
+        while node:
+            node.visits += 1
+            node.value += reward
+            node = node.parent if hasattr(node, 'parent') else None
+    
+    def search(self, problem: str) -> str:
+        """Main LATS search loop"""
+        self.root.state = problem
+        
+        for _ in range(self.max_iterations):
+            # Selection: traverse to leaf
+            node = self.root
+            while node.children:
+                node = self.select(node)
+            
+            # Expansion: generate children
+            if node.visits == 0:
+                children = self.expand(node)
+                node = children[0] if children else node
+            
+            # Simulation: get reward
+            reward = self.simulate(node)
+            
+            # Backpropagation: update values
+            self.backpropagate(node, reward)
+        
+        # Return best solution
+        best = max(self.root.children, key=lambda c: c.value / c.visits)
+        return best.action
 ```
 
-Modern frameworks like **OpenAI's Swarm**, LangGraph, and Instructor patterns use this.
+### **When to Use LATS:**
+
+* ✅ Complex reasoning tasks (coding, math, planning)
+* ✅ Tasks where first attempt is rarely optimal
+* ✅ When you need to explore multiple solution paths
+* ❌ Simple, linear tasks (use ReAct instead)
+* ❌ When latency is critical (LATS is slower)
 
 ### **Citation:**
 
-*Shinn et al. (2023). "Reflexion: Language Agents with Verbal Reinforcement Learning." [arXiv:2303.11366](https://arxiv.org/abs/2303.11366) — Self-reflection & correction loop. (Enables agents to learn from mistakes and improve over time.)*
+*Zhou, D., et al. (2023/2024). "Language Agent Tree Search (LATS)." [arXiv preprint] — Combines ReAct with Monte Carlo Tree Search for complex reasoning tasks. (Enables backtracking and multi-path exploration.)*
+
+*(Note: Cite specific arXiv number when paper is published.)*
 
 ---
 
 <a id="pattern-3"></a>
-## **Pattern #3 — Tools Are Just Extra Hands**
+## **Pattern #3 — Model Context Protocol (MCP)**
 
-Imagine you're a carpenter with no arms. Someone glues a hammer, a saw, and a drill to long sticks and says "Here, use these."
+Simple "tool calling" is brittle. Every API needs a custom integration. Every data source requires specific code. This creates an **N×M problem**: N agents × M data sources = N×M integrations to maintain.
 
-At first you wave the sticks around like a drunk octopus. After a while you learn exactly when to pick the hammer-stick versus the saw-stick.
+**Model Context Protocol (MCP)** solves this by decoupling the *agent* from the *data source*. Instead of writing a specific tool for every API, the agent speaks **MCP** to any compliant server.
 
-That's what "tool use" is for an AI. The tools are:
+### **The Simple Idea: Universal Protocol**
 
-- Google search
-- a calculator
-- your email inbox
-- a code-running sandbox
-- the mouse and keyboard of your computer
+Think of MCP like USB-C for AI agents:
 
-The agent doesn't have them built in — they're just extra hands it can grab when needed.
+* **Before MCP:** Each device (Google Drive, Slack, PostgreSQL) needs its own custom driver
+* **With MCP:** One protocol works with all devices
 
-The clever part: modern agents don't wait for you to say "use the calculator." They decide themselves, the same way you don't ask permission to pick up a hammer when you see a nail.
+The agent connects to **MCP servers** (like Google Drive, Slack, or a PostgreSQL DB) using a standardized protocol. The server exposes:
+- **Resources:** Data the agent can read (files, messages, database rows)
+- **Tools:** Actions the agent can take (search, create, update)
+- **Prompts:** Pre-built prompt templates for common tasks
 
-**In math-speak:**
+### **Why MCP Matters**
 
-$$
-\arg\max_{a_t \in \{tools\}} \text{usefulness}(a_t | context)
-$$
+**The N×M Problem:**
+- Agent needs Google Drive → write custom integration
+- Agent needs Slack → write custom integration  
+- Agent needs PostgreSQL → write custom integration
+- Result: 3 agents × 3 sources = 9 integrations to maintain
 
-Translation: "Which tool is most useful right now?" The agent picks the best one automatically.
+**The MCP Solution:**
+- Agent speaks MCP → connects to any MCP server
+- Google Drive MCP server → one integration
+- Slack MCP server → one integration
+- PostgreSQL MCP server → one integration
+- Result: 3 agents × 3 sources = 3 server implementations (reusable)
 
-### Tools include:
+### **How MCP Works**
 
-* Web search
-* Code execution
-* Databases
-* Embeddings
-* Email/calendar
-* Vision models
-* Simulators
+MCP uses a **client-server architecture**:
 
-### **Practical Applications:**
+1. **MCP Server:** Exposes resources, tools, and prompts for a data source
+2. **MCP Client:** The agent connects to servers and uses their capabilities
+3. **MCP Protocol:** Standardized JSON-RPC messages for communication
 
-**Information Processing Workflows:**
-- Extract text from a URL → Summarize → Extract entities → Query database → Generate report
+**The Protocol:**
+- `resources/list` - List available resources
+- `resources/read` - Read a resource
+- `tools/list` - List available tools
+- `tools/call` - Execute a tool
+- `prompts/list` - List prompt templates
+- `prompts/get` - Get a prompt template
 
-**Complex Query Answering:**
-- Break down multi-part questions into sequential research steps
-- Example: "What caused the 1929 stock market crash and how did the government respond?"
-  - Step 1: Research causes of the crash
-  - Step 2: Research government policy responses
-  - Step 3: Synthesize into coherent answer
+### **MCP Architecture:**
 
-**Data Extraction and Transformation:**
-- Convert unstructured text (invoices, forms, emails) into structured formats
-- Extract specific fields → Validate → Fix missing/malformed data → Output structured JSON
-
-**Content Generation:**
-- Generate topic ideas → Create outline → Draft content → Review and refine
+```mermaid
+flowchart TD
+    Agent[MCP Client<br/>Agent] --> Protocol[MCP Protocol<br/>JSON-RPC]
+    Protocol --> Server1[Google Drive<br/>MCP Server]
+    Protocol --> Server2[Slack<br/>MCP Server]
+    Protocol --> Server3[PostgreSQL<br/>MCP Server]
+    
+    Server1 --> Drive[Resources<br/>Tools<br/>Prompts]
+    Server2 --> Slack[Resources<br/>Tools<br/>Prompts]
+    Server3 --> DB[Resources<br/>Tools<br/>Prompts]
+    
+    style Agent fill:#e1f5ff
+    style Protocol fill:#fff4e1
+    style Server1 fill:#e8f5e9
+    style Server2 fill:#e8f5e9
+    style Server3 fill:#e8f5e9
+```
 
 ### **Implementation:**
 
-Using Pydantic/Instructor pattern ensures type-safe tool calls:
+Here's how to use MCP with an agent:
 
 ```python
-from pydantic import BaseModel
-from instructor import patch
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
-class SearchTool(BaseModel):
-    """Search the web for information"""
-    query: str
-    max_results: int = 5
-
-class CalculatorTool(BaseModel):
-    """Evaluate a mathematical expression"""
-    expression: str
-
-# Patch the LLM to use structured outputs
-client = patch(ChatOpenAI())
-tools = [SearchTool, CalculatorTool]
-
-# The LLM automatically chooses and calls tools
-response = client.chat.completions.create(
-    model="gpt-4",
-    response_format=SearchTool,  # Enforces schema
-    messages=[{"role": "user", "content": "Find recent papers on agentic AI"}]
+# Connect to an MCP server (e.g., Google Drive)
+server_params = StdioServerParameters(
+    command="npx",
+    args=["-y", "@modelcontextprotocol/server-google-drive"]
 )
 
-# Type-safe tool call
-search_result = response.parsed  # Automatically a SearchTool instance
+async with stdio_client(server_params) as (read, write):
+    async with ClientSession(read, write) as session:
+        # Initialize the connection
+        await session.initialize()
+        
+        # List available resources
+        resources = await session.list_resources()
+        print(f"Available resources: {resources}")
+        
+        # List available tools
+        tools = await session.list_tools()
+        print(f"Available tools: {tools}")
+        
+        # Use a tool (e.g., search files)
+        result = await session.call_tool(
+            "search_files",
+            arguments={"query": "agentic AI", "max_results": 5}
+        )
+        print(f"Search results: {result}")
+        
+        # Read a resource (e.g., a file)
+        file_content = await session.read_resource(
+            "gdrive://file-id-123"
+        )
+        print(f"File content: {file_content}")
 ```
 
-This is crucial for enterprise AI.
+### **MCP Server Example (Google Drive):**
+
+```typescript
+// MCP Server for Google Drive
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { 
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+  ListToolsRequestSchema,
+  CallToolRequestSchema
+} from "@modelcontextprotocol/sdk/types.js";
+
+const server = new Server({
+  name: "google-drive-mcp-server",
+  version: "1.0.0",
+});
+
+// Expose resources (files)
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  const files = await googleDrive.listFiles();
+  return {
+    resources: files.map(file => ({
+      uri: `gdrive://${file.id}`,
+      name: file.name,
+      mimeType: file.mimeType,
+    }))
+  };
+});
+
+// Expose tools (search, create, update)
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "search_files",
+        description: "Search for files in Google Drive",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string" },
+            max_results: { type: "number" }
+          }
+        }
+      },
+      {
+        name: "create_file",
+        description: "Create a new file in Google Drive",
+        inputSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            content: { type: "string" }
+          }
+        }
+      }
+    ]
+  };
+});
+
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "search_files") {
+    const results = await googleDrive.search(request.params.arguments.query);
+    return { content: [{ type: "text", text: JSON.stringify(results) }] };
+  }
+  // ... handle other tools
+});
+```
+
+### **When to Use MCP:**
+
+* ✅ Connecting agents to multiple data sources
+* ✅ Building reusable integrations
+* ✅ Standardizing agent-data interactions
+* ✅ When you need to support many data sources
+* ❌ Simple, single-API integrations (overkill)
+* ❌ When latency is critical (adds protocol overhead)
+
+### **MCP vs. Traditional Tool Calling:**
+
+| Aspect | Traditional Tools | MCP |
+|:---|:---|:---|
+| **Integration** | Custom code per API | Standard protocol |
+| **Maintenance** | N×M integrations | M server implementations |
+| **Reusability** | Low (agent-specific) | High (any MCP client) |
+| **Discovery** | Manual documentation | Protocol-based discovery |
+| **Extensibility** | Hard (code changes) | Easy (new servers) |
 
 ### **Citation:**
 
-*Schick et al. (2023). "Toolformer: Language Models Can Teach Themselves to Use Tools." [arXiv:2302.04761](https://arxiv.org/abs/2302.04761) — Self-supervised tool-use training. (Foundational work on tool learning.)*
+*Anthropic (2024). "Model Context Protocol (MCP)." [Anthropic Documentation](https://modelcontextprotocol.io/) — Standardized protocol for connecting agents to data sources. (Industry standard; see official docs for latest updates.)*
+
+*MCP solves the N×M integration problem by decoupling agents from data sources through a universal protocol.*
+
+### **MCP Use Cases:**
+
+**Multi-Source Data Access:**
+- Connect to Google Drive, Slack, and PostgreSQL in one agent
+- No custom integrations needed—just connect to MCP servers
+
+**Standardized Integrations:**
+- Build once, use everywhere: MCP servers work with any MCP client
+- Example: Google Drive MCP server works with any agent framework
+
+**Dynamic Discovery:**
+- Agents discover available resources, tools, and prompts at runtime
+- No hardcoded API endpoints or schemas
 
 ---
 
-## **Tool Router Pattern (Simpler Alternative to RL-Based Tool Use)**
+<a id="pattern-4"></a>
+<a id="pattern-4"></a>
+## **Pattern #4 — Reflexion: Verbal Reinforcement Learning**
 
-**Note:** Full PPO training on tool policies is rarely used in production (2025). Instead, most teams use a simple **Tool Router**—a lightweight classifier that decides which tool/specialist to call.
+The **Reflexion** framework (Shinn et al., 2023) formalizes self-correction for language agents. Unlike traditional reinforcement learning that uses numerical rewards, Reflexion uses **verbal reinforcement**—storing text summaries of failures and successes.
 
-### **Why Tool Router Instead of RL:**
+### **The Simple Idea: Language-Based Learning**
 
-* **Simplicity:** Easy to implement and debug
-* **Fast:** No training required, works immediately
-* **Production-Ready:** Used in 90%+ of deployments
-* **Effective:** 85-90% accuracy for tool selection
+**Why Verbal Reinforcement Works:**
+- LLMs think in language, not numbers
+- A text summary like "Failed because API returned 404—need to check if resource exists first" is more informative than a reward of -0.5
+- The agent can read its own failure logs and learn from them
+
+**The Reflexion Loop:**
+1. **Act:** Agent attempts a task
+2. **Observe:** Get result (success or failure)
+3. **Reflect:** Generate verbal summary of what went wrong/right
+4. **Store:** Save reflection to memory
+5. **Retry:** Use reflection to improve next attempt
+
+### **How Reflexion Works:**
+
+The agent maintains a **reflection memory** that stores:
+- What action was taken
+- What the outcome was
+- Why it succeeded or failed (verbal explanation)
+- What to do differently next time
+
+**Formally:**
+$$
+\text{Reflection}_t = \text{LLM}(\text{Action}_t, \text{Observation}_t, \text{Previous Reflections})
+$$
+
+The reflection is then used to guide future actions:
+$$
+\text{Action}_{t+1} = \text{LLM}(\text{Goal}, \text{Reflection}_t, \text{Context})
+$$
 
 ### **Implementation:**
+
+```python
+from typing import List, Dict
+from dataclasses import dataclass
+
+@dataclass
+class Reflection:
+    action: str
+    outcome: str
+    success: bool
+    explanation: str  # Verbal summary of why it worked/failed
+    next_steps: str   # What to do differently
+
+class ReflexionAgent:
+    def __init__(self, llm):
+        self.llm = llm
+        self.reflection_memory: List[Reflection] = []
+    
+    def reflect(self, action: str, outcome: str, success: bool) -> Reflection:
+        """Generate verbal reflection on action outcome"""
+        prompt = f"""
+        Action taken: {action}
+        Outcome: {outcome}
+        Success: {success}
+        
+        Previous reflections:
+        {self._format_reflections()}
+        
+        Explain why this succeeded or failed, and what to do differently next time.
+        """
+        
+        response = self.llm.generate(prompt)
+        reflection = Reflection(
+            action=action,
+            outcome=outcome,
+            success=success,
+            explanation=response['explanation'],
+            next_steps=response['next_steps']
+        )
+        
+        self.reflection_memory.append(reflection)
+        return reflection
+    
+    def act(self, goal: str) -> str:
+        """Take action informed by previous reflections"""
+        reflection_context = self._format_reflections()
+        
+        prompt = f"""
+        Goal: {goal}
+        
+        Previous attempts and reflections:
+        {reflection_context}
+        
+        Based on these reflections, what action should I take next?
+        """
+        
+        action = self.llm.generate(prompt)
+        return action
+    
+    def _format_reflections(self) -> str:
+        """Format reflection memory for prompt"""
+        return "\n".join([
+            f"- {r.action}: {r.explanation} → {r.next_steps}"
+            for r in self.reflection_memory[-5:]  # Last 5 reflections
+        ])
+```
+
+### **When to Use Reflexion:**
+
+* ✅ Tasks where failures provide learning opportunities
+* ✅ Complex tasks requiring multiple attempts
+* ✅ When you need explainable self-correction
+* ✅ Long-running agents that improve over time
+* ❌ Simple, one-shot tasks (overkill)
+* ❌ When numerical rewards are sufficient (use RL instead)
+
+### **Citation:**
+
+*Shinn, N., et al. (2023). "Reflexion: Language Agents with Verbal Reinforcement Learning." [arXiv:2303.11366](https://arxiv.org/abs/2303.11366) — Self-reflection & correction loop using verbal reinforcement. (Enables agents to learn from mistakes through language-based summaries rather than numerical rewards.)*
 
 ```python
 from sklearn.ensemble import RandomForestClassifier
@@ -589,7 +905,8 @@ class ToolRouter:
 ---
 
 <a id="pattern-4"></a>
-## **Pattern #4 — Self-Consistency Sampling**
+<a id="pattern-5"></a>
+## **Pattern #5 — Self-Consistency Sampling**
 
 You know how when you're not sure about something, you ask multiple people and go with what most of them say? That's this pattern.
 
@@ -648,7 +965,8 @@ Used in:
 ---
 
 <a id="pattern-5"></a>
-## **Pattern #5 — Graph-of-Thoughts (GoT)**
+<a id="pattern-6"></a>
+## **Pattern #6 — Graph-of-Thoughts (GoT)**
 
 You know how when you're brainstorming, you don't think in a straight line? You have one idea, it branches into three, two of those merge back together, you cross out the bad one, and keep going.
 
@@ -730,7 +1048,8 @@ Modern agent frameworks now implement explicit DAG-based reasoning.
 ---
 
 <a id="pattern-6"></a>
-## **Pattern #6 — Search-Augmented Agents (When Thoughts Become a Tree)**
+<a id="pattern-7"></a>
+## **Pattern #7 — Search-Augmented Agents (When Thoughts Become a Tree)**
 
 Instead of single ReAct trajectories or self-consistency voting, modern agents use **systematic search** over the space of possible reasoning paths.
 
