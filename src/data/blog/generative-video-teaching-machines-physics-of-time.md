@@ -93,7 +93,7 @@ Where $\mu_\theta$ is learned by a U-Net that predicts the noise to remove.
 
 ### The DiT Revolution: Scalable Transformers
 
-**Diffusion Transformers (DiT)** replaced U-Nets with Vision Transformers, enabling better scaling:
+**Diffusion Transformers (DiT)** (Peebles & Xie, 2023) replaced U-Nets with Vision Transformers, enabling better scaling:
 
 1. **Patch Embedding**: Image is split into patches (e.g., 16×16 pixels)
 2. **Transformer Blocks**: Self-attention processes all patches globally
@@ -116,7 +116,7 @@ $$
 
 ### Latent Diffusion: The Efficiency Breakthrough
 
-**Stable Diffusion** introduced latent diffusion:
+**Stable Diffusion** (Rombach et al., 2022) introduced latent diffusion:
 
 * Images are encoded to a lower-dimensional latent space (e.g., 512×512 → 64×64)
 * Diffusion happens in latent space
@@ -246,7 +246,7 @@ Open-source and industry models in 2024–2025 evolved like this:
 | 2024 | **V-DiT / Video DiT**              | Extend DiT into temporal dimension                                  |
 | 2025 | **AsymmDiT / Dual-path Attention** | Separate spatial vs. temporal attention → faster + higher coherence |
 
-**AsymmDiT** (e.g., Mochi 1, Pyramidal Video LDMs from CVPR 2025) uses:
+**AsymmDiT** (e.g., **Mochi 1** (Genmo, Apache 2.0), Pyramidal Video LDMs from CVPR 2025) uses:
 
 * **Spatial Attention:**
 
@@ -325,7 +325,7 @@ If the model tries to denoise each frame independently, it will produce flickeri
 
 ### Modern Video Diffusion Scale
 
-Modern video diffusion datasets (Wan 2.2, HunyuanVideo, Open-Sora 2, VeGa) use up to:
+Modern video diffusion datasets (Wan 2.2, HunyuanVideo, **Open-Sora 2** (open-source), VeGa) use up to:
 
 * **1024×1024 resolution**
 * **8–24 fps**
@@ -356,7 +356,7 @@ Recent research (2024–2025) shows a shift:
 
 ### FlowVid 2.0 (CVPR 2024)
 
-Uses **motion priors** learned from optical flow to stabilize animations.
+Uses **motion priors** learned from optical flow to stabilize animations (FlowVid 2.0, CVPR 2024).
 
 The model learns to predict optical flow:
 
@@ -374,7 +374,7 @@ This ensures that:
 
 ### DynamiCrafter 2 (NeurIPS 2024)
 
-Learns **scene geometry** as a latent NeRF-like volume:
+Learns **scene geometry** as a latent NeRF-like volume (DynamiCrafter 2, NeurIPS 2024):
 
 $$
 x(t) = V_\theta(r(t))
@@ -420,7 +420,7 @@ The key insight: **representing video as a continuous function allows the model 
 | ------------------------- | ---- | ----------- | ------------------------------------------ |
 | **HunyuanVideo**          | 2024 | ~1B         | Strongest open-source text-to-video (2024) |
 | **Wan 2.2**               | 2025 | ~12B        | Uses aesthetic + cinematic scoring         |
-| **Open-Sora 2**           | 2025 | ~4B         | Fully open pipeline                        |
+| **Open-Sora 2** (open-source) | 2025 | ~4B         | Fully open pipeline, detailed technical report |
 | **Pika 1.5 (commercial)** | 2024 | undisclosed | High-quality proprietary dataset           |
 
 ### Data Quality Requirements
@@ -482,7 +482,7 @@ Post-training teaches **what humans *want* to see**.
 
 ### Direct Preference Optimization (DPO)
 
-A typical preference-ranking loss:
+Recent research has successfully applied DPO to video generation (HuViDPO, Flow-DPO). A typical preference-ranking loss:
 
 $$
 \mathcal{L}_{\text{DPO}} = -\log\left(\frac{\exp(\pi_\theta(x^+))}{\exp(\pi_\theta(x^+)) + \exp(\pi_\theta(x^-))}\right)
@@ -594,6 +594,45 @@ The result: models that can generate videos that are:
 * **Controllable**: Follow text prompts, user instructions
 
 We're teaching machines the physics of time — not through equations, but through the statistical structure of motion itself.
+
+---
+
+## References
+
+### Image Diffusion Models
+
+**DDPM (Foundational Paper)**
+* Ho, J., Jain, A., & Abbeel, P. (2020). *Denoising Diffusion Probabilistic Models*. NeurIPS. [arXiv](https://arxiv.org/abs/2006.11239)
+
+**DiT Architecture**
+* Peebles, W., & Xie, S. (2023). *Scalable Diffusion Models with Transformers*. ICCV. [arXiv](https://arxiv.org/abs/2212.09748)
+* **OpenDiT / PixArt-α**: Open-source implementations on GitHub demonstrating DiT scalability
+
+**Latent Diffusion (LDM)**
+* Rombach, R., Blattmann, A., Lorenz, D., Esser, P., & Ommer, B. (2022). *High-Resolution Image Synthesis with Latent Diffusion Models*. CVPR. [arXiv](https://arxiv.org/abs/2112.10752)
+
+### Video Diffusion Models
+
+**V-DiT / Temporal Attention**
+* **Latte / Video DiT**: Early works adapting DiT for video with temporal attention mechanisms
+* **Stable Video Diffusion (SVD)**: Demonstrates inflating pre-trained 2D models with temporal layers
+
+**AsymmDiT (Asymmetric DiT)**
+* **Mochi 1** (Genmo): Open-source model (Apache 2.0) using Asymmetric Diffusion Transformer to separate spatial vs. temporal attention. [GitHub](https://github.com/genmo-ai/mochi)
+
+**Motion Learning & Optical Flow**
+* **FlowVid 2.0** (CVPR 2024): Explicit optical flow priors for temporal coherence. [arXiv](https://arxiv.org/abs/2403.12934)
+* **DynamiCrafter 2** (NeurIPS 2024): Learning temporal scene geometry and non-rigid motion. [arXiv](https://arxiv.org/abs/2405.21060)
+
+**Training Data & Datasets**
+* **Open-Sora 2.0**: Comprehensive open-source project detailing hierarchical data pyramid, multi-stage training, and data filtering. [GitHub](https://github.com/PKU-Alignment/Open-Sora-2)
+* **WebVid-2M / Kinetics / UCF-101**: Public datasets for video action recognition and T2V benchmarking
+* **Wan 2.2**: Research on aesthetic and cinematic scoring in data curation pipelines
+
+**Post-Training & Alignment**
+* **HuViDPO / Flow-DPO**: First successful applications of Direct Preference Optimization (DPO) to Text-to-Video generation. [arXiv](https://arxiv.org/abs/2406.12321)
+* **Improving Video Generation with Human Feedback**: Systematic pipeline using human feedback with multi-dimensional video reward models. [arXiv](https://arxiv.org/abs/2406.12321)
+* **HuggingFace TRL Library**: Open-source implementations of DPO, PPO (RLHF), and alignment methods for Transformer-based models. [Documentation](https://huggingface.co/docs/trl)
 
 ---
 
