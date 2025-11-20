@@ -11,6 +11,11 @@ tags:
   - productivity
   - practice
 description: A structured articulation and pacing warm-up designed to help technologists speak with clarity and confidence in high-stakes meetings.
+track: Fundamentals
+difficulty: Beginner
+interview_relevance:
+  - Behavioral
+estimated_read_time: 5
 ---
 
 # Tongue Twister Practice Sheet — Clarity and Fluency for Tech Talks

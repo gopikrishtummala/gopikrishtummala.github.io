@@ -14,6 +14,12 @@ tags:
   - machine-learning
   - artificial-intelligence
 description: 'Part 5 of a comprehensive guide to agentic AI design patterns. Covers 2025 trends, cost optimization, case studies, production checklist, and the state of the field.'
+track: Agentic AI
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - ML-Infra
+estimated_read_time: 35
 ---
 
 *By Gopi Krishna Tummala*

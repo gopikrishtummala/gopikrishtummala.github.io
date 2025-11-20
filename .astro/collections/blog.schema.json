@@ -87,6 +87,42 @@
         "timezone": {
           "type": "string"
         },
+        "track": {
+          "type": "string",
+          "enum": [
+            "Fundamentals",
+            "GenAI Systems",
+            "Robotics",
+            "Agentic AI"
+          ]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "Beginner",
+            "Intermediate",
+            "Advanced"
+          ]
+        },
+        "interview_relevance": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Theory",
+              "System Design",
+              "Coding",
+              "Behavioral",
+              "ML-Infra"
+            ]
+          }
+        },
+        "related_paper": {
+          "type": "string"
+        },
+        "estimated_read_time": {
+          "type": "number"
+        },
         "$schema": {
           "type": "string"
         }

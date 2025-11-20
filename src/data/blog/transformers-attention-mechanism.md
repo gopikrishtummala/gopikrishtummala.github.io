@@ -12,6 +12,11 @@ tags:
   - neural-networks
   - nlp
 description: An intuitive introduction to the Transformer architecture — from the attention mechanism to self-attention and cross-attention, using language translation as a concrete example.
+track: Fundamentals
+difficulty: Intermediate
+interview_relevance:
+  - Theory
+estimated_read_time: 20
 ---
 
 Transformers underpin modern AI — GPT, BERT, ChatGPT, AlphaFold.  

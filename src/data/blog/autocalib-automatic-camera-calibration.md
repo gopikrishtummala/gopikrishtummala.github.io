@@ -11,6 +11,13 @@ tags:
   - computer-vision
   - publications
 description: How we used deep learning to automatically calibrate traffic cameras by observing vehicle motion—work that won Best Paper Award at ACM BuildSys 2017.
+track: Robotics
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - Theory
+related_paper: "AutoCalib: Automatic Traffic Camera Calibration at Scale (ACM BuildSys 2017 - Best Paper Award)"
+estimated_read_time: 15
 ---
 
 Traffic cameras are everywhere—watching intersections, monitoring highways, helping manage city traffic. But there's a hidden problem: most aren't calibrated. Without knowing each camera's precise mounting height, tilt, and orientation, you can't convert pixels into real-world measurements like vehicle speeds or distances.
@@ -67,4 +74,4 @@ After all, seeing cars drive past a camera is mundane. But those motions hide ge
 
 ---
 
-*Published at ACM BuildSys 2017 (Best Paper & Best Demo Awards), ACM TOSN 2018, and US Patent 10,580,164. Full paper: [AutoCalib: Automatic Traffic Camera Calibration at Scale](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/09/AutoCalib.pdf)*
+*Published at ACM BuildSys 2017 (Best Paper & Best Demo Awards), ACM TOSN 2018, and US Patent 10,580,164. This work was part of the PhD Dissertation: "Automatic Camera Calibration Techniques for Collaborative Vehicular Applications." Full paper: [AutoCalib: Automatic Traffic Camera Calibration at Scale](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/09/AutoCalib.pdf)*

@@ -14,6 +14,12 @@ tags:
   - machine-learning
   - artificial-intelligence
 description: 'Part 1 of a comprehensive guide to agentic AI design patterns. Covers the fundamentals: ReAct loops, planning, tool use, self-consistency, and graph-based reasoning.'
+track: Agentic AI
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - Theory
+estimated_read_time: 45
 ---
 
 *By Gopi Krishna Tummala*

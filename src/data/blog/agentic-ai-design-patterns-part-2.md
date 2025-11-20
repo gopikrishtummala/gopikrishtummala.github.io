@@ -14,6 +14,12 @@ tags:
   - machine-learning
   - artificial-intelligence
 description: 'Part 2 of a comprehensive guide to agentic AI design patterns. Covers production-ready patterns: memory management, supervisor/orchestrator, parallel tool execution, and hidden reasoning.'
+track: Agentic AI
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - ML-Infra
+estimated_read_time: 40
 ---
 
 *By Gopi Krishna Tummala*

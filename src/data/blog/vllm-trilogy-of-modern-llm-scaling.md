@@ -12,6 +12,12 @@ tags:
   - inference
   - optimization
 description: How PagedAttention, Continuous Batching, Speculative Decoding, and Quantization unlock lightning-fast, reliable large language model serving.
+track: GenAI Systems
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - ML-Infra
+estimated_read_time: 30
 ---
 
 # vLLM: The Magic Behind Super-Fast AI Chatbots ⚡️

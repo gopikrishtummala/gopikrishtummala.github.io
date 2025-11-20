@@ -14,6 +14,12 @@ tags:
   - machine-learning
   - artificial-intelligence
 description: 'Part 3 of a comprehensive guide to agentic AI design patterns. Covers specialized patterns: embodied agents, 3D scene understanding, imagination loops, multi-agent societies, error recovery, and self-debugging.'
+track: Agentic AI
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - Theory
+estimated_read_time: 50
 ---
 
 *By Gopi Krishna Tummala*

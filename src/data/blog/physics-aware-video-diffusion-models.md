@@ -15,6 +15,12 @@ tags:
   - deep-learning
   - robotics
 description: 'A deep dive into physics-aware video diffusion models: how researchers inject physical constraints into generative models, the three leading technical approaches, and their practical impact on robotics and scientific simulation.'
+track: GenAI Systems
+difficulty: Advanced
+interview_relevance:
+  - Theory
+  - System Design
+estimated_read_time: 35
 ---
 
 *By Gopi Krishna Tummala*

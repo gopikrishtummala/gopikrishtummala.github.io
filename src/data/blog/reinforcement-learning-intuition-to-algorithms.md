@@ -12,6 +12,11 @@ tags:
   - optimization
   - math
 description: A narrative-first walkthrough of reinforcement learning, starting with everyday intuition and ending with the math behind Q-learning and DQN.
+track: Fundamentals
+difficulty: Advanced
+interview_relevance:
+  - Theory
+estimated_read_time: 35
 ---
 
 # Reinforcement Learning — From Intuition to Algorithms

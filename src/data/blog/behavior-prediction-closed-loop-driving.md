@@ -12,6 +12,13 @@ tags:
   - prediction
   - research
 description: Reflections on building production-grade behavior prediction systems at Zoox and Qualcomm — and why closed-loop reasoning is the bridge between perception and planning.
+track: Robotics
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - Theory
+related_paper: "PhD Dissertation: Automatic Camera Calibration Techniques for Collaborative Vehicular Applications"
+estimated_read_time: 20
 ---
 
 When you work in autonomous driving long enough, you begin to realize that predicting behavior is far more than just a module in the autonomy stack. It's the quiet foundation that underpins everything from perception to planning, all the way down to decision-making and trust. But what does it really mean to predict the future when you're driving? It's about understanding not just where objects are but why they might be moving, what they intend to do, and how you can reason about these actions in a world full of uncertainty.

@@ -12,6 +12,12 @@ tags:
   - robotics
   - computer-vision
 description: A clear introduction to diffusion and guided diffusion — how a simple physical process became a foundation for modern generative AI, from Stable Diffusion to robotics and protein design.
+track: GenAI Systems
+difficulty: Intermediate
+interview_relevance:
+  - Theory
+  - System Design
+estimated_read_time: 28
 ---
 
 ## 1. Diffusion in Nature

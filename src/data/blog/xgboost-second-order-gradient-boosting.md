@@ -12,6 +12,11 @@ tags:
   - tree-models
   - optimization
 description: A deep dive into XGBoost — how second-order Taylor approximations and sophisticated regularization make it the dominant algorithm for structured data, bridging mathematical rigor with system engineering excellence.
+track: Fundamentals
+difficulty: Advanced
+interview_relevance:
+  - Theory
+estimated_read_time: 25
 ---
 
 ## 1. Introduction: Why XGBoost Still Matters

@@ -12,6 +12,12 @@ tags:
   - systems
   - performance
 description: Why modern AI teams are handcrafting GPU kernels—from FlashAttention to TPU Pallas code—and how smarter tooling is making silicon-level tuning accessible.
+track: GenAI Systems
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - ML-Infra
+estimated_read_time: 25
 ---
 
 Modern AI looks like software, but its limits are set by physics. Today’s breakthrough models are powered by GPUs and TPUs whose behavior is as finicky as a particle accelerator. This chapter explains, in plain language, why an ever-growing group of developers is abandoning “perfectly good” library kernels and diving headfirst into handcrafted GPU code.

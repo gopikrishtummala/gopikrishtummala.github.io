@@ -14,6 +14,12 @@ tags:
   - machine-learning
   - artificial-intelligence
 description: 'Part 4 of a comprehensive guide to agentic AI design patterns. Covers common failure modes, safety mechanisms, verifiable pipelines, and how to build reliable production systems.'
+track: Agentic AI
+difficulty: Advanced
+interview_relevance:
+  - System Design
+  - ML-Infra
+estimated_read_time: 30
 ---
 
 *By Gopi Krishna Tummala*

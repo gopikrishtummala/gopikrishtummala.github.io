@@ -12,6 +12,12 @@ tags:
   - deep-learning
   - large-language-models
 description: A high level view on how modern vision-language models connect pixels and prose, from CLIP and BLIP to Flamingo, MiniGPT-4, Kosmos, and Gemini.
+track: GenAI Systems
+difficulty: Intermediate
+interview_relevance:
+  - Theory
+  - System Design
+estimated_read_time: 22
 ---
 
 # When AI Sees and Speaks: The Rise of Vision-Language Models

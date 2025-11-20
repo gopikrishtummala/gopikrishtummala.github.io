@@ -12,6 +12,11 @@ tags:
   - neural-networks
   - computer-vision
 description: An intuitive introduction to Variational Autoencoders — how compressing data into probabilistic codes enables machines to generate realistic images, sounds, and structures.
+track: Fundamentals
+difficulty: Intermediate
+interview_relevance:
+  - Theory
+estimated_read_time: 30
 ---
 
 ## 1. From Autoencoders to Generation

@@ -16,6 +16,12 @@ tags:
   - ray
   - deepspeed
 description: A reader-friendly guide to scaling AI models beyond the data pipeline—from training loops and distributed frameworks to checkpoints, mixed precision, and fault tolerance.
+track: GenAI Systems
+difficulty: Advanced
+interview_relevance:
+  - ML-Infra
+  - System Design
+estimated_read_time: 30
 ---
 
 *We explore Part I in depth in [Datasets & Dataloaders — The Hidden Engine of AI, Part I](/blog/datasets-and-dataloaders/). The quick recap below sets the stage before we dive into training systems and resilience. Tools like **Hugging Face Accelerate** quietly connect these layers—offering a simple interface that turns local PyTorch code into scalable, fault-tolerant training across GPUs, TPUs, or cloud clusters.
