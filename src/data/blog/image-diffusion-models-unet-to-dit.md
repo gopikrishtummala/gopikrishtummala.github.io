@@ -32,9 +32,11 @@ estimated_read_time: 15
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
     <a href="/posts/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 2: Image Diffusion</a>
-    <a href="/posts/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Video Fundamentals</a>
-    <a href="/posts/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Pre-Training & Post-Training</a>
-    <a href="/posts/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Modern Models & Motion</a>
+    <a href="/posts/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
+    <a href="/posts/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Fundamentals</a>
+    <a href="/posts/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Pre-Training & Post-Training</a>
+    <a href="/posts/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Action</a>
+    <a href="/posts/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: Modern Models & Motion</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 2: Image Diffusion Models</strong> — From U-Net to DiT</div>
 </div>
@@ -71,11 +73,32 @@ Diffusion models revolutionized image generation by learning to reverse a noise 
 <a id="unet-era"></a>
 ### The U-Net Era: Convolutional Foundations
 
-Early diffusion models like **Stable Diffusion** used U-Net architectures:
+Early diffusion models like **DDPM** and **Stable Diffusion** used U-Net architectures. But **why** is the U-Net architecture ideal for denoising?
 
-* **Encoder-decoder structure**: Compress images to latent space, then denoise
-* **Convolutional layers**: Local feature extraction
-* **Skip connections**: Preserve spatial details during denoising
+#### Why U-Net for Denoising?
+
+Denoising requires solving a **multiscale problem**:
+
+1. **Global Structure Recognition** (Encoder): The model must understand the high-level content — "Is this a cat or a car?" This requires **compression** through downsampling layers to capture semantic structure.
+
+2. **Fine Detail Reconstruction** (Decoder + Skip Connections): The model must remove noise pixel-by-pixel while preserving sharp edges and textures. This requires **high-resolution detail** that would be lost during compression.
+
+**The U-Net Solution:**
+
+* **Encoder (Downsampling Path)**: Compresses the image through convolutional layers, capturing global structure and context. Think of it as "zooming out" to see the big picture.
+
+* **Decoder (Upsampling Path)**: Reconstructs the image at full resolution, using the learned global structure to guide denoising.
+
+* **Skip Connections**: These are the critical innovation — they carry fine-grained details directly from encoder to decoder, bypassing the compression bottleneck. Like a "highway" that preserves pixel-level information.
+
+**Visual Analogy for Skip Connections:**
+
+Imagine restoring a damaged painting:
+- The **encoder** is like stepping back to see the overall composition (global structure)
+- The **decoder** is like zooming in to fix individual brushstrokes (local details)
+- **Skip connections** are like having a reference photo at full resolution — you can always check the original fine details without losing them through compression
+
+Without skip connections, the network would lose high-frequency details during compression. Without downsampling, it couldn't capture the semantic content needed to guide denoising.
 
 The forward diffusion process:
 
@@ -89,7 +112,11 @@ $$
 p_\theta(x_{t-1}|x_t) = \mathcal{N}\big(\mu_\theta(x_t,t), \Sigma_t\big)
 $$
 
-Where $\mu_\theta$ is learned by a U-Net that predicts the noise to remove.
+Where $\mu_\theta$ is learned by a U-Net that predicts the noise to remove using the loss function:
+
+$$
+\mathcal{L} = \mathbb{E}_{x_0, \epsilon, t} \left[ \| \epsilon - \epsilon_\theta(x_t, t) \|^2 \right]
+$$
 
 <a id="dit-revolution"></a>
 ### The DiT Revolution: Scalable Transformers
@@ -105,6 +132,21 @@ The key advantage: **global receptive field** from the start, rather than buildi
 $$
 \text{Attention}(Q,K,V) = \text{softmax}\Big( \frac{QK^\top}{\sqrt{d}} \Big)V
 $$
+
+#### Why Transformers Scale Better: Resolution and Computation
+
+Transformers excel at high-resolution images ($1024 \times 1024$ and up) where U-Nets struggle:
+
+**The Scaling Problem:**
+* **U-Nets**: Computation scales with image size through stacked convolutions. For $1024 \times 1024$ images, you need many layers to build a global receptive field, making training and inference expensive.
+* **Transformers**: Computation scales more predictably. Self-attention gives every patch access to every other patch in a single layer, regardless of image size.
+
+**Resolution Advantage:**
+* At $512 \times 512$: U-Nets work well, but Transformers are competitive
+* At $1024 \times 1024$: Transformers become significantly more efficient
+* At $2048 \times 2048$: Transformers are the clear choice — U-Nets become computationally prohibitive
+
+This is why modern high-resolution image generation (SDXL, Imagen) uses Transformer-based architectures. The global receptive field isn't just a nice-to-have — it's essential for scaling to production-quality resolutions.
 
 <a id="architecture-evolution"></a>
 ### Image Diffusion Architecture Evolution
@@ -126,6 +168,24 @@ $$
 * Decoder reconstructs high-resolution images
 
 This reduces compute by ~16× while maintaining quality.
+
+#### Latent Diffusion as a System Design Pattern
+
+**Interview Question:** *"How do you make Stable Diffusion fast on consumer hardware?"*
+
+**Answer: Latent Diffusion (LDM).**
+
+This is a critical **System Design** pattern for production GenAI systems:
+
+1. **Problem**: Pixel-space diffusion on $512 \times 512$ images requires massive compute — impractical for consumer GPUs.
+
+2. **Solution**: Compress images to latent space ($64 \times 64$) using a pre-trained VAE encoder, run diffusion in this compressed space, then decode back to pixels.
+
+3. **Tradeoff**: Slight quality loss from compression, but massive speedup (16×) makes it production-viable.
+
+4. **Production Impact**: This is why Stable Diffusion runs on consumer GPUs while pixel-space models require data center infrastructure.
+
+**Key Insight**: The VAE encoder/decoder learns a "visual grammar" — it compresses images into a space that preserves semantic information while discarding pixel-level redundancy. Diffusion in this compressed space is both faster and often produces better results because the model focuses on structure rather than noise.
 
 <a id="generation-pipeline"></a>
 ### Image Generation Pipeline
@@ -155,10 +215,10 @@ The result: high-quality images from text prompts, with fine-grained control thr
 
 ## Further Reading
 
-* **Diffusion Models Series Part 1**: [From Molecules to Machines](/posts/diffusion-from-molecules-to-machines)
-* **Part 3**: [Video Diffusion Fundamentals](/posts/video-diffusion-fundamentals)
+* **Part 1**: [From Molecules to Machines](/posts/diffusion-from-molecules-to-machines)
+* **Part 3**: [Sampling & Guidance](/posts/sampling-guidance-diffusion-models)
 
 ---
 
-*This is Part 2 of the Diffusion Models Series. Part 1 covered the foundations of diffusion models. Part 3 will explore video diffusion fundamentals.*
+*This is Part 2 of the Diffusion Models Series. Part 1 covered the foundations of diffusion models. Part 3 will explore sampling and guidance techniques.*
 

@@ -32,11 +32,13 @@ estimated_read_time: 18
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
     <a href="/posts/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Image Diffusion</a>
-    <a href="/posts/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 3: Video Fundamentals</a>
-    <a href="/posts/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Pre-Training & Post-Training</a>
-    <a href="/posts/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Modern Models & Motion</a>
+    <a href="/posts/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
+    <a href="/posts/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 4: Video Fundamentals</a>
+    <a href="/posts/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Pre-Training & Post-Training</a>
+    <a href="/posts/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Action</a>
+    <a href="/posts/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: Modern Models & Motion</a>
   </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 3: Video Diffusion Fundamentals</strong> — The temporal challenge</div>
+  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 4: Video Diffusion Fundamentals</strong> — The temporal challenge</div>
 </div>
 
 ---
@@ -286,10 +288,10 @@ Training on billions of such clips requires:
 
 ## Further Reading
 
-* **Part 2**: [Image Diffusion Models](/posts/image-diffusion-models-unet-to-dit)
-* **Part 4**: [Pre-Training & Post-Training](/posts/pre-training-post-training-video-diffusion)
+* **Part 3**: [Sampling & Guidance](/posts/sampling-guidance-diffusion-models)
+* **Part 5**: [Pre-Training & Post-Training](/posts/pre-training-post-training-video-diffusion)
 
 ---
 
-*This is Part 3 of the Diffusion Models Series. Part 2 covered image diffusion models. Part 4 will explore pre-training and post-training pipelines.*
+*This is Part 4 of the Diffusion Models Series. Part 3 covered sampling and guidance. Part 5 will explore pre-training and post-training pipelines.*
 

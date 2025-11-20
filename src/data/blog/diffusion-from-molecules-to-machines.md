@@ -29,9 +29,11 @@ estimated_read_time: 28
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 1: Foundations</a>
     <a href="/posts/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Image Diffusion</a>
-    <a href="/posts/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Video Fundamentals</a>
-    <a href="/posts/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Pre-Training & Post-Training</a>
-    <a href="/posts/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Modern Models & Motion</a>
+    <a href="/posts/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
+    <a href="/posts/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Fundamentals</a>
+    <a href="/posts/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Pre-Training & Post-Training</a>
+    <a href="/posts/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Action</a>
+    <a href="/posts/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: Modern Models & Motion</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 1: From Molecules to Machines</strong> — Foundations of diffusion models</div>
 </div>
@@ -106,6 +108,28 @@ Here $x_0$ is the original data and $x_t$ is the noisy version after $t$ steps.
 The neural network acts like a digital restorer, estimating added noise and subtracting it to recover the original.  
 Like enhancing a blurry crime photo, it learns to separate distortion from true structure.  
 Over 20–1000 steps, random noise is transformed into a realistic sample.
+
+#### The Loss Function: What the Model Actually Learns
+
+The core objective is deceptively simple: **the model learns to predict the noise that was added**.
+
+During training, we:
+1. Take a real image $x_0$
+2. Add noise $\epsilon$ to get $x_t$
+3. Train the model $\epsilon_\theta$ to predict that noise
+
+The loss function is:
+
+$$
+\mathcal{L} = \mathbb{E}_{x_0, \epsilon, t} \left[ \| \epsilon - \epsilon_\theta(x_t, t) \|^2 \right]
+$$
+
+Where:
+* $\epsilon$ is the **actual noise** that was added
+* $\epsilon_\theta(x_t, t)$ is the **predicted noise** by the model
+* The model minimizes the squared difference between them
+
+This is the fundamental learning objective: **minimize the difference between predicted and actual noise**. Once the model can accurately predict noise at any noise level, it can reverse the diffusion process step-by-step to generate new samples.
 
 Conceptually:  
 > **Forward diffusion destroys information; reverse diffusion reconstructs it.**
