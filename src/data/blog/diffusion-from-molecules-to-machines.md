@@ -20,6 +20,21 @@ interview_relevance:
 estimated_read_time: 28
 ---
 
+*By Gopi Krishna Tummala*
+
+---
+
+<div class="series-nav" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series</div>
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+    <a href="/posts/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 1: From Molecules to Machines</a>
+    <a href="/posts/generative-video-teaching-machines-physics-of-time" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Generative Video</a>
+  </div>
+  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 1: From Molecules to Machines</strong> — Foundations of diffusion models</div>
+</div>
+
+---
+
 ## 1. Diffusion in Nature
 
 When you drop a bit of ink in water, the color spreads gradually until it looks uniform.  
