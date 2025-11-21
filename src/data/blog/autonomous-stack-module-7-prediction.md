@@ -11,8 +11,8 @@ tags:
   - robotics
   - prediction
   - machine-learning
-  - zoox
-description: 'The hardest problem in AV: predicting human irrationality. Covers intent prediction, trajectory forecasting, interaction-aware prediction, and closed-loop reasoning from production experience at Zoox and Qualcomm.'
+  - autonomous-vehicles
+description: 'The hardest problem in AV: predicting human irrationality. Covers intent prediction, trajectory forecasting, interaction-aware prediction, and closed-loop reasoning from production experience in autonomous vehicle systems.'
 track: Robotics
 difficulty: Advanced
 interview_relevance:
@@ -26,7 +26,7 @@ estimated_read_time: 30
 
 ---
 
-<div class="series-nav" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+<div class="series-nav" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">The Ghost in the Machine — Building an Autonomous Stack</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Architecture</a>
@@ -101,7 +101,7 @@ This is the **prediction problem** in a nutshell: predicting human irrationality
 
 Behavior prediction isn't a simple forecasting task. It's an art that involves understanding human behavior, anticipating movement, and managing the inherent uncertainty in a world where no one follows the same rules.
 
-When I worked on behavior prediction at **Qualcomm** (2018-2022) and **Zoox** (2022-2024), I saw firsthand how complex this challenge could get. Prediction in autonomous vehicles involves far more than just forecasting where another car will be in three seconds. It's about understanding:
+Based on production experience building behavior prediction systems, I've seen firsthand how complex this challenge can be. Prediction in autonomous vehicles involves far more than just forecasting where another car will be in three seconds. It's about understanding:
 
 * **What** that vehicle, pedestrian, or cyclist intends to do next
 * **Why** they might be moving (intent, goal, constraint)
@@ -144,7 +144,7 @@ $$
 P(\text{intent}_i | \text{context}) = \text{Model}(\text{agent state}, \text{map}, \text{other agents})
 $$
 
-**Zoox Example:** At Zoox, we used:
+**Production Practice:** Modern systems use:
 * **Map context:** Lane topology, traffic rules, road geometry
 * **Agent history:** Past trajectory, velocity profile
 * **Interaction context:** Other agents' positions and intents
@@ -244,7 +244,7 @@ $$
 
 **Key Insight:** The prediction model takes the **ego vehicle's planned trajectory** as input, allowing it to predict how other agents will react.
 
-**Zoox Example:** At Zoox, we used **Graph Neural Networks (GNNs)** to model agent interactions:
+**Production Practice:** **Graph Neural Networks (GNNs)** are used to model agent interactions:
 
 * **Nodes:** Agents (vehicles, pedestrians, cyclists)
 * **Edges:** Spatial relationships (nearby, in same lane, etc.)
@@ -414,11 +414,11 @@ $$
 ---
 
 <a id="modern-solution"></a>
-## The Modern Solution: Production Systems at Zoox and Qualcomm
+## The Modern Solution: Production Systems
 
 ### Architecture Overview
 
-At **Qualcomm** and **Zoox**, I was involved in designing prediction models that combine sensor inputs with traditional machine learning techniques (decision trees) and deep learning models (CNNs, Transformers, Graph Neural Networks).
+Production prediction systems combine sensor inputs with traditional machine learning techniques (decision trees) and deep learning models (CNNs, Transformers, Graph Neural Networks).
 
 **The Pipeline:**
 
@@ -572,5 +572,5 @@ Prediction in autonomous driving requires:
 
 ---
 
-*This is Module 7 of "The Ghost in the Machine" series. Based on production experience at Zoox (2022–2024) and Qualcomm R&D (2018–2022). Module 8 will explore planning — finding safe, comfortable, and legal paths.*
+*This is Module 7 of "The Ghost in the Machine" series. Based on production experience building autonomous vehicle systems. Module 8 will explore planning — finding safe, comfortable, and legal paths.*
 

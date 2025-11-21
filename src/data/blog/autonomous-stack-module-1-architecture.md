@@ -10,7 +10,7 @@ tags:
   - autonomous-vehicles
   - robotics
   - system-design
-  - zoox
+  - autonomous-vehicles
 description: 'Why L5 autonomy is harder than a moon landing. Understanding ODD, latency loops, compute constraints, and the probability of failure in autonomous systems.'
 track: Robotics
 difficulty: Advanced
@@ -24,7 +24,7 @@ estimated_read_time: 25
 
 ---
 
-<div class="series-nav" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+<div class="series-nav" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">The Ghost in the Machine — Building an Autonomous Stack</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Module 1: Architecture</a>
@@ -72,7 +72,7 @@ This is why **Level 5 (L5) autonomy** — fully autonomous driving with no human
 
 **Tesla Autopilot (L2):** A **feature** — it assists the driver, who remains responsible. If it fails, the human takes over. This is hard, but manageable.
 
-**Zoox Robotaxi (L4-L5):** A **product** — the vehicle is responsible. If it fails, there's no human backup. This requires solving the "last 0.0001%" of edge cases.
+**Robotaxi Systems (L4-L5):** A **product** — the vehicle is responsible. If it fails, there's no human backup. This requires solving the "last 0.0001%" of edge cases.
 
 ---
 
@@ -100,7 +100,7 @@ Where $n$ is the number of ODD dimensions. As you expand ODD (more cities, more 
 
 **The Intuition:** It's like saying "I can drive anywhere, anytime, in any condition." That's what humans do, but we've had millions of years of evolution. For a computer, you must explicitly define and test every combination.
 
-**Zoox Example:** Zoox's robotaxi operates in **San Francisco and Las Vegas** — two very different environments. Each city expansion requires:
+**Production Example:** Robotaxi fleets typically operate in **multiple cities** with very different environments. Each city expansion requires:
 * New map data
 * New edge case testing
 * New validation scenarios
@@ -175,7 +175,7 @@ $$
 
 ### Real-World Example
 
-**Zoox's Compute Stack:**
+**Production Compute Stack:**
 * **NVIDIA Orin** (or similar): ~200W power draw
 * **Cooling system:** Additional 50-100W
 * **Total:** ~250-300W just for compute

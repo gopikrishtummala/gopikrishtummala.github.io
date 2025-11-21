@@ -11,8 +11,7 @@ tags:
   - robotics
   - calibration
   - computer-vision
-  - zoox
-description: 'If you don't know where your eyes are relative to your feet, you trip. Covers intrinsics, extrinsics, SE(3) transforms, online vs. offline calibration, and time synchronization.'
+description: "If you don't know where your eyes are relative to your feet, you trip. Covers intrinsics, extrinsics, SE(3) transforms, online vs. offline calibration, and time synchronization."
 track: Robotics
 difficulty: Advanced
 interview_relevance:
@@ -25,7 +24,7 @@ estimated_read_time: 30
 
 ---
 
-<div class="series-nav" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+<div class="series-nav" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">The Ghost in the Machine — Building an Autonomous Stack</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Architecture</a>
@@ -374,7 +373,7 @@ $$
 * Requires good correspondences
 * Computationally expensive
 
-**Zoox Example:** At Zoox, we used **hybrid approach**:
+**Production Practice:** A **hybrid approach** is commonly used:
 * **Offline calibration** at factory (high accuracy baseline)
 * **Online calibration** in the field (monitor and correct drift)
 

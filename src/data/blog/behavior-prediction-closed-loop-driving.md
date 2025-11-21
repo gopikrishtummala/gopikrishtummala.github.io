@@ -11,7 +11,7 @@ tags:
   - machine-learning
   - prediction
   - research
-description: Reflections on building production-grade behavior prediction systems at Zoox and Qualcomm — and why closed-loop reasoning is the bridge between perception and planning.
+description: Reflections on building production-grade behavior prediction systems for autonomous vehicles — and why closed-loop reasoning is the bridge between perception and planning.
 track: Robotics
 difficulty: Advanced
 interview_relevance:
@@ -27,7 +27,7 @@ When you work in autonomous driving long enough, you begin to realize that predi
 
 Behavior prediction isn't a simple forecasting task. It's an art that involves understanding human behavior, anticipating movement, and managing the inherent uncertainty in a world where no one follows the same rules. At its core, prediction allows a self-driving car to reason beyond the immediate present moment, shifting from a reactive stance to one based on intent and foresight.
 
-When I worked on behavior prediction at Qualcomm and Zoox, I saw firsthand how complex this challenge could get. Prediction in autonomous vehicles involves far more than just forecasting where another car will be in three seconds. It's about understanding what that vehicle, pedestrian, or cyclist intends to do next — and how their behavior may change in response to the car's own actions.
+Based on production experience building behavior prediction systems, I've seen firsthand how complex this challenge can be. Prediction in autonomous vehicles involves far more than just forecasting where another car will be in three seconds. It's about understanding what that vehicle, pedestrian, or cyclist intends to do next — and how their behavior may change in response to the car's own actions.
 
 A good prediction system doesn't just estimate trajectories; it anticipates actions, understands interactions, and most importantly, does so in real-time, under imperfect conditions. If we're to build systems that act as safely and smoothly as humans, we need machines that reason with the same kind of intuitive foresight.
 
@@ -53,7 +53,7 @@ Incorporating closed-loop reasoning into prediction means capturing how agents i
 
 ## A Glimpse Into a Modern Prediction System
 
-So, how do modern prediction systems tackle this challenge? At a high level, they integrate data from a range of sensors — cameras, radar, LiDAR — and use deep learning techniques to make sense of the world. At Qualcomm and Zoox, I was involved in designing prediction models that combine these sensor inputs with traditional machine learning techniques, such as decision trees, and deep learning models like CNNs, Transformers, and Graph Neural Networks (GNNs).
+So, how do modern prediction systems tackle this challenge? At a high level, they integrate data from a range of sensors — cameras, radar, LiDAR — and use deep learning techniques to make sense of the world. Production prediction models combine these sensor inputs with traditional machine learning techniques, such as decision trees, and deep learning models like CNNs, Transformers, and Graph Neural Networks (GNNs).
 
 The architecture of these systems is deceptively simple but incredibly complex under the hood. For example:
 
@@ -81,4 +81,4 @@ This brings us to a fundamental philosophical question: can machines ever truly 
 
 ---
 
-*Based on my experience building prediction systems at Zoox (2022–2024) and Qualcomm R&D (2018–2022).*
+*Based on production experience building prediction systems for autonomous vehicles.*
