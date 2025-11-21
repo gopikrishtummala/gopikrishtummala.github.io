@@ -21,7 +21,7 @@ Early research focused on making wireless systems faster, more scalable, and mor
 
 **In-band Wireless Cut-Through (2014)** explored whether wireless networks could achieve full-duplex communication to effectively double spectral efficiency. By investigating whether nodes could forward data while still receiving, this work aimed to fundamentally improve network throughput. It established expertise in high-efficiency system design at the physical layer.
 
-**TagTone (IEEE MiSeNet 2018 Best Paper Award)** addressed scalability in RFID communication through multi-frequency analysis. Winning the Best Paper Award recognized the impact of creating robust, scalable solutions in wireless sensing. This work demonstrated that large-scale identification and tracking systems were possible with the right algorithmic approach.
+**TagTone (IEEE INFOCOM 2018 Best Paper Award)** addressed scalability in RFID communication through multi-frequency analysis. Winning the Best Paper Award recognized the impact of creating robust, scalable solutions in wireless sensing. This work demonstrated that large-scale identification and tracking systems were possible with the right algorithmic approach.
 
 These early successes in wireless taught lessons about communication channels, scalable data processing, and efficient system design—principles that directly informed the transition to vehicular applications.
 
@@ -51,7 +51,7 @@ This work wasn't just a collection of papers—it was a sustained effort to remo
 
 ## Awards and Impact
 
-The research received recognition including IEEE MiSeNet 2018 Best Paper Award (TagTone), ACM BuildSys 2017 Best Paper and Best Demo Awards (AutoCalib), and Honda royalty payments for the Soft-Swipe patent. The work has been cited 185+ times and enabled commercial deployment in automotive systems.
+The research received recognition including IEEE INFOCOM 2018 Best Paper Award (TagTone), ACM BuildSys 2017 Best Paper and Best Demo Awards (AutoCalib), and Honda royalty payments for the Soft-Swipe patent. The work has been cited 185+ times and enabled commercial deployment in automotive systems.
 
 ## Current Extensions
 

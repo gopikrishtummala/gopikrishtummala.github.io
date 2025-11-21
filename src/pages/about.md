@@ -33,7 +33,7 @@ With 10+ years of experience in designing machine learning algorithms and models
 
 My research spans camera calibration, autonomous vehicle prediction, computer vision, and sensor networks. I've published at top-tier conferences including:
 
-- **Best Paper Awards**: IEEE MiSeNet 2018, ACM BuildSys 2017
+- **Best Paper Awards**: IEEE INFOCOM 2018, ACM BuildSys 2017
 - **Best Demo Award**: ACM BuildSys 2017
 - **Google Scholar**: 185+ citations, h-index: 7
 

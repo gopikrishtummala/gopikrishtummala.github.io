@@ -131,6 +131,24 @@ Where:
 
 This is the fundamental learning objective: **minimize the difference between predicted and actual noise**. Once the model can accurately predict noise at any noise level, it can reverse the diffusion process step-by-step to generate new samples.
 
+#### Zero SNR: Erasing the Whiteboard Completely
+
+**The Problem:** Standard diffusion doesn't actually destroy *all* information. The final step still has a tiny ghost of the image left. This limits how "dark" or "bright" images can be — a problem called the "grey bias."
+
+**The Analogy:** Imagine you're drawing on a whiteboard, but you don't erase it completely before starting a new drawing. You'd see faint traces of the old drawing, and you'd unconsciously use those traces to guide your new drawing. That's what happens when diffusion doesn't reach **Zero Signal-to-Noise Ratio (SNR)**.
+
+**The Fix:** Modern models enforce a "Zero SNR" rule, ensuring the final stage is strictly 100% random noise — no trace of the original image remains.
+
+**Why it matters:** This solves the issue where AI images often look washed out or struggle to generate very dark/black scenes (like deep space). Without Zero SNR, the model "cheats" by relying on that tiny leftover ghost to guess the image, rather than generating it from scratch.
+
+**Mathematical Insight:** The noise schedule must satisfy:
+
+$$
+\lim_{t \to T} \text{SNR}(t) = 0
+$$
+
+Where SNR (Signal-to-Noise Ratio) measures how much original signal remains. At the final step $T$, SNR must be exactly zero — pure noise with no information.
+
 Conceptually:  
 > **Forward diffusion destroys information; reverse diffusion reconstructs it.**
 

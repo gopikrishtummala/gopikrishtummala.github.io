@@ -56,6 +56,7 @@ estimated_read_time: 20
       <li><a href="#pre-training">Pre-Training: Learning the Grammar of the World</a></li>
       <li><a href="#pre-training-components">Key Components of Pre-Training</a></li>
       <li><a href="#training-data">Training Data: The Billion-Frame Problem</a></li>
+      <li><a href="#recaptioning">Recaptioning: The Data Engine</a></li>
       <li><a href="#pre-training-challenges">Pre-Training Challenges and Tradeoffs</a></li>
       <li><a href="#post-training">Post-Training: Alignment and Human Preferences</a></li>
       <li><a href="#post-training-methods">Post-Training Methods</a></li>
@@ -126,6 +127,38 @@ New datasets lean heavily on:
 * **Temporal captions**: "at 1s, camera pans left…" — describing actions over time
 * **Action-rich clips**: Sports, wildlife, driving — clips with clear motion
 * **Cinematic metadata**: Shot types, lenses, lighting — professional filmmaking knowledge
+
+<a id="recaptioning"></a>
+#### Recaptioning: The Data Engine (The Missing Link)
+
+**The Problem:** Raw data from the internet is noisy and poorly labeled. You might find:
+* Images labeled "IMG_001.jpg" or "holiday 2012"
+* Videos with generic descriptions like "nice view" or "cat video"
+* Alt text that's completely wrong or missing
+
+If you train on bad labels, you get a model that ignores prompts. The model never learns the connection between words like "vibrant," "calm," or "silhouette" and their visual meanings.
+
+**The Analogy:** Imagine trying to learn what a "sunset" looks like, but the teacher only shows you photos labeled "holiday 2012" or "nice view." You'd never learn the connection between the word "sunset" and the orange sky.
+
+**The Fix (Recaptioning):** Before training the image/video generator, researchers use a *different* AI (a Vision-Language Model like GPT-4V or CLIP) that is already smart to look at every training image/video and write a detailed, accurate description.
+
+**Example:**
+* **Original caption**: "holiday 2012"
+* **Recaptioned**: "A vibrant orange sunset over a calm ocean with silhouette palm trees, warm golden light reflecting on the water, tropical beach scene"
+
+**The Result:** The image/video generator is now trained on these "perfect" synthetic captions. It learns exactly what "vibrant," "calm," and "silhouette" mean visually.
+
+**Key Takeaway:** **Better captions > More data.** This is the secret sauce behind DALL-E 3 and Sora's ability to follow complex instructions.
+
+**How It Works:**
+
+1. **Pre-trained Vision-Language Model**: Use a model like GPT-4V that can understand images/videos and generate detailed descriptions
+2. **Batch Recaptioning**: Process all training data through the VLM to generate high-quality captions
+3. **Training on Synthetic Captions**: Train the diffusion model on these recaptioned pairs instead of original noisy captions
+
+**Production Impact:** This is why modern models (DALL-E 3, Sora, Veo) can follow complex, multi-part prompts. They were trained on captions that actually describe what's in the image/video, not generic filenames or poor alt text.
+
+**Interview Insight:** When asked "How do you make a model follow prompts better?", the answer is often "better training data" — specifically, recaptioning with high-quality vision-language models. This is more important than model architecture improvements.
 
 #### Framewise Aesthetic Reward Models (FARM, 2025)
 

@@ -62,7 +62,7 @@ The site is automatically deployed to GitHub Pages via GitHub Actions when chang
 
 ## Research Highlights
 
-- **Best Paper Awards**: IEEE MiSeNet 2018, ACM BuildSys 2017
+- **Best Paper Awards**: IEEE INFOCOM 2018, ACM BuildSys 2017
 - **Best Demo Award**: ACM BuildSys 2017
 - **Google Scholar**: 185+ citations, h-index: 7
 - **Patents**: Multiple granted patents in camera calibration and behavior prediction

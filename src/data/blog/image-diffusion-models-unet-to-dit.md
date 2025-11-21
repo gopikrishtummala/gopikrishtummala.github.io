@@ -129,6 +129,32 @@ $$
 
 The key advantage: **global receptive field** from the start, rather than building it through stacked convolutions.
 
+#### Patches as Tokens: Treating Images Like Language
+
+**The Paradigm Shift:** Older models (U-Nets) looked at images as a grid of pixels to be convolved. Newer models (Sora, Veo, DiT) treat images like *language*.
+
+**The Analogy:** 
+* **U-Nets**: Like reading a book word-by-word, but only seeing nearby words. You struggle to connect a character mentioned on page 1 with their action on page 100.
+* **DiT**: Like having the entire book laid out as a single sentence. You can see all "words" (patches) at once and understand how they relate across the entire image.
+
+**Why This Matters:**
+
+U-Nets struggle to "see" things that are far apart in an image. For example:
+* A hand on the left side of an image matching a foot on the right (same person, same pose)
+* A shadow on the ground matching the object casting it
+* Text in one corner matching a logo in another corner
+
+**The Solution (Patches as Tokens):**
+
+We chop the image into little squares called **patches** (like puzzle pieces). We treat these patches exactly like words in a sentence (tokens). This allows the model to use **Transformers** (the brain of ChatGPT).
+
+**The Benefit:** Suddenly, the model understands "context" across the entire image/video at once. This leads to:
+* Better consistency in physics (objects don't randomly change)
+* Object permanence (things stay the same across frames)
+* Global understanding (the model "sees" the whole scene at once)
+
+This is why modern models (Sora, Veo, Stable Diffusion 3) use DiT architectures — they can maintain consistency across large spatial and temporal scales.
+
 $$
 \text{Attention}(Q,K,V) = \text{softmax}\Big( \frac{QK^\top}{\sqrt{d}} \Big)V
 $$
@@ -186,6 +212,34 @@ This is a critical **System Design** pattern for production GenAI systems:
 4. **Production Impact**: This is why Stable Diffusion runs on consumer GPUs while pixel-space models require data center infrastructure.
 
 **Key Insight**: The VAE encoder/decoder learns a "visual grammar" — it compresses images into a space that preserves semantic information while discarding pixel-level redundancy. Diffusion in this compressed space is both faster and often produces better results because the model focuses on structure rather than noise.
+
+#### The VAE Bottleneck: The "JPEG" Compression Artifacts of AI
+
+**The Problem:** Latent diffusion works by compressing the image first using a VAE (Variational Autoencoder). But the compressor is imperfect — it's like a "zipping" tool that loses data when compressed too aggressively.
+
+**The Analogy:** Think of the VAE as a JPEG compressor. If you compress a photo too much, you get:
+* Blocky artifacts
+* Blurred details
+* Lost fine textures
+
+The same happens with VAE compression in diffusion models.
+
+**The Symptom:** Have you noticed AI-generated images where:
+* Text looks garbled or unreadable?
+* Faces look waxy or smoothed out?
+* Fine details (like hair strands, fabric textures) are missing?
+
+That's often **not** the diffusion model's fault — it's the *compressor's* fault. The VAE literally "blurred" the details before the diffusion model even started working.
+
+**The Fix:** Modern models address this in several ways:
+
+1. **Larger, Better VAEs**: Models like SDXL and Flux use larger VAE encoders that preserve more detail
+2. **Skip Compression for Critical Details**: Some models use a hybrid approach — compress most of the image, but keep text and fine details in pixel space
+3. **Better Training**: Training VAEs specifically to preserve important details (like text, faces, fine textures)
+
+**Production Impact:** This is why you see different quality levels across models. A model with a poor VAE will struggle with text and fine details, even if the diffusion model itself is excellent. The VAE is a critical bottleneck that determines the upper bound on image quality.
+
+**Interview Insight:** When asked "Why do AI images sometimes look blurry or have garbled text?", the answer is often the VAE bottleneck, not the diffusion model itself.
 
 <a id="generation-pipeline"></a>
 ### Image Generation Pipeline

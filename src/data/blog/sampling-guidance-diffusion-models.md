@@ -57,6 +57,7 @@ estimated_read_time: 18
       <li><a href="#ddpm-sampling">DDPM: Stochastic Sampling</a></li>
       <li><a href="#ddim">DDIM: Deterministic Fast Sampling</a></li>
       <li><a href="#dpm-solver">DPM-Solver: High-Order Solvers</a></li>
+      <li><a href="#flow-matching">Flow Matching: Straightening the Path</a></li>
       <li><a href="#cfg">Classifier-Free Guidance (CFG)</a></li>
       <li><a href="#negative-prompting">Negative Prompting</a></li>
       <li><a href="#inference-optimization">Inference Optimization</a></li>
@@ -140,6 +141,60 @@ DPM-Solver uses **Runge-Kutta methods** (like those in physics simulations) to s
 **Why it works:** High-order solvers can "look ahead" and make larger, smarter steps through the noise schedule, rather than taking many small steps.
 
 **Production Impact:** This is why modern diffusion models (Stable Diffusion, SDXL) can generate images in 1-2 seconds instead of 30 seconds.
+
+---
+
+<a id="flow-matching"></a>
+## Flow Matching: Straightening the Path
+
+**Flow Matching** (also called **Rectified Flow**) is a modern approach that makes diffusion generation much faster and mathematically cleaner. It's used in state-of-the-art models like Stable Diffusion 3, Flux, and Sora.
+
+### The Analogy: Walking in a Straight Line
+
+Imagine you are in a dense forest (Noise) and want to get to your house (Image).
+
+* **Standard Diffusion (DDPM)**: You wander randomly, bumping into trees, slowly finding your way home. It takes 100 steps, and each step is uncertain.
+
+* **Flow Matching**: You draw a straight line on a map from the forest to your house and walk directly along it. It takes 10 steps, and the path is deterministic and efficient.
+
+### Why Standard Diffusion is "Jittery"
+
+Standard diffusion (DDPM) is like a "drunken walk" — it removes noise in a jittery, random path. Each step adds randomness:
+
+$$
+x_{t-1} = x_t - \text{noise\_prediction} + \text{random\_noise}
+$$
+
+This randomness is necessary to match the training distribution, but it makes the path inefficient.
+
+### How Flow Matching Works
+
+Flow Matching learns a **straight path** from noise to data:
+
+$$
+\frac{dx}{dt} = v_\theta(x_t, t)
+$$
+
+Where $v_\theta$ is a velocity field that points directly from the current noisy state toward the target image.
+
+**Key Insight:** Instead of learning to remove noise (diffusion), Flow Matching learns to **transport** the noise directly to the image along the shortest path.
+
+### Benefits
+
+1. **Faster Generation**: 4-10 steps instead of 20-50 steps (DPM-Solver) or 1000 steps (DDPM)
+2. **Mathematically Cleaner**: No need for complex noise schedules or stochastic sampling
+3. **Better Quality**: The straight path often produces higher quality results with fewer artifacts
+4. **Deterministic**: Same noise seed produces the same result (unlike stochastic DDPM)
+
+### Why It Matters
+
+Flow Matching represents a fundamental shift in how we think about generative models:
+* **Old way**: Remove noise step-by-step (diffusion)
+* **New way**: Transport noise directly to data (flow)
+
+This is why modern models (Stable Diffusion 3, Flux) can generate high-quality images in just 4-8 steps — they're following a straight path, not wandering through noise space.
+
+**Production Impact:** Flow Matching enables real-time generation on consumer hardware, making it practical for interactive applications.
 
 ---
 
