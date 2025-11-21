@@ -308,10 +308,36 @@ const nextPost =
   }
   attachCopyButtons();
 
-  /* Go to page start after page swap */
-  document.addEventListener("astro:after-swap", () =>
-    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
-  );
+  /* Go to page start after page swap - prevent auto-scroll */
+  document.addEventListener("astro:after-swap", () => {
+    // Prevent browser's default hash scroll behavior
+    if (window.location.hash) {
+      // Temporarily remove hash to prevent auto-scroll
+      const hash = window.location.hash;
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      // Only restore hash if user explicitly navigated to it (not on initial load)
+      // This prevents automatic scrolling on page load
+    }
+    // Always scroll to top on page swap
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+  });
+
+  // Prevent automatic scroll on initial page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // If there's a hash, don't auto-scroll - let user click links instead
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+    });
+  } else {
+    // Page already loaded, ensure we're at top
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+  }
 </script>
 
 <script is:inline>
