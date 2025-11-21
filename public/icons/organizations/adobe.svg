@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect width="24" height="24" fill="#FF0000" rx="0"/>
+  <!-- A with triangle crossbar -->
+  <path d="M12 4L6 20h2.5l1.2-3.5h6.6l1.2 3.5H18L12 4zm-1.5 9l2.5-7.2L15.5 13h-5z" fill="white"/>
+</svg>

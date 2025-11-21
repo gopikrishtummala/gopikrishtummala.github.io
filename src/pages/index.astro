@@ -10,6 +10,7 @@ import Hr from "@/components/Hr.astro";
 import getSortedPosts from "@/utils/getSortedPosts";
 import IconRss from "@/assets/icons/IconRss.svg";
 import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import OrgIcon from "@/components/OrgIcon.astro";
 import { SITE } from "@/config";
 import { SOCIALS } from "@/constants";
 
@@ -24,27 +25,31 @@ const timeline = [
     title: "Senior Machine Learning Engineer",
     subtitle: "Adobe · Creative Cloud & Firefly · San Jose, CA",
     meta: "2025 — Present",
+    icon: "adobe" as const,
     description:
       "Leading large-scale data pipelines, training infrastructure, and responsible generative AI initiatives that power Firefly and Creative Cloud surfaces.",
   },
   {
     title: "Software Engineer, Prediction",
-    subtitle: "Zoox · Bay Area, CA",
+    subtitle: "Autonomous Vehicle Systems · Bay Area, CA",
     meta: "2022 — 2024",
+    icon: "zoox" as const,
     description:
-      "Shipped multi-agent prediction models for L3/L4/L5 robotaxi fleets and co-designed the training framework and dataloaders that kept the stack fed with fresh data.",
+      "Shipped multi-agent prediction models for L3/L4/L5 autonomous vehicle fleets and co-designed the training framework and dataloaders that kept the stack fed with fresh data.",
   },
   {
     title: "Senior Systems Engineer",
     subtitle: "Qualcomm Research · San Diego, CA",
     meta: "2018 — 2022",
+    icon: "qualcomm" as const,
     description:
-      "Led prediction for Qualcomm’s L3 highway autonomous driving stack—owning forecasting models, simulation harnesses, and post-drive analytics. Earlier built integration and test automation for the stack.",
+      "Led prediction for Qualcomm's L3 highway autonomous driving stack—owning forecasting models, simulation harnesses, and post-drive analytics. Earlier built integration and test automation for the stack.",
   },
   {
     title: "Graduated from The Ohio State University",
     subtitle: "Ph.D. Computer Science & Engineering",
     meta: "2018",
+    icon: "osu" as const,
     description:
       "Dissertation on collaborative perception and behavior prediction for intelligent transportation systems.",
   },
@@ -52,13 +57,15 @@ const timeline = [
     title: "Research Intern",
     subtitle: "Microsoft Research · Bangalore, India",
     meta: "2016",
+    icon: "microsoft" as const,
     description:
-      "Designed AutoCalib—large-scale traffic camera calibration with <10% speed error—in Microsoft’s video analytics platform.",
+      "Designed AutoCalib—large-scale traffic camera calibration with <10% speed error—in Microsoft's video analytics platform.",
   },
   {
     title: "Graduate Research Assistant",
     subtitle: "The Ohio State University · Columbus, OH",
     meta: "2013 — 2018",
+    icon: "osu" as const,
     description:
       "Built SmartDashCam, Soft-Swipe, RoadView, and RoadMap; taught introductory programming; collaborated with Honda on live calibration and lane-level localization.",
   },
@@ -66,6 +73,7 @@ const timeline = [
     title: "Software Analyst",
     subtitle: "Standard Chartered Bank · Chennai, India",
     meta: "2012 — 2013",
+    icon: "standard-chartered" as const,
     description:
       "Developed reporting systems and automation scripts for global private banking infrastructure.",
   },
@@ -73,6 +81,7 @@ const timeline = [
     title: "Project Intern",
     subtitle: "Tata Elxsi · Chennai, India",
     meta: "2011",
+    icon: "tata-elxsi" as const,
     description:
       "Optimized LTE PDCCH blind decoding algorithms and explored DSP-based radio prototyping.",
   },
@@ -80,6 +89,7 @@ const timeline = [
     title: "B.Tech Electrical Engineering & Minor in Mathematics",
     subtitle: "Indian Institute of Technology Madras · Chennai, India",
     meta: "2008 — 2012",
+    icon: "iit-madras" as const,
     description:
       "Graduated with honors; led hostel council committees and secured top-1% rankings in national olympiads.",
   },
@@ -101,7 +111,7 @@ const timeline = [
       <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div class="max-w-2xl space-y-6">
           <h1 class="text-4xl font-semibold leading-tight sm:text-5xl">
-            <span class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
               Building intelligent systems with clarity.
             </span>
           </h1>
@@ -110,7 +120,7 @@ const timeline = [
           </p>
           <div class="flex flex-wrap gap-3">
             <LinkButton href="/about">About My Work</LinkButton>
-            <LinkButton href="/interview-prep" class="border-transparent bg-accent text-white shadow-[0_20px_45px_-18px_rgba(59,130,246,0.65)] hover:text-white dark:bg-accent dark:text-slate-900 dark:hover:text-slate-900">
+            <LinkButton href="/interview-prep" class="border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-[0_20px_45px_-18px_rgba(99,102,241,0.5)] hover:from-indigo-700 hover:to-purple-700 hover:text-white dark:bg-gradient-to-r dark:from-indigo-500 dark:to-purple-500 dark:text-white dark:hover:from-indigo-600 dark:hover:to-purple-600">
               🎓 Interview Prep
               <IconArrowRight class="inline-block rtl:-rotate-180" />
             </LinkButton>
@@ -128,7 +138,7 @@ const timeline = [
         </div>
         <div class="mx-auto flex flex-col items-center gap-4">
           <div class="relative">
-            <div class="absolute inset-0 -translate-y-2 animate-[pulse_6s_ease-in-out_infinite] rounded-full bg-gradient-to-tr from-sky-500/25 via-purple-500/30 to-transparent blur-2xl" />
+            <div class="absolute inset-0 -translate-y-2 animate-[pulse_6s_ease-in-out_infinite] rounded-full bg-gradient-to-tr from-indigo-500/20 via-purple-500/25 to-fuchsia-500/20 blur-2xl" />
             <div class="relative h-48 w-48 overflow-hidden rounded-full border border-white/70 bg-white/60 shadow-[0_40px_90px_-40px_rgba(15,23,42,0.65)] transition hover:shadow-[0_45px_95px_-45px_rgba(56,189,248,0.75)] sm:h-60 sm:w-60 lg:h-64 lg:w-64">
               <img
                 src="/gokul.jpg"
@@ -214,7 +224,7 @@ const timeline = [
         A quick tour through the roles, research labs, and collaborations that shaped my path in AI and autonomous systems.
       </p>
       <div class="relative mt-10 sm:mt-12">
-        <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-accent/60 via-accent/20 to-transparent sm:block" />
+        <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-indigo-500/60 via-purple-500/30 to-transparent sm:block" />
         <ul class="space-y-8 sm:space-y-12">
           {timeline.map((item, index) => {
             const isLeft = index % 2 === 0;
@@ -222,26 +232,33 @@ const timeline = [
               <li class="relative">
                 <div
                   class:list={[
-                    "relative flex flex-col gap-2 rounded-3xl border border-white/30 bg-white/70 p-5 text-sm text-secondary-foreground shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 dark:border-slate-700/40 dark:bg-slate-900/70 sm:max-w-[43%]",
+                    "relative flex gap-4 rounded-3xl border border-white/30 bg-white/70 p-5 text-sm text-secondary-foreground shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 dark:border-slate-700/40 dark:bg-slate-900/70 sm:max-w-[43%]",
                     isLeft
-                      ? "sm:ml-0 sm:mr-auto sm:items-end sm:text-right sm:pr-8"
-                      : "sm:ml-auto sm:mr-0 sm:items-start sm:text-left sm:pl-8",
+                      ? "sm:ml-0 sm:mr-auto sm:flex-row sm:items-center sm:text-left"
+                      : "sm:ml-auto sm:mr-0 sm:flex-row-reverse sm:items-center sm:text-right",
                   ]}
                 >
-                  <span class="text-xs font-semibold uppercase tracking-[0.26em] text-secondary-foreground/70">
-                    {item.meta}
-                  </span>
-                  <h3 class="text-lg font-semibold text-foreground">
-                    {item.title}
-                  </h3>
-                  <p class="text-sm text-secondary-foreground">{item.subtitle}</p>
-                  {item.description && (
-                    <p class="text-xs text-secondary-foreground/90 sm:text-sm">
-                      {item.description}
-                    </p>
+                  {item.icon && (
+                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/50 p-2 dark:border-slate-700/30 dark:bg-slate-800/50">
+                      <OrgIcon name={item.icon} size={48} class="opacity-90" />
+                    </div>
                   )}
+                  <div class="flex-1 flex flex-col gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-[0.26em] text-secondary-foreground/70">
+                      {item.meta}
+                    </span>
+                    <h3 class="text-lg font-semibold text-foreground">
+                      {item.title}
+                    </h3>
+                    <p class="text-sm text-secondary-foreground">{item.subtitle}</p>
+                    {item.description && (
+                      <p class="text-xs text-secondary-foreground/90 sm:text-sm">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
                   <span
-                    class="absolute top-1/2 hidden size-3 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_0_6px_rgba(59,130,246,0.25)] sm:block"
+                    class="absolute top-1/2 hidden size-3 -translate-y-1/2 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 shadow-[0_0_0_6px_rgba(99,102,241,0.2)] sm:block"
                     class:list={[
                       isLeft ? "right-[-2.2rem]" : "left-[-2.2rem]",
                     ]}

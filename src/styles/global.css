@@ -2,57 +2,58 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap");
 @import "tailwindcss";
 @import "./typography.css";
+@import "./neon-enhancements.css";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 :root {
-  --background: #f8fafc;
-  --element-background: rgba(255, 255, 255, 0.72);
-  --secondary-background: rgba(15, 23, 42, 0.04);
-  --foreground: #0f172a;
-  --secondary-foreground: #475569;
-  --accent: #2563eb;
-  --accent-soft: rgba(37, 99, 235, 0.14);
-  --muted: #cbd5f5;
-  --border: rgba(15, 23, 42, 0.08);
-  --shadow: 0 28px 60px -35px rgba(15, 23, 42, 0.45);
+  --background: #fafafa;
+  --element-background: rgba(255, 255, 255, 0.85);
+  --secondary-background: rgba(0, 0, 0, 0.02);
+  --foreground: #1a1a1a;
+  --secondary-foreground: #4a4a4a;
+  --accent: #6366f1;
+  --accent-soft: rgba(99, 102, 241, 0.12);
+  --muted: #d1d5db;
+  --border: rgba(0, 0, 0, 0.06);
+  --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
   --display-font: "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --code-bg: #fafafa;
-  --code-border: #e5e5e5;
-  --code-text: #1f2933;
-  --code-inline-bg: #f2f2f3;
-  --code-line-highlight: rgba(37, 99, 235, 0.08);
-  --code-token-keyword: #1d4ed8;
-  --code-token-string: #047857;
-  --code-token-comment: #94a3b8;
-  --code-token-number: #b91c1c;
-  --code-token-function: #7c3aed;
+  --code-bg: #f5f5f5;
+  --code-border: #e0e0e0;
+  --code-text: #1a1a1a;
+  --code-inline-bg: #f0f0f0;
+  --code-line-highlight: rgba(99, 102, 241, 0.1);
+  --code-token-keyword: #6366f1;
+  --code-token-string: #059669;
+  --code-token-comment: #6b7280;
+  --code-token-number: #dc2626;
+  --code-token-function: #9333ea;
 }
 
 html[data-theme="dark"] {
-  --background: #0f172a;
-  --element-background: rgba(15, 23, 42, 0.72);
-  --secondary-background: rgba(148, 163, 184, 0.08);
-  --foreground: #e2e8f0;
-  --secondary-foreground: #cbd5f5;
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.18);
-  --muted: #475569;
-  --border: rgba(148, 163, 184, 0.18);
-  --shadow: 0 30px 60px -32px rgba(15, 23, 42, 0.9);
+  --background: #0a0a0a;
+  --element-background: rgba(20, 20, 20, 0.85);
+  --secondary-background: rgba(255, 255, 255, 0.05);
+  --foreground: #f5f5f5;
+  --secondary-foreground: #a3a3a3;
+  --accent: #818cf8;
+  --accent-soft: rgba(129, 140, 248, 0.2);
+  --muted: #404040;
+  --border: rgba(255, 255, 255, 0.1);
+  --shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.8);
   --display-font: "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --code-bg: #1c1c1e;
-  --code-border: #333;
-  --code-text: #f8fafc;
-  --code-inline-bg: #2b2b2d;
-  --code-line-highlight: rgba(56, 189, 248, 0.18);
-  --code-token-keyword: #77b7ff;
-  --code-token-string: #c2d94c;
-  --code-token-comment: #5c6773;
-  --code-token-number: #d95757;
-  --code-token-function: #f0a988;
+  --code-bg: #1a1a1a;
+  --code-border: #2a2a2a;
+  --code-text: #f5f5f5;
+  --code-inline-bg: #252525;
+  --code-line-highlight: rgba(129, 140, 248, 0.2);
+  --code-token-keyword: #a5b4fc;
+  --code-token-string: #34d399;
+  --code-token-comment: #737373;
+  --code-token-number: #f87171;
+  --code-token-function: #c084fc;
 }
 
 @theme inline {
@@ -78,7 +79,7 @@ html[data-theme="dark"] {
     @apply overflow-y-scroll scroll-smooth;
   }
   body {
-    @apply flex min-h-svh flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100 font-sans text-foreground antialiased selection:bg-accent/20 selection:text-foreground dark:from-slate-950 dark:via-slate-900 dark:to-slate-950;
+    @apply flex min-h-svh flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 font-sans text-foreground antialiased selection:bg-accent/20 selection:text-foreground dark:from-gray-950 dark:via-gray-900 dark:to-black;
     background-attachment: fixed;
   }
   body::before {
@@ -87,9 +88,9 @@ html[data-theme="dark"] {
     inset: 0;
     z-index: -1;
     background-image:
-      radial-gradient(800px circle at 0% 0%, rgba(56, 189, 248, 0.18), transparent 60%),
-      radial-gradient(600px circle at 100% 20%, rgba(129, 140, 248, 0.22), transparent 65%);
-    opacity: 0.7;
+      radial-gradient(1000px circle at 0% 0%, rgba(99, 102, 241, 0.08), transparent 50%),
+      radial-gradient(800px circle at 100% 50%, rgba(139, 92, 246, 0.06), transparent 50%);
+    opacity: 1;
     pointer-events: none;
   }
   a,
