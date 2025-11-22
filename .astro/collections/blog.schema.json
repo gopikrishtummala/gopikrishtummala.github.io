@@ -92,6 +92,7 @@
           "enum": [
             "Fundamentals",
             "GenAI Systems",
+            "MLOps & Production",
             "Robotics",
             "Agentic AI"
           ]

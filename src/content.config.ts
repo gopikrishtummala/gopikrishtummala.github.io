@@ -21,7 +21,7 @@ const blog = defineCollection({
       hideEditPost: z.boolean().optional(),
       timezone: z.string().optional(),
       // New fields for Knowledge Hub
-      track: z.enum(['Fundamentals', 'GenAI Systems', 'Robotics', 'Agentic AI']).optional(),
+      track: z.enum(['Fundamentals', 'GenAI Systems', 'MLOps & Production', 'Robotics', 'Agentic AI']).optional(),
       difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']).optional(),
       interview_relevance: z.array(z.enum(['Theory', 'System Design', 'Coding', 'Behavioral', 'ML-Infra'])).optional(),
       related_paper: z.string().optional(),

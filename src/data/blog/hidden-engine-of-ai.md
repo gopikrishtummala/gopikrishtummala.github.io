@@ -16,7 +16,7 @@ tags:
   - ray
   - deepspeed
 description: A reader-friendly guide to scaling AI models beyond the data pipeline—from training loops and distributed frameworks to checkpoints, mixed precision, and fault tolerance.
-track: GenAI Systems
+track: MLOps & Production
 difficulty: Advanced
 interview_relevance:
   - ML-Infra

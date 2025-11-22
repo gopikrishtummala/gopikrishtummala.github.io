@@ -13,6 +13,7 @@ export async function getStaticPaths() {
   return [
     { params: { track: "fundamentals" }, props: { track: "Fundamentals" as Track } },
     { params: { track: "gen-ai" }, props: { track: "GenAI Systems" as Track } },
+    { params: { track: "mlops" }, props: { track: "MLOps & Production" as Track } },
     { params: { track: "robotics" }, props: { track: "Robotics" as Track } },
     { params: { track: "agentic-ai" }, props: { track: "Agentic AI" as Track } },
   ];
@@ -41,11 +42,23 @@ const trackInfo = {
     description: "Production systems for generative AI—scaling, optimization, and serving large language models at scale.",
     syllabus: [
       "Start with **Transformers** to understand the architecture",
-      "Move to **vLLM** for serving infrastructure (PagedAttention, Continuous Batching)",
-      "Explore **Custom Kernels** for GPU optimization (FlashAttention)",
-      "Finish with **Diffusion Models** and **Vision-Language Models** for multimodal systems"
+      "Move to **Diffusion Models** for image and video generation",
+      "Explore **Vision-Language Models** for multimodal systems",
+      "Finish with **Video Diffusion** for temporal generation"
     ],
     color: "from-emerald-500 to-teal-600"
+  },
+  "MLOps & Production": {
+    title: "MLOps & Production",
+    subtitle: "The Infrastructure Round",
+    description: "Scaling, serving, and optimizing AI systems. Custom kernels, inference engines, and production infrastructure.",
+    syllabus: [
+      "Start with **Datasets and Dataloaders** for efficient data pipelines",
+      "Move to **Training Frameworks** for distributed training and resilience",
+      "Explore **vLLM** for serving infrastructure (PagedAttention, Continuous Batching)",
+      "Finish with **Custom Kernels** for GPU optimization (FlashAttention)"
+    ],
+    color: "from-sky-500 to-blue-600"
   },
   Robotics: {
     title: "Autonomous & Real-World AI",

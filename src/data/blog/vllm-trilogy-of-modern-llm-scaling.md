@@ -12,7 +12,7 @@ tags:
   - inference
   - optimization
 description: How PagedAttention, Continuous Batching, Speculative Decoding, and Quantization unlock lightning-fast, reliable large language model serving.
-track: GenAI Systems
+track: MLOps & Production
 difficulty: Advanced
 interview_relevance:
   - System Design

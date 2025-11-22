@@ -12,7 +12,7 @@ tags:
   - systems
   - performance
 description: Why modern AI teams are handcrafting GPU kernels—from FlashAttention to TPU Pallas code—and how smarter tooling is making silicon-level tuning accessible.
-track: GenAI Systems
+track: MLOps & Production
 difficulty: Advanced
 interview_relevance:
   - System Design

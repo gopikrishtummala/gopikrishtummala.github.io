@@ -13,7 +13,7 @@ tags:
   - pytorch
   - tensorflow
 description: A deep dive into how datasets and dataloaders power modern AI—from the quiet pipeline that feeds models to the sophisticated tools that make training efficient. Understanding the hidden engine that keeps AI systems running.
-track: GenAI Systems
+track: MLOps & Production
 difficulty: Advanced
 interview_relevance:
   - ML-Infra

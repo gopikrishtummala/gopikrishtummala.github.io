@@ -1,7 +1,7 @@
 import type { CollectionEntry } from "astro:content";
 import getSortedPosts from "./getSortedPosts";
 
-export type Track = "Fundamentals" | "GenAI Systems" | "Robotics" | "Agentic AI";
+export type Track = "Fundamentals" | "GenAI Systems" | "MLOps & Production" | "Robotics" | "Agentic AI";
 
 export const getPostsByTrack = (
   posts: CollectionEntry<"blog">[],
