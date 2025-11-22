@@ -1,10 +1,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap");
 @import "tailwindcss";
 @import "./typography.css";
 @import "./neon-enhancements.css";
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, [data-theme=cyber], [data-theme=cyber] *));
 
 :root {
   --background: #fafafa;
@@ -12,48 +14,105 @@
   --secondary-background: rgba(0, 0, 0, 0.02);
   --foreground: #1a1a1a;
   --secondary-foreground: #4a4a4a;
-  --accent: #6366f1;
-  --accent-soft: rgba(99, 102, 241, 0.12);
+  --accent: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.12);
   --muted: #d1d5db;
   --border: rgba(0, 0, 0, 0.06);
   --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
-  --display-font: "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --heading-font: "JetBrains Mono", "Space Mono", "Fira Code", monospace;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --code-bg: #f5f5f5;
   --code-border: #e0e0e0;
   --code-text: #1a1a1a;
   --code-inline-bg: #f0f0f0;
-  --code-line-highlight: rgba(99, 102, 241, 0.1);
-  --code-token-keyword: #6366f1;
+  --code-line-highlight: rgba(16, 185, 129, 0.1);
+  --code-token-keyword: #10b981;
   --code-token-string: #059669;
   --code-token-comment: #6b7280;
   --code-token-number: #dc2626;
-  --code-token-function: #9333ea;
+  --code-token-function: #8b5cf6;
 }
 
+/* Dark Theme - Classic dark mode with amber accent */
 html[data-theme="dark"] {
-  --background: #0a0a0a;
-  --element-background: rgba(20, 20, 20, 0.85);
+  --background: #1a1a1a;
+  --element-background: rgba(26, 26, 26, 0.95);
   --secondary-background: rgba(255, 255, 255, 0.05);
-  --foreground: #f5f5f5;
+  --foreground: #e5e5e5;
   --secondary-foreground: #a3a3a3;
-  --accent: #818cf8;
-  --accent-soft: rgba(129, 140, 248, 0.2);
+  --accent: #f59e0b;
+  --accent-soft: rgba(245, 158, 11, 0.15);
   --muted: #404040;
   --border: rgba(255, 255, 255, 0.1);
   --shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.8);
-  --display-font: "Space Grotesk", "Futura PT", "Manrope", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --heading-font: "JetBrains Mono", "Space Mono", "Fira Code", monospace;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --code-bg: #1a1a1a;
   --code-border: #2a2a2a;
   --code-text: #f5f5f5;
   --code-inline-bg: #252525;
-  --code-line-highlight: rgba(129, 140, 248, 0.2);
-  --code-token-keyword: #a5b4fc;
+  --code-line-highlight: rgba(245, 158, 11, 0.2);
+  --code-token-keyword: #fbbf24;
   --code-token-string: #34d399;
   --code-token-comment: #737373;
   --code-token-number: #f87171;
-  --code-token-function: #c084fc;
+  --code-token-function: #a78bfa;
+}
+
+/* Cyber Theme - Technical/Neon aesthetic with purple/magenta */
+html[data-theme="cyber"] {
+  --background: #0F172A;
+  --element-background: rgba(15, 23, 42, 0.95);
+  --secondary-background: rgba(255, 255, 255, 0.05);
+  --foreground: #E2E8F0;
+  --secondary-foreground: #94A3B8;
+  --accent: #a855f7;
+  --accent-soft: rgba(168, 85, 247, 0.15);
+  --muted: #475569;
+  --border: rgba(148, 163, 184, 0.15);
+  --shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.9);
+  --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --heading-font: "JetBrains Mono", "Space Mono", "Fira Code", monospace;
+  --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --code-bg: #1e293b;
+  --code-border: #334155;
+  --code-text: #E2E8F0;
+  --code-inline-bg: #1e293b;
+  --code-line-highlight: rgba(168, 85, 247, 0.2);
+  --code-token-keyword: #c084fc;
+  --code-token-string: #34d399;
+  --code-token-comment: #64748b;
+  --code-token-number: #f87171;
+  --code-token-function: #ec4899;
+}
+
+/* Academic Theme - Warm, paper-like light theme with teal accent */
+html[data-theme="academic"] {
+  --background: #FEFCF9;
+  --element-background: rgba(255, 252, 249, 0.95);
+  --secondary-background: rgba(0, 0, 0, 0.02);
+  --foreground: #2C2C2C;
+  --secondary-foreground: #5A5A5A;
+  --accent: #0d9488;
+  --accent-soft: rgba(13, 148, 136, 0.12);
+  --muted: #D1D5DB;
+  --border: rgba(0, 0, 0, 0.08);
+  --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
+  --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --heading-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --code-bg: #F5F5F5;
+  --code-border: #E0E0E0;
+  --code-text: #1a1a1a;
+  --code-inline-bg: #F0F0F0;
+  --code-line-highlight: rgba(13, 148, 136, 0.1);
+  --code-token-keyword: #0d9488;
+  --code-token-string: #059669;
+  --code-token-comment: #6b7280;
+  --code-token-number: #dc2626;
+  --code-token-function: #7c3aed;
 }
 
 @theme inline {
@@ -81,8 +140,30 @@ html[data-theme="dark"] {
     scroll-padding-top: 2rem;
   }
   body {
-    @apply flex min-h-svh flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 font-sans text-foreground antialiased selection:bg-accent/20 selection:text-foreground dark:from-gray-950 dark:via-gray-900 dark:to-black;
+    @apply flex min-h-svh flex-col font-sans text-foreground antialiased selection:bg-accent/20 selection:text-foreground;
+    background-color: var(--background);
     background-attachment: fixed;
+    font-family: var(--display-font);
+  }
+  
+  /* Theme-specific gradients */
+  html[data-theme="light"] body,
+  html[data-theme="academic"] body {
+    background: linear-gradient(to bottom right, #fafafa, #ffffff, #f5f5f5);
+  }
+  
+  html[data-theme="dark"] body {
+    background: linear-gradient(to bottom right, #1a1a1a, #0f0f0f, #1a1a1a);
+  }
+  
+  html[data-theme="cyber"] body {
+    background: linear-gradient(to bottom right, #0F172A, #020617, #0F172A);
+  }
+  
+  /* System Architect: Monospace headings for technical feel */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--heading-font);
+    letter-spacing: -0.02em;
   }
   body::before {
     content: "";
@@ -202,7 +283,9 @@ footer {
 
   /* Dark mode for Shiki */
   [data-theme="dark"] .astro-code,
+  [data-theme="cyber"] .astro-code,
   html[data-theme="dark"] .astro-code,
+  html[data-theme="cyber"] .astro-code,
   .astro-code-themes.catppuccin-mocha {
     background-color: var(--shiki-dark-bg) !important;
   }
@@ -222,7 +305,9 @@ footer {
 
   /* Dark mode base text color */
   [data-theme="dark"] .astro-code code,
-  html[data-theme="dark"] .astro-code code {
+  [data-theme="cyber"] .astro-code code,
+  html[data-theme="dark"] .astro-code code,
+  html[data-theme="cyber"] .astro-code code {
     color: var(--shiki-dark);
   }
 
@@ -234,7 +319,9 @@ footer {
 
   /* Dark mode for spans */
   [data-theme="dark"] .astro-code span[style*="--shiki-dark"],
+  [data-theme="cyber"] .astro-code span[style*="--shiki-dark"],
   html[data-theme="dark"] .astro-code span[style*="--shiki-dark"],
+  html[data-theme="cyber"] .astro-code span[style*="--shiki-dark"],
   .astro-code-themes.catppuccin-mocha span[style*="--shiki-dark"] {
     color: var(--shiki-dark) !important;
   }

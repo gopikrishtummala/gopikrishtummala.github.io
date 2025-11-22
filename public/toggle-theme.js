@@ -1,16 +1,19 @@
-const primaryColorScheme = ""; // "light" | "dark"
+const primaryColorScheme = ""; // "light" | "dark" | "cyber" | "academic"
+
+// Available themes in order
+const themes = ["light", "dark", "cyber", "academic"];
 
 // Get theme data from local storage
 const currentTheme = localStorage.getItem("theme");
 
 function getPreferTheme() {
   // return theme value in local storage if it is set
-  if (currentTheme) return currentTheme;
+  if (currentTheme && themes.includes(currentTheme)) return currentTheme;
 
   // return primary color scheme if it is set
-  if (primaryColorScheme) return primaryColorScheme;
+  if (primaryColorScheme && themes.includes(primaryColorScheme)) return primaryColorScheme;
 
-  // return user device's prefer color scheme
+  // return user device's prefer color scheme (map to light/dark)
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
@@ -26,7 +29,27 @@ function setPreference() {
 function reflectPreference() {
   document.firstElementChild.setAttribute("data-theme", themeValue);
 
-  document.querySelector("#theme-btn")?.setAttribute("aria-label", themeValue);
+  const themeBtn = document.querySelector("#theme-btn");
+  const themeIndicator = document.querySelector("#theme-indicator");
+  
+  if (themeBtn) {
+    const themeName = themeValue.charAt(0).toUpperCase() + themeValue.slice(1);
+    themeBtn.setAttribute("aria-label", `Current theme: ${themeValue}. Click to cycle themes.`);
+    themeBtn.setAttribute("title", `Theme: ${themeName} (Click to cycle)`);
+  }
+  
+  // Update theme indicator
+  if (themeIndicator) {
+    const themeColors = {
+      light: "#10b981",
+      dark: "#f59e0b",
+      cyber: "#a855f7",
+      academic: "#0d9488"
+    };
+    themeIndicator.style.backgroundColor = themeColors[themeValue] || themeColors.light;
+    themeIndicator.textContent = themeValue.charAt(0).toUpperCase();
+    themeIndicator.classList.remove("opacity-0");
+  }
 
   // Get a reference to the body element
   const body = document.body;
@@ -56,7 +79,9 @@ window.onload = () => {
 
     // now this script can find and listen for clicks on the control
     document.querySelector("#theme-btn")?.addEventListener("click", () => {
-      themeValue = themeValue === "light" ? "dark" : "light";
+      const currentIndex = themes.indexOf(themeValue);
+      const nextIndex = (currentIndex + 1) % themes.length;
+      themeValue = themes[nextIndex];
       setPreference();
     });
   }

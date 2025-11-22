@@ -25,9 +25,36 @@ const trackColors = {
   "Agentic AI": "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
 };
 
+// Different gradient colors for blog post titles (variety)
+const titleGradients = [
+  "from-emerald-600 via-teal-600 to-cyan-600",
+  "from-amber-600 via-orange-600 to-red-600",
+  "from-violet-600 via-indigo-600 to-blue-600",
+  "from-blue-600 via-cyan-600 to-teal-600",
+  "from-green-600 via-emerald-600 to-teal-600",
+  "from-sky-600 via-blue-600 to-indigo-600",
+  "from-yellow-600 via-amber-600 to-orange-600",
+  "from-slate-600 via-gray-600 to-zinc-600",
+];
+
+// Generate consistent color based on post slug
+function getTitleGradient(slug: string): string {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) {
+    hash = ((hash << 5) - hash) + slug.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return titleGradients[Math.abs(hash) % titleGradients.length];
+}
+
+const titleGradient = getTitleGradient(id);
+
+const baseHeaderClass = variant === "h3" ? "text-base font-semibold decoration-dashed hover:underline" : "text-lg font-medium decoration-dashed hover:underline";
+const headerClass = `bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent ${baseHeaderClass}`;
+
 const headerProps = {
   style: { viewTransitionName: slugifyStr(title) },
-  class: variant === "h3" ? "text-base font-semibold decoration-dashed hover:underline" : "text-lg font-medium decoration-dashed hover:underline",
+  class: headerClass,
 };
 ---
 
@@ -38,7 +65,7 @@ const headerProps = {
     <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/15 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     <a
       href={getPath(id, filePath)}
-      class="inline-flex items-center gap-2 text-base font-semibold text-foreground transition hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      class="inline-flex items-center gap-2 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
     >
       {
         variant === "h2" ? (

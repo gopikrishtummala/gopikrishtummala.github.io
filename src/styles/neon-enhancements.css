@@ -20,18 +20,53 @@
                0 0 20px rgba(99, 102, 241, 0.1);
 }
 
+/* Light theme - green accents */
+html[data-theme="light"] {
+  --accent-indigo: #10b981;
+  --accent-purple: #8b5cf6;
+  --accent-fuchsia: #ec4899;
+  --glow-indigo: 0 0 10px rgba(16, 185, 129, 0.2),
+                 0 0 20px rgba(16, 185, 129, 0.1);
+  --glow-purple: 0 0 10px rgba(139, 92, 246, 0.2),
+                 0 0 20px rgba(139, 92, 246, 0.1);
+  --glow-soft: 0 0 5px rgba(16, 185, 129, 0.1);
+}
+
+/* Dark theme - amber/orange accents */
 html[data-theme="dark"] {
-  --accent-indigo: #818cf8;
-  --accent-purple: #a855f7;
-  --accent-fuchsia: #d946ef;
-  --glow-indigo: 0 0 20px rgba(129, 140, 248, 0.5),
-                 0 0 40px rgba(129, 140, 248, 0.3),
-                 0 0 60px rgba(129, 140, 248, 0.2);
-  --glow-purple: 0 0 20px rgba(168, 85, 247, 0.5),
+  --accent-indigo: #f59e0b;
+  --accent-purple: #f97316;
+  --accent-fuchsia: #ea580c;
+  --glow-indigo: 0 0 10px rgba(245, 158, 11, 0.2),
+                 0 0 20px rgba(245, 158, 11, 0.1);
+  --glow-purple: 0 0 10px rgba(249, 115, 22, 0.2),
+                 0 0 20px rgba(249, 115, 22, 0.1);
+  --glow-soft: 0 0 5px rgba(245, 158, 11, 0.1);
+}
+
+/* Cyber theme - purple/magenta neon effects */
+html[data-theme="cyber"] {
+  --accent-indigo: #a855f7;
+  --accent-purple: #c084fc;
+  --accent-fuchsia: #ec4899;
+  --glow-indigo: 0 0 20px rgba(168, 85, 247, 0.5),
                  0 0 40px rgba(168, 85, 247, 0.3),
                  0 0 60px rgba(168, 85, 247, 0.2);
-  --glow-soft: 0 0 10px rgba(129, 140, 248, 0.3),
-               0 0 20px rgba(129, 140, 248, 0.2);
+  --glow-purple: 0 0 20px rgba(192, 132, 252, 0.5),
+                 0 0 40px rgba(192, 132, 252, 0.3),
+                 0 0 60px rgba(192, 132, 252, 0.2);
+  --glow-soft: 0 0 10px rgba(168, 85, 247, 0.3),
+               0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+/* Academic theme - teal accents, minimal effects */
+html[data-theme="academic"] {
+  --accent-indigo: #0d9488;
+  --accent-purple: #14b8a6;
+  --accent-fuchsia: #2dd4bf;
+  --glow-indigo: none;
+  --glow-purple: none;
+  --glow-soft: none;
 }
 
 /* ============================================
