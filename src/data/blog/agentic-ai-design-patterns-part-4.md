@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-15T00:00:00Z
 modDatetime: 2025-01-15T00:00:00Z
-title: 'Agentic AI Design Patterns — Part 4: Failure Modes & Safety'
+title: 'Agentic AI Design Patterns — Part 04: Failure Modes & Safety'
 slug: agentic-ai-design-patterns-part-4
 featured: true
 draft: false

@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
 modDatetime: 2025-01-25T00:00:00Z
-title: 'Module 2: How Cars Learn to See (Sensors)'
+title: 'Module 02: How Cars Learn to See (Sensors)'
 slug: autonomous-stack-module-2-sensors
 featured: true
 draft: false

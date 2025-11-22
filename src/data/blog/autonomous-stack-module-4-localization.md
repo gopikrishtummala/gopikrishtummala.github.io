@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
 modDatetime: 2025-01-25T00:00:00Z
-title: 'Module 4: Localization — The Art of Not Getting Lost'
+title: 'Module 04: Localization — The Art of Not Getting Lost'
 slug: autonomous-stack-module-4-localization
 featured: true
 draft: false

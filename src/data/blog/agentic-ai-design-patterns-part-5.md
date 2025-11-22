@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-15T00:00:00Z
 modDatetime: 2025-01-15T00:00:00Z
-title: 'Agentic AI Design Patterns — Part 5: Production Guide'
+title: 'Agentic AI Design Patterns — Part 05: Production Guide'
 slug: agentic-ai-design-patterns-part-5
 featured: true
 draft: false

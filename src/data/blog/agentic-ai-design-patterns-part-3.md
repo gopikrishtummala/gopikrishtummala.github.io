@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-15T00:00:00Z
 modDatetime: 2025-01-15T00:00:00Z
-title: 'Agentic AI Design Patterns — Part 3: Specialized Patterns'
+title: 'Agentic AI Design Patterns — Part 03: Specialized Patterns'
 slug: agentic-ai-design-patterns-part-3
 featured: true
 draft: false

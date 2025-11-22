@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
 modDatetime: 2025-01-25T00:00:00Z
-title: 'Module 8: The Chess Master — The Art of Planning'
+title: 'Module 08: The Chess Master — The Art of Planning'
 slug: autonomous-stack-module-8-planning
 featured: true
 draft: false

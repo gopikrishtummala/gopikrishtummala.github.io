@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-15T00:00:00Z
 modDatetime: 2025-01-15T00:00:00Z
-title: 'Agentic AI Design Patterns — Part 1: Foundations'
+title: 'Agentic AI Design Patterns — Part 01: Foundations'
 slug: agentic-ai-design-patterns-part-1
 featured: true
 draft: false

@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
 modDatetime: 2025-01-25T00:00:00Z
-title: 'Module 1: The "Why" and The Architecture'
+title: 'Module 01: The "Why" and The Architecture'
 slug: autonomous-stack-module-1-architecture
 featured: true
 draft: false

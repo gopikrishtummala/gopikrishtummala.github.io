@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-24T00:00:00Z
 modDatetime: 2025-01-24T00:00:00Z
-title: 'Module 7: The Fortune Teller — The Evolution of Prediction'
+title: 'Module 07: The Fortune Teller — The Evolution of Prediction'
 slug: autonomous-stack-module-7-prediction
 featured: true
 draft: false

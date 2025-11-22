@@ -30,6 +30,20 @@ function getSeriesBase(slug: string): string {
 }
 
 /**
+ * Get identifier from post (slug or filename from id)
+ */
+function getPostIdentifier(post: CollectionEntry<"blog">): string {
+  if (post.data.slug) {
+    return post.data.slug;
+  }
+  // Extract filename from post.id (handle paths like "subdir/file" or just "file")
+  const idParts = post.id.split('/');
+  const filename = idParts[idParts.length - 1];
+  // Remove .md or .mdx extension if present
+  return filename.replace(/\.(md|mdx)$/, '');
+}
+
+/**
  * Sort posts: series posts first (sorted by part number), then non-series posts (sorted by date)
  */
 function sortPostsWithSeries(posts: CollectionEntry<"blog">[]): CollectionEntry<"blog">[] {
@@ -39,9 +53,10 @@ function sortPostsWithSeries(posts: CollectionEntry<"blog">[]): CollectionEntry<
   
   // Separate series and non-series posts
   for (const post of posts) {
-    const partNumber = extractPartNumber(post.id);
+    const identifier = getPostIdentifier(post);
+    const partNumber = extractPartNumber(identifier);
     if (partNumber !== null) {
-      const base = getSeriesBase(post.id);
+      const base = getSeriesBase(identifier);
       if (!seriesMap.has(base)) {
         seriesMap.set(base, []);
       }
@@ -54,8 +69,10 @@ function sortPostsWithSeries(posts: CollectionEntry<"blog">[]): CollectionEntry<
   // Sort each series by part number
   for (const [base, seriesPostsList] of seriesMap.entries()) {
     seriesPostsList.sort((a, b) => {
-      const partA = extractPartNumber(a.id) ?? 0;
-      const partB = extractPartNumber(b.id) ?? 0;
+      const identifierA = getPostIdentifier(a);
+      const identifierB = getPostIdentifier(b);
+      const partA = extractPartNumber(identifierA) ?? 0;
+      const partB = extractPartNumber(identifierB) ?? 0;
       return partA - partB;
     });
     seriesPosts.push(...seriesPostsList);

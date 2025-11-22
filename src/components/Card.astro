@@ -10,7 +10,42 @@ export interface Props extends CollectionEntry<"blog"> {
 
 const { variant = "h2", data, id, filePath } = Astro.props;
 
-const { title, description, pubDatetime, modDatetime, timezone, difficulty, track, estimated_read_time } = data;
+const { title, description, pubDatetime, modDatetime, timezone, difficulty, track, estimated_read_time, slug } = data;
+
+/**
+ * Extract part/module number and format title with unified numbering
+ */
+function formatTitleWithNumber(title: string, identifier: string): string {
+  // Extract part number (e.g., "agentic-ai-design-patterns-part-1" -> 1)
+  const partMatch = identifier.match(/-part-(\d+)$/);
+  if (partMatch) {
+    const partNum = parseInt(partMatch[1], 10);
+    const paddedNum = partNum.toString().padStart(2, '0');
+    // Check if title already has "Part X:" format
+    if (title.match(/^Part \d+:/i)) {
+      return title.replace(/^Part \d+:/i, `Part ${paddedNum}:`);
+    }
+    return `Part ${paddedNum}: ${title}`;
+  }
+  
+  // Extract module number (e.g., "autonomous-stack-module-1" -> 1)
+  const moduleMatch = identifier.match(/-module-(\d+)$/);
+  if (moduleMatch) {
+    const moduleNum = parseInt(moduleMatch[1], 10);
+    const paddedNum = moduleNum.toString().padStart(2, '0');
+    // Check if title already has "Module X:" format
+    if (title.match(/^Module \d+:/i)) {
+      return title.replace(/^Module \d+:/i, `Module ${paddedNum}:`);
+    }
+    return `Module ${paddedNum}: ${title}`;
+  }
+  
+  return title;
+}
+
+// Get identifier (slug or filename from id)
+const identifier = slug || id.split('/').pop()?.replace(/\.(md|mdx)$/, '') || id;
+const displayTitle = formatTitleWithNumber(title, identifier);
 
 const difficultyColors = {
   Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -70,9 +105,9 @@ const headerProps = {
     >
       {
         variant === "h2" ? (
-          <h2 {...headerProps}>{title}</h2>
+          <h2 {...headerProps}>{displayTitle}</h2>
         ) : (
-          <h3 {...headerProps}>{title}</h3>
+          <h3 {...headerProps}>{displayTitle}</h3>
         )
       }
       <span

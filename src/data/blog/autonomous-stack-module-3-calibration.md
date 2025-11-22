@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
 modDatetime: 2025-01-25T00:00:00Z
-title: 'Module 3: The Bedrock (Calibration & Transforms)'
+title: 'Module 03: The Bedrock (Calibration & Transforms)'
 slug: autonomous-stack-module-3-calibration
 featured: true
 draft: false
