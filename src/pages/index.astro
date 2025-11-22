@@ -120,8 +120,8 @@ const timeline = [
           </p>
           <div class="flex flex-wrap gap-3">
             <LinkButton href="/about">About My Work</LinkButton>
-            <LinkButton href="/interview-prep" class="border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-[0_20px_45px_-18px_rgba(99,102,241,0.5)] hover:from-indigo-700 hover:to-purple-700 hover:text-white dark:bg-gradient-to-r dark:from-indigo-500 dark:to-purple-500 dark:text-white dark:hover:from-indigo-600 dark:hover:to-purple-600">
-              🎓 Interview Prep
+            <LinkButton href="/posts" class="border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-[0_20px_45px_-18px_rgba(99,102,241,0.5)] hover:from-indigo-700 hover:to-purple-700 hover:text-white dark:bg-gradient-to-r dark:from-indigo-500 dark:to-purple-500 dark:text-white dark:hover:from-indigo-600 dark:hover:to-purple-600">
+              Browse All Posts
               <IconArrowRight class="inline-block rtl:-rotate-180" />
             </LinkButton>
           </div>
@@ -160,19 +160,35 @@ const timeline = [
         Choose Your Path
       </h2>
       <p class="mt-2 max-w-3xl text-sm text-secondary-foreground sm:text-base">
-        Structured learning paths organized by your goals—whether you're prepping for interviews, building production systems, or exploring cutting-edge research.
+        Structured learning paths organized by domain—from generative AI and production systems to autonomous vehicles and agentic intelligence.
       </p>
-      <div class="mt-10 grid gap-6 md:grid-cols-3">
+      <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <a
-          href="/interview-prep"
+          href="/learn/gen-ai"
           class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
         >
-          <div class="mb-4 text-4xl">🎓</div>
+          <div class="mb-4 text-4xl">🧠</div>
           <h3 class="mb-2 text-xl font-semibold text-foreground">
-            The Interview Vault
+            GenAI Systems
           </h3>
           <p class="text-sm text-secondary-foreground">
-            Prep for your ML System Design & Theory rounds. Curated content organized by interview type.
+            From Transformers to Diffusion Models. Understanding the architectures and algorithms powering modern generative AI.
+          </p>
+          <div class="mt-4 flex items-center text-sm font-medium text-accent">
+            Explore
+            <IconArrowRight class="ml-2 inline-block transition-transform group-hover:translate-x-1 rtl:-rotate-180" />
+          </div>
+        </a>
+        <a
+          href="/learn/gen-ai"
+          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
+        >
+          <div class="mb-4 text-4xl">⚙️</div>
+          <h3 class="mb-2 text-xl font-semibold text-foreground">
+            MLOps & Production
+          </h3>
+          <p class="text-sm text-secondary-foreground">
+            Scaling, serving, and optimizing AI systems. Custom kernels, inference engines, and production infrastructure.
           </p>
           <div class="mt-4 flex items-center text-sm font-medium text-accent">
             Explore
@@ -196,15 +212,15 @@ const timeline = [
           </div>
         </a>
         <a
-          href="/learn/gen-ai"
+          href="/learn/agentic-ai"
           class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
         >
-          <div class="mb-4 text-4xl">🧠</div>
+          <div class="mb-4 text-4xl">🤖</div>
           <h3 class="mb-2 text-xl font-semibold text-foreground">
-            GenAI & LLM Ops
+            Agentic AI
           </h3>
           <p class="text-sm text-secondary-foreground">
-            From Transformers to Custom Kernels & Agentic Patterns. Production systems for modern AI.
+            From ReAct loops to multi-agent systems. Building intelligent agents that reason, plan, and act autonomously.
           </p>
           <div class="mt-4 flex items-center text-sm font-medium text-accent">
             Explore

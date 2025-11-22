@@ -77,13 +77,21 @@ const structuredData = {
     <meta name="title" content={title} />
     <meta name="description" content={description} />
     <meta name="author" content={author} />
+    <meta name="keywords" content="machine learning, AI, autonomous vehicles, robotics, deep learning, research, engineering" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={pubDatetime ? "article" : "website"} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:image" content={socialImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Article Published/Modified time -->
     {
@@ -109,6 +117,8 @@ const structuredData = {
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={socialImageURL} />
+    <meta property="twitter:creator" content="@gopikrishtummala" />
+    <meta property="twitter:site" content="@gopikrishtummala" />
 
     <!-- Google JSON-LD Structured data -->
     <script

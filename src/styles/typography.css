@@ -4,6 +4,8 @@
   /* ===== Override default Tailwind Typography styles ===== */
   .app-prose {
     @apply prose;
+    @apply leading-relaxed;
+    letter-spacing: -0.011em;
 
     h1,
     h2,
@@ -11,13 +13,20 @@
     h4,
     th {
       @apply mb-3 text-foreground;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
     }
 
     h3 {
       @apply italic;
     }
 
-    p,
+    p {
+      @apply text-foreground;
+      line-height: 1.75;
+      margin-bottom: 1.25em;
+    }
+
     strong,
     ol,
     ul,

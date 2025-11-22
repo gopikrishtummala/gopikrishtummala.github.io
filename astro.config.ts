@@ -70,5 +70,6 @@ export default defineConfig({
   },
   experimental: {
     preserveScriptOrder: true,
+    svgo: true, // Automatically optimize SVG files during build
   },
 });

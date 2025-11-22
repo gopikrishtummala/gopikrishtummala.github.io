@@ -76,7 +76,9 @@ html[data-theme="dark"] {
     scrollbar-color: var(--color-muted) transparent;
   }
   html {
-    @apply overflow-y-scroll scroll-smooth;
+    @apply overflow-y-scroll;
+    scroll-behavior: smooth;
+    scroll-padding-top: 2rem;
   }
   body {
     @apply flex min-h-svh flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 font-sans text-foreground antialiased selection:bg-accent/20 selection:text-foreground dark:from-gray-950 dark:via-gray-900 dark:to-black;
@@ -96,6 +98,16 @@ html[data-theme="dark"] {
   a,
   button {
     @apply transition-all duration-150 ease-out focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 focus-visible:outline-dashed;
+  }
+  
+  /* Enhanced focus states for better accessibility */
+  a:focus-visible,
+  button:focus-visible {
+    outline-width: 2px;
+    outline-style: solid;
+    outline-color: var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
