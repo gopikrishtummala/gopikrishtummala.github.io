@@ -67,7 +67,7 @@ function sortPostsWithSeries(posts: CollectionEntry<"blog">[]): CollectionEntry<
   }
   
   // Sort each series by part number
-  for (const [base, seriesPostsList] of seriesMap.entries()) {
+  for (const [, seriesPostsList] of seriesMap.entries()) {
     seriesPostsList.sort((a, b) => {
       const identifierA = getPostIdentifier(a);
       const identifierB = getPostIdentifier(b);
