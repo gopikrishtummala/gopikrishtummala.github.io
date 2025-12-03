@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-11-25T00:00:00Z
 modDatetime: 2025-11-25T00:00:00Z
-title: 'Module 6: The Map-Making Robot: Deep Learning's Role in Cartography'
+title: "Module 6: The Map-Making Robot: Deep Learning's Role in Cartography"
 slug: satellite-photogrammetry-module-6-ai-automation
 featured: true
 draft: false

@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-11-25T00:00:00Z
 modDatetime: 2025-11-25T00:00:00Z
-title: 'Module 1: The Satellite's Eyeball: How We See the World from Space'
+title: "Module 1: The Satellite's Eyeball: How We See the World from Space"
 slug: satellite-photogrammetry-module-1-core-principles
 featured: true
 draft: false
