@@ -16,6 +16,7 @@ export async function getStaticPaths() {
     { params: { track: "mlops" }, props: { track: "MLOps & Production" as Track } },
     { params: { track: "robotics" }, props: { track: "Robotics" as Track } },
     { params: { track: "agentic-ai" }, props: { track: "Agentic AI" as Track } },
+    { params: { track: "geospatial" }, props: { track: "Geospatial" as Track } },
   ];
 }
 
@@ -82,6 +83,22 @@ const trackInfo = {
       "Finish with **Parts 4-5** for failure modes and production guides"
     ],
     color: "from-amber-500 to-orange-600"
+  },
+  Geospatial: {
+    title: "Satellite Photogrammetry",
+    subtitle: "Mapping Earth from Space",
+    description: "Learn how satellites create accurate maps of Earth. From stereo imaging and DEM generation to AI-powered feature extraction—master the math and modern techniques behind geospatial intelligence.",
+    syllabus: [
+      "Start with **Module 1: Core Principles** (Photogrammetry, Remote Sensing, Satellite Systems)",
+      "Move to **Module 2: Geometry** (Camera Models, Coordinate Systems, Collinearity Equations)",
+      "Explore **Module 3: DEMs & Stereo** (Parallax, Height Calculation, Image Matching)",
+      "Learn **Module 4: Radiometric Correction** (Atmospheric Effects, Calibration)",
+      "Master **Module 5: Orthorectification** (Geometric Correction, Mosaicking)",
+      "Discover **Module 6: AI & Automation** (CNNs, GANs, Feature Extraction)",
+      "Explore **Module 7: Multi-Source & Time-Series** (NDVI, SAR Fusion, InSAR)",
+      "Finish with **Module 8: Applications & Future** (Disaster Management, Ethics, Emerging Trends)"
+    ],
+    color: "from-purple-500 to-indigo-600"
   }
 };
 

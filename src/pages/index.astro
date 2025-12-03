@@ -162,10 +162,12 @@ const timeline = [
       <p class="mt-2 max-w-3xl text-sm text-secondary-foreground sm:text-base">
         Structured learning paths organized by domain—from generative AI and production systems to autonomous vehicles and agentic intelligence.
       </p>
-      <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div class="mt-10 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div class="overflow-x-auto px-4 sm:px-6 lg:px-8 scroll-smooth" style="scrollbar-width: thin; scrollbar-color: rgba(59, 130, 246, 0.3) transparent;">
+          <div class="flex gap-6 min-w-max pb-4">
         <a
           href="/learn/gen-ai"
-          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
+          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70 w-80 flex-shrink-0"
         >
           <div class="mb-4 text-4xl">🧠</div>
           <h3 class="mb-2 text-xl font-semibold text-foreground">
@@ -181,7 +183,7 @@ const timeline = [
         </a>
         <a
           href="/learn/mlops"
-          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
+          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70 w-80 flex-shrink-0"
         >
           <div class="mb-4 text-4xl">⚙️</div>
           <h3 class="mb-2 text-xl font-semibold text-foreground">
@@ -197,7 +199,7 @@ const timeline = [
         </a>
         <a
           href="/learn/robotics"
-          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
+          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70 w-80 flex-shrink-0"
         >
           <div class="mb-4 text-4xl">🏎️</div>
           <h3 class="mb-2 text-xl font-semibold text-foreground">
@@ -213,7 +215,7 @@ const timeline = [
         </a>
         <a
           href="/learn/agentic-ai"
-          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70"
+          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70 w-80 flex-shrink-0"
         >
           <div class="mb-4 text-4xl">🤖</div>
           <h3 class="mb-2 text-xl font-semibold text-foreground">
@@ -227,6 +229,24 @@ const timeline = [
             <IconArrowRight class="ml-2 inline-block transition-transform group-hover:translate-x-1 rtl:-rotate-180" />
           </div>
         </a>
+        <a
+          href="/learn/geospatial"
+          class="group relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-8 text-left shadow-[var(--shadow-xl-soft)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-2xl)] dark:border-slate-700/40 dark:bg-slate-900/70 w-80 flex-shrink-0"
+        >
+          <div class="mb-4 text-4xl">🛰️</div>
+          <h3 class="mb-2 text-xl font-semibold text-foreground">
+            Satellite Photogrammetry
+          </h3>
+          <p class="text-sm text-secondary-foreground">
+            Mapping Earth from space. From stereo imaging and DEM generation to AI-powered feature extraction—master the math and modern techniques.
+          </p>
+          <div class="mt-4 flex items-center text-sm font-medium text-accent">
+            Explore
+            <IconArrowRight class="ml-2 inline-block transition-transform group-hover:translate-x-1 rtl:-rotate-180" />
+          </div>
+        </a>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -335,6 +355,23 @@ const timeline = [
   </main>
   <Footer />
 </Layout>
+
+<style>
+  /* Custom scrollbar for webkit browsers */
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 8px;
+  }
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(59, 130, 246, 0.3);
+    border-radius: 4px;
+  }
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(59, 130, 246, 0.5);
+  }
+</style>
 
 <script>
   document.addEventListener("astro:page-load", () => {

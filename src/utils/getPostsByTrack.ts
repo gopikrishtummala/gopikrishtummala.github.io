@@ -1,20 +1,21 @@
 import type { CollectionEntry } from "astro:content";
 import getSortedPosts from "./getSortedPosts";
 
-export type Track = "Fundamentals" | "GenAI Systems" | "MLOps & Production" | "Robotics" | "Agentic AI";
+export type Track = "Fundamentals" | "GenAI Systems" | "MLOps & Production" | "Robotics" | "Agentic AI" | "Geospatial";
 
 /**
  * Extract part number from slug (e.g., "agentic-ai-design-patterns-part-1" -> 1)
- * or module number (e.g., "autonomous-stack-module-1" -> 1)
+ * or module number (e.g., "autonomous-stack-module-1" -> 1 or "satellite-photogrammetry-module-1-core-principles" -> 1)
  */
 function extractPartNumber(slug: string): number | null {
-  // Match -part-N or -module-N pattern
-  const partMatch = slug.match(/-part-(\d+)$/);
+  // Match -part-N or -part-N- pattern (at end or followed by more text)
+  const partMatch = slug.match(/-part-(\d+)(?:$|-)/);
   if (partMatch) {
     return parseInt(partMatch[1], 10);
   }
   
-  const moduleMatch = slug.match(/-module-(\d+)$/);
+  // Match -module-N or -module-N- pattern (at end or followed by more text)
+  const moduleMatch = slug.match(/-module-(\d+)(?:$|-)/);
   if (moduleMatch) {
     return parseInt(moduleMatch[1], 10);
   }
@@ -24,9 +25,14 @@ function extractPartNumber(slug: string): number | null {
 
 /**
  * Extract series base name (e.g., "agentic-ai-design-patterns-part-1" -> "agentic-ai-design-patterns")
+ * or "satellite-photogrammetry-module-1-core-principles" -> "satellite-photogrammetry")
  */
 function getSeriesBase(slug: string): string {
-  return slug.replace(/-part-\d+$/, '').replace(/-module-\d+$/, '');
+  // Remove -part-N or -part-N- and everything after
+  let base = slug.replace(/-part-\d+(-.*)?$/, '');
+  // Remove -module-N or -module-N- and everything after
+  base = base.replace(/-module-\d+(-.*)?$/, '');
+  return base;
 }
 
 /**
