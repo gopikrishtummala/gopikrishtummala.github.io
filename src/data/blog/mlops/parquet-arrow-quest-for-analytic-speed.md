@@ -28,7 +28,7 @@ estimated_read_time: 45
 
 ## Introduction: The Library Analogy
 
-Welcome to the cutting edge of data systems. As future engineers and scientists, you're used to thinking about algorithms and hardware, but the unsung hero—or villain—of modern data processing is the way we structure data itself.
+Welcome to the cutting edge of data systems. While algorithms and hardware often take center stage, the unsung hero—or villain—of modern data processing is the way we structure data itself.
 
 Imagine you have a massive library (your dataset). If the books are organized randomly, finding a single sentence takes forever. If they are perfectly shelved by topic (**columnar storage**), but the pages are written in a foreign language (unoptimized format), you still hit a wall.
 
