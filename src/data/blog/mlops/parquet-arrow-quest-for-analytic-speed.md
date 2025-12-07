@@ -277,7 +277,326 @@ tensor = torch.from_numpy(table.column("features").to_numpy())
 
 ---
 
-## 4. Encoding Techniques: The Compression Arsenal 🗜️
+## 4. How Parquet and Arrow Coexist in Modern ML Dataloaders 🚀
+
+Modern ML pipelines rarely choose **Parquet *or* Arrow** — they usually use **both**, because each solves a different problem.
+
+A high-performance data stack typically looks like this:
+
+* **Parquet** → efficient *storage*
+* **Arrow** → efficient *in-memory compute*
+* **DuckDB / HF Datasets / Ray / Spark** → engines that convert between them on the fly
+
+This "storage vs memory" layering is exactly what gives today's ML workloads their speed.
+
+### 🧱 Why Parquet + Arrow is the Winning Combination
+
+**Parquet = Optimized Storage Format:**
+
+* Columnar on disk
+* Compressed (Snappy, ZSTD)
+* Row-group layout enables scanning only required portions
+* Ideal for data lakes, S3, long-term storage
+* Cheap to store, cheap to transfer
+
+**Arrow = Optimized In-Memory Compute:**
+
+* Zero-copy buffers
+* SIMD/vectorized execution
+* Shared memory between languages (Python/C++/Rust)
+* No decoding overhead
+* Acts like NumPy for tabular data
+
+**🔑 Together:**
+
+> Store as Parquet → load only what you need → operate in Arrow → pass to the model/dataloader with zero-copy.
+
+This is the core of fast ML data systems like **DuckDB**, **HuggingFace Datasets**, **Ray Data**, **Polars**, etc.
+
+### 📘 Real-World Case Study: HuggingFace Datasets (HF)
+
+HuggingFace Datasets is the most widely used ML dataloader today that combines **Parquet + Arrow** cleanly.
+
+**🔹 HF stores your dataset on disk/network as:**
+
+* Parquet files
+* An Arrow *index file* (for fast random access)
+
+**🔹 When you load the dataset:**
+
+HF **does NOT load everything into RAM**. It memory-maps Arrow files and loads batches on demand.
+
+**Workflow:**
+
+1. Your dataset (e.g. `train/`, `test/`) is stored as **sharded Parquet**.
+2. HF builds an **Arrow index** (`*.arrow`, `*.idx`).
+3. On training, HF loads record batches directly from memory-mapped Arrow files.
+4. Transformations (map, filter) are done in Arrow buffers—no Python loops.
+5. Only the batch you need gets converted to Python/Torch.
+
+This is why HF Datasets scale to **hundreds of GB** on a laptop.
+
+**Example:**
+```python
+from datasets import load_dataset
+
+# Dataset stored as sharded Parquet on disk
+dataset = load_dataset("squad")  # ~500MB dataset
+
+# Only loads what you need into Arrow buffers
+train_data = dataset["train"]
+# Memory-mapped Arrow tables, not full RAM load
+
+# Transformations happen in Arrow (zero-copy)
+tokenized = train_data.map(tokenize_function, batched=True)
+# Arrow buffers → Arrow buffers, no Python loops
+
+# Only final batch converted to PyTorch
+dataloader = DataLoader(tokenized, batch_size=32)
+# Arrow → NumPy → PyTorch tensor (minimal overhead)
+```
+
+### 📦 What Dataloaders Use Parquet/Arrow?
+
+**✔ HuggingFace Datasets:**
+
+* Internal storage: Arrow
+* External storage: Parquet/sharded Parquet
+* Supports memory-mapped Arrow tables → zero-copy
+
+**✔ Ray Data:**
+
+* Reads/writes Parquet
+* Converts partitions to Arrow for transformations
+* Feeds Arrow batches to Ray Train/Torch DDP
+
+**Example:**
+```python
+import ray.data as rd
+
+# Read Parquet
+dataset = rd.read_parquet("s3://bucket/data/")
+
+# Transform in Arrow
+transformed = dataset.map_batches(
+    preprocess_fn,
+    batch_format="arrow"  # Uses Arrow format
+)
+
+# Feed to training
+for batch in transformed.iter_torch_batches():
+    # Arrow → PyTorch with minimal overhead
+    train_step(batch)
+```
+
+**✔ DuckDB Dataloaders:**
+
+* Parquet → Arrow Scanner → Arrow RecordBatch
+* Used in ML feature stores (Feast, Tecton)
+
+**Example:**
+```python
+import duckdb
+
+# Query Parquet, get Arrow result
+result = duckdb.sql("""
+    SELECT * FROM 'data.parquet' 
+    WHERE age > 30
+""").arrow()
+
+# Zero-copy Arrow table
+# Can convert to Pandas/NumPy/PyTorch
+```
+
+**✔ PyTorch DataPipes:**
+
+Some Torch DataPipes now support:
+
+* Parquet datapipe
+* Arrow datapipe
+* Less common but growing
+
+**✔ Polars LazyFrame + Torch Integration:**
+
+* Polars performs compute in Arrow
+* Scans Parquet lazily
+* Can convert batches → NumPy → Torch tensors
+
+**Example:**
+```python
+import polars as pl
+import torch
+
+# Lazy scan Parquet
+df = pl.scan_parquet("data/*.parquet")
+
+# Compute in Arrow
+result = df.filter(pl.col("age") > 30).collect()
+
+# Convert to PyTorch
+tensor = torch.from_numpy(result.to_numpy())
+```
+
+**✔ Spark / Glue / Databricks:**
+
+* Uses Parquet for storage
+* Arrow for Pandas UDFs and fast data interchange
+
+### 🧭 Simple Mental Model
+
+Here's a simple mental model for understanding the relationship:
+
+**Parquet is like a compressed warehouse.  
+Arrow is like unpacked items on the workbench.  
+ML training is easier when items are on the workbench.**
+
+* You store long-term data in Parquet (cheap, compressed).
+* Your ML engine loads only the needed shelves into Arrow (fast, zero-copy).
+* Your dataloader feeds Arrow batches into the model.
+* Nothing is wasted: no full reads, no full decompress.
+
+This is why every modern ML infra stack uses this pattern.
+
+### 🗺️ How Parquet & Arrow Coexist: The Data Flow
+
+The following diagram illustrates how Parquet and Arrow work together in modern ML dataloaders:
+
+```mermaid
+flowchart LR
+
+    subgraph Storage["On-Disk Storage Layer"]
+        P1[Parquet Shards<br>train-000.parquet]
+        P2[Parquet Shards<br>train-001.parquet]
+        IDX[Arrow Index Files<br>.arrow / .idx]
+    end
+
+    subgraph Loader["Reader / Scanner Layer"]
+        S1[Column Pruning<br>Read only needed columns]
+        S2[Row-group Filtering<br>Predicate pushdown]
+        S3[Arrow RecordBatches<br>(Streaming)]
+    end
+
+    subgraph Memory["In-Memory Arrow Layer"]
+        A1[Arrow Table<br>Zero-copy buffers]
+        A2[Vectorized Ops<br>map / filter / tokenize]
+    end
+
+    subgraph Dataloader["ML Dataloader Layer"]
+        B1[Batch to NumPy]
+        B2[Batch to PyTorch / JAX / TF]
+    end
+
+    P1 --> S1
+    P2 --> S1
+    IDX --> S1
+
+    S1 --> S2 --> S3
+    S3 --> A1 --> A2 --> B1 --> B2
+```
+
+**Key Flow Steps:**
+
+1. **Storage Layer**: Data stored as sharded Parquet files with Arrow index files for fast random access
+2. **Scanner Layer**: Column pruning and row-group filtering reduce I/O by reading only necessary data
+3. **Arrow Layer**: Zero-copy buffers enable vectorized operations without Python loops
+4. **Dataloader Layer**: Final conversion to framework-specific tensors (PyTorch, JAX, TensorFlow)
+
+### 📊 Practical Benchmark: Parquet vs Arrow Query Performance
+
+Let's see the performance difference in practice:
+
+```python
+import duckdb
+import pyarrow.parquet as pq
+import time
+
+# Same dataset, different access patterns
+parquet_file = "data.parquet"
+
+# Query 1: Direct Parquet query (with column pruning)
+start = time.time()
+result1 = duckdb.sql(f"""
+    SELECT column1, column2 
+    FROM '{parquet_file}' 
+    WHERE column1 > 100
+""").arrow()
+time_parquet = time.time() - start
+
+# Query 2: Load to Arrow first, then query
+table = pq.read_table(parquet_file)
+start = time.time()
+result2 = duckdb.sql("""
+    SELECT column1, column2 
+    FROM table 
+    WHERE column1 > 100
+""").arrow()
+time_arrow = time.time() - start
+
+print(f"Parquet (with pruning): {time_parquet:.3f}s")
+print(f"Arrow (in-memory): {time_arrow:.3f}s")
+```
+
+**Typical Results:**
+- **Parquet**: 0.5-2.0s (depends on selectivity, benefits from column pruning)
+- **Arrow**: 0.1-0.5s (faster for repeated queries, no I/O overhead)
+
+**Takeaway**: Parquet wins for one-time queries with high selectivity. Arrow wins for repeated queries or when data fits in memory.
+
+### ⚠️ Common Pitfalls in ML Dataloaders
+
+**1. Arrow Table ≠ Arrow Dataset:**
+
+```python
+# ❌ Wrong: Loading entire dataset into memory
+table = pq.read_table("large_dataset.parquet")  # OOM risk!
+
+# ✅ Correct: Use streaming or memory-mapped access
+dataset = pq.ParquetDataset("large_dataset/")  # Lazy loading
+for batch in dataset.iter_batches():
+    process(batch)
+```
+
+**2. Parquet ≠ Fast for Small Batch Random Access:**
+
+```python
+# ❌ Wrong: Random access on Parquet
+for idx in random_indices:
+    row = read_parquet_row("data.parquet", idx)  # Very slow!
+
+# ✅ Correct: Use Arrow index or convert to Arrow first
+arrow_table = pq.read_table("data.parquet")
+for idx in random_indices:
+    row = arrow_table.slice(idx, 1)  # Fast random access
+```
+
+**3. Arrow ≠ Good for Storage:**
+
+```python
+# ❌ Wrong: Storing Arrow files long-term
+arrow_table.write_feather("data.arrow")  # Poor compression
+
+# ✅ Correct: Store as Parquet, convert to Arrow when needed
+arrow_table = pq.read_table("data.parquet")  # Better compression
+```
+
+### 💡 Rule of Thumb: When to Use What
+
+| Use Case | Format | Reason |
+|----------|--------|--------|
+| Long-term storage | Parquet | Best compression, efficient I/O |
+| Data lake / S3 | Parquet | Industry standard, cost-effective |
+| In-memory analytics | Arrow | Zero-copy, SIMD optimization |
+| ML training batches | Arrow | Fast conversion to tensors |
+| Random access | Arrow (with index) | Fast lookups, memory-mapped |
+| One-time queries | Parquet | Column pruning, data skipping |
+| Repeated queries | Arrow | No repeated I/O overhead |
+| Distributed transfer | Arrow Flight | Network-optimized streaming |
+
+**The Golden Rule**: Store in Parquet, compute in Arrow, convert to tensors only when needed.
+
+---
+
+## 5. Encoding Techniques: The Compression Arsenal 🗜️
 
 Understanding the encoding techniques is crucial for optimizing data pipelines.
 
@@ -367,7 +686,7 @@ Deltas: [100, +2, +3, +4, +5]
 
 ---
 
-## 5. Zone Maps and Data Skipping: The Query Optimizer's Best Friend 🗺️
+## 6. Zone Maps and Data Skipping: The Query Optimizer's Best Friend 🗺️
 
 **Zone Maps** are metadata structures that store min/max values for data chunks, enabling powerful query optimizations.
 
@@ -418,7 +737,7 @@ For a query selecting 1% of rows:
 
 ---
 
-## 6. The Future: Unified Co-Design 🚀
+## 7. The Future: Unified Co-Design 🚀
 
 The next generation of data systems will bridge the gap between Parquet and Arrow.
 
@@ -467,7 +786,7 @@ The next generation of data systems will bridge the gap between Parquet and Arro
 
 ---
 
-## 7. Practical Recommendations 💡
+## 8. Practical Recommendations 💡
 
 ### When to Use Parquet
 
@@ -522,7 +841,7 @@ Output Layer:      Arrow → Parquet (for persistence)
 
 ---
 
-## 8. Performance Benchmarks and Real-World Impact 📊
+## 9. Performance Benchmarks and Real-World Impact 📊
 
 ### Compression Ratios
 
@@ -565,7 +884,7 @@ Output Layer:      Arrow → Parquet (for persistence)
 
 ---
 
-## 9. Integration with Modern Data Stacks 🔗
+## 10. Integration with Modern Data Stacks 🔗
 
 ### Apache Spark
 
@@ -622,7 +941,7 @@ COPY (SELECT * FROM table) TO 'output.arrow' (FORMAT ARROW);
 
 ---
 
-## 10. Common Pitfalls and Best Practices ⚠️
+## 11. Common Pitfalls and Best Practices ⚠️
 
 ### Common Mistakes
 
