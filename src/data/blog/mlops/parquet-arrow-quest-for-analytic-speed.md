@@ -26,13 +26,29 @@ estimated_read_time: 45
 
 ---
 
+## TL;DR: The Golden Rule
+
+**Store in Parquet, compute in Arrow, convert to tensors only when needed.**
+
+This simple principle is the foundation of modern high-performance data pipelines. Parquet excels at storage efficiency and I/O optimization, while Arrow excels at in-memory computation and zero-copy operations. Together, they form the backbone of systems that can handle petabytes of data efficiently.
+
+**Key Takeaways:**
+- **Parquet** = Optimized for disk storage (best compression, column pruning, data skipping)
+- **Arrow** = Optimized for in-memory compute (zero-copy, SIMD-ready, language-agnostic)
+- **The Pattern**: Store data in Parquet → Convert to Arrow once → Use Arrow for all operations → Convert to tensors only at the final step
+- **Real-World Impact**: This approach enables systems like HuggingFace Datasets to handle hundreds of GB on a laptop and scales to petabyte-scale training pipelines
+
+---
+
 ## Introduction: The Library Analogy
 
 Welcome to the cutting edge of data systems. While algorithms and hardware often take center stage, the unsung hero—or villain—of modern data processing is the way we structure data itself.
 
 Imagine you have a massive library (your dataset). If the books are organized randomly, finding a single sentence takes forever. If they are perfectly shelved by topic (**columnar storage**), but the pages are written in a foreign language (unoptimized format), you still hit a wall.
 
-This is the problem that formats like **Apache Parquet**, **Apache Arrow**, and **ORC** solve. They are essentially competing standards for organizing the "pages" and "shelves" of our massive data libraries to maximize analytic performance.
+This is the problem that formats like **Apache Parquet** and **Apache Arrow** solve. They are complementary standards for organizing the "pages" and "shelves" of our massive data libraries to maximize analytic performance.
+
+**The Golden Rule:** Store in Parquet, compute in Arrow, convert to tensors only when needed. This principle guides every high-performance data pipeline in production today.
 
 ---
 
@@ -58,9 +74,9 @@ Parquet employs highly effective encoding techniques like:
 - **Run-Length Encoding (RLE)**: Compresses sequences of identical values
 - **Bit-Packed Encoding (BP)**: Efficiently stores small integer values
 
-Crucially, it stores statistics like min/max values (**zone maps**) in its metadata, allowing the engine to skip large sections of the file (**data skipping**) when filtering.
+Crucially, it stores statistics like min/max values (**zone maps**) in its metadata for each **row group** (Parquet's fundamental unit for parallelism and filtering), allowing the engine to skip entire row groups (**data skipping**) when filtering.
 
-**Trade-off:** Parquet is space-efficient, achieving the **best overall compression ratio** (typically around 0.13 compression ratio). However, getting the data ready for processing requires CPU-intensive **decoding** and **decompression**.
+**Trade-off:** Parquet is space-efficient, achieving the **best overall compression ratio**. A compression ratio of **0.13** means the file size is only **13% of the original uncompressed data size**—excellent for storage. However, getting the data ready for processing requires CPU-intensive **decoding** and **decompression** of these row groups.
 
 **Example:**
 ```
@@ -87,7 +103,7 @@ Arrow defines a standardized memory layout that is ready for modern CPU architec
 
 **The Arrow vs. Database Dilemma (Querying):**
 
-Arrow is designed for high-speed interoperability, but by default, it provides **no encoding support** for numeric types, or only limited support for strings. This means the data is unencoded, which is why it has a **poor compression ratio** (typically around 1.07 compression ratio by default). The perceived difficulty in "querying" Arrow stems from this unencoded, **plain-memory** nature; traditional database systems prefer to query data that is already **encoded** to save space and enable *direct querying* in the encoded domain.
+Arrow is designed for high-speed interoperability. It supports logical encodings like **Dictionary Encoding**, but by default, it uses unencoded, native memory types for numeric data (no RLE/BP physical encoding). This means the data is largely unencoded, which is why it has a **poor compression ratio** (typically around 1.07 compression ratio by default, meaning the file is 107% of the original size—essentially no compression). The perceived difficulty in "querying" Arrow stems from this unencoded, **plain-memory** nature; traditional database systems prefer to query data that is already **encoded** to save space and enable *direct querying* in the encoded domain.
 
 **Trade-off:** Arrow offers the **best decompression/transcoding throughput** (speed) but has the **worst compression ratio** without explicit encoding (size).
 
@@ -108,13 +124,13 @@ pandas_df → Arrow format → network transfer → Arrow format → numpy array
 
 The core tension: you cannot have maximum compression *and* maximum speed simultaneously. This fundamental trade-off has been systematically evaluated in recent research [[1]](https://www.vldb.org/pvldb/vol16/p3044-liu.pdf), which provides the empirical foundation for understanding these format characteristics.
 
-| Dimension | Parquet (On-Disk Optimized) | Arrow (In-Memory Optimized) | ORC (Balanced Storage) | Key Learning |
-| :--- | :--- | :--- | :--- | :--- |
-| **Primary Goal** | Minimize disk size and I/O | Maximize in-memory compute speed | Read-heavy analytical storage | Different formats for different stages |
-| **Compression Ratio** | **Best** (0.13 CR) | **Worst** (1.07 CR by default) | Good (0.27 CR) | Compression is essential for I/O efficiency [[1]](https://www.vldb.org/pvldb/vol16/p3044-liu.pdf) |
+| Dimension | Parquet (On-Disk Optimized) | Arrow (In-Memory Optimized) | Key Learning |
+| :--- | :--- | :--- | :--- |
+| **Primary Goal** | Minimize disk size and I/O | Maximize in-memory compute speed | Different formats for different stages |
+| **Compression Ratio** | **Best** (0.13 CR = 13% of original size) | **Worst** (1.07 CR = 107% of original size) | Compression is essential for I/O efficiency [[1]](https://www.vldb.org/pvldb/vol16/p3044-liu.pdf) |
 | **Transcoding Speed** | Slower due to intensive decoding | **Fastest** (Zero-copy read capability) | Worse than Parquet (especially for Zstd/zlib) | Zero-copy is faster than decoding |
-| **Data Skipping** | **Fine-Grained (Record-level)** | Only Chunk-level, requiring full chunk reading | Chunk-level, but with smaller batches/stripes, offering better opportunity than Arrow | Skipping only necessary data is critical for low-selectivity queries |
-| **"Point Query" Access** | **Best** for very low selectivity (finding a few records) because it decodes only what's needed | Worst by default, as it needs to load entire row batches | Better than Parquet at slightly higher selectivity due to efficient bulk loading | Format choice depends on query pattern |
+| **Data Skipping** | **Fine-Grained (Row Group-level)** | Only Chunk-level, requiring full chunk reading | Skipping only necessary data is critical for low-selectivity queries |
+| **"Point Query" Access** | **Best** for very low selectivity (finding a few records) because it decodes only needed row groups | Worst by default, as it needs to load entire row batches | Format choice depends on query pattern |
 
 ### The Opportunity: A Unified Co-Design
 
@@ -434,32 +450,32 @@ The following diagrams illustrate the complete lifecycle:
 
 ```mermaid
 flowchart TD
-    A[User provides Parquet/JSON/CSV] --> B[PyArrow Reader]
-    B --> C[Convert to Arrow RecordBatch]
-    C --> D[HF Processing: map(), filter(), cast()]
-    D --> E[Write Arrow IPC Shards]
-    E --> F[Generate metadata.json & state.json]
-    F --> G[Dataset Ready]
+    A["User provides Parquet/JSON/CSV"] --> B["PyArrow Reader"]
+    B --> C["Convert to Arrow RecordBatch"]
+    C --> D["HF Processing: map(), filter(), cast()"]
+    D --> E["Write Arrow IPC Shards"]
+    E --> F["Generate metadata.json & state.json"]
+    F --> G["Dataset Ready"]
 ```
 
 **B. Training-Time Random Access (Load Time):**
 
 ```mermaid
 flowchart LR
-    A[Arrow IPC Files on Disk] -->|mmap| B[Arrow Table in Virtual Memory]
-    B --> C[HF Dataset __getitem__]
-    C --> D[Arrow Zero-Copy Slice]
-    D --> E[Convert to numpy/torch tensors]
-    E --> F[Train Step]
+    A["Arrow IPC Files on Disk"] -->|mmap| B["Arrow Table in Virtual Memory"]
+    B --> C["HF Dataset __getitem__"]
+    C --> D["Arrow Zero-Copy Slice"]
+    D --> E["Convert to numpy/torch tensors"]
+    E --> F["Train Step"]
 ```
 
 **C. Parquet vs Arrow Roles:**
 
 ```mermaid
 flowchart TD
-    P[Parquet (On Disk)] -->|Decode Once| A[Arrow RecordBatch]
-    A -->|Write IPC| B[Arrow IPC Shards]
-    B -->|mmap()| C[Fast Runtime Access]
+    P["Parquet (On Disk)"] -->|Decode Once| A["Arrow RecordBatch"]
+    A -->|Write IPC| B["Arrow IPC Shards"]
+    B -->|mmap| C["Fast Runtime Access"]
 ```
 
 **🔹 Case Study: Large Dataset Performance**
@@ -621,25 +637,25 @@ The following diagram illustrates how Parquet and Arrow work together in modern 
 flowchart LR
 
     subgraph Storage["On-Disk Storage Layer"]
-        P1[Parquet Shards<br>train-000.parquet]
-        P2[Parquet Shards<br>train-001.parquet]
-        IDX[Arrow Index Files<br>.arrow / .idx]
+        P1["Parquet Shards<br/>train-000.parquet"]
+        P2["Parquet Shards<br/>train-001.parquet"]
+        IDX["Arrow Index Files<br/>.arrow / .idx"]
     end
 
     subgraph Loader["Reader / Scanner Layer"]
-        S1[Column Pruning<br>Read only needed columns]
-        S2[Row-group Filtering<br>Predicate pushdown]
-        S3[Arrow RecordBatches<br>(Streaming)]
+        S1["Column Pruning<br/>Read only needed columns"]
+        S2["Row-group Filtering<br/>Predicate pushdown"]
+        S3["Arrow RecordBatches<br/>(Streaming)"]
     end
 
     subgraph Memory["In-Memory Arrow Layer"]
-        A1[Arrow Table<br>Zero-copy buffers]
-        A2[Vectorized Ops<br>map / filter / tokenize]
+        A1["Arrow Table<br/>Zero-copy buffers"]
+        A2["Vectorized Ops<br/>map / filter / tokenize"]
     end
 
     subgraph Dataloader["ML Dataloader Layer"]
-        B1[Batch to NumPy]
-        B2[Batch to PyTorch / JAX / TF]
+        B1["Batch to NumPy"]
+        B2["Batch to PyTorch / JAX / TF"]
     end
 
     P1 --> S1
@@ -659,44 +675,23 @@ flowchart LR
 
 ### 📊 Practical Benchmark: Parquet vs Arrow Query Performance
 
-Let's see the performance difference in practice:
+The performance difference illustrates the trade-off clearly:
 
-```python
-import duckdb
-import pyarrow.parquet as pq
-import time
+**Pattern 1: Direct Parquet Query** (with column pruning and row group skipping)
+- Reads only needed columns from disk
+- Skips entire row groups based on zone maps
+- Requires decoding/decompression
 
-# Same dataset, different access patterns
-parquet_file = "data.parquet"
-
-# Query 1: Direct Parquet query (with column pruning)
-start = time.time()
-result1 = duckdb.sql(f"""
-    SELECT column1, column2 
-    FROM '{parquet_file}' 
-    WHERE column1 > 100
-""").arrow()
-time_parquet = time.time() - start
-
-# Query 2: Load to Arrow first, then query
-table = pq.read_table(parquet_file)
-start = time.time()
-result2 = duckdb.sql("""
-    SELECT column1, column2 
-    FROM table 
-    WHERE column1 > 100
-""").arrow()
-time_arrow = time.time() - start
-
-print(f"Parquet (with pruning): {time_parquet:.3f}s")
-print(f"Arrow (in-memory): {time_arrow:.3f}s")
-```
+**Pattern 2: Arrow In-Memory Query** (after one-time conversion)
+- Data already in memory (memory-mapped)
+- Zero-copy operations
+- No I/O overhead
 
 **Typical Results:**
-- **Parquet**: 0.5-2.0s (depends on selectivity, benefits from column pruning)
+- **Parquet**: 0.5-2.0s (depends on selectivity, benefits from column pruning and row group skipping)
 - **Arrow**: 0.1-0.5s (faster for repeated queries, no I/O overhead)
 
-**Takeaway**: Parquet wins for one-time queries with high selectivity. Arrow wins for repeated queries or when data fits in memory.
+**Takeaway**: Parquet wins for one-time queries with high selectivity. Arrow wins for repeated queries or when data fits in memory. This is why the hybrid approach (store in Parquet, convert to Arrow once, then use Arrow) is optimal.
 
 ### ⚠️ Common Pitfalls in ML Dataloaders
 
@@ -870,8 +865,8 @@ Chunk 4: min=55, max=75  → Read (all values > 50)
 ### Fine-Grained vs. Chunk-Level Skipping
 
 **Parquet (Fine-Grained):**
-- Record-level statistics
-- Can skip individual row groups
+- Row group-level statistics (zone maps)
+- Can skip individual row groups based on min/max values
 - Most granular skipping capability
 
 **Arrow (Chunk-Level):**
@@ -889,7 +884,6 @@ Chunk 4: min=55, max=75  → Read (all values > 50)
 For a query selecting 1% of rows:
 - **Parquet**: Reads ~1-5% of data (excellent skipping)
 - **Arrow**: Reads ~10-20% of data (chunk-level only)
-- **ORC**: Reads ~5-10% of data (stripe-level)
 
 ---
 
@@ -942,7 +936,7 @@ The next generation of data systems will bridge the gap between Parquet and Arro
 
 ---
 
-## 8. Practical Recommendations 💡
+## 8. Practical Recommendations and Tools Integration 💡
 
 ### When to Use Parquet
 
@@ -977,7 +971,7 @@ The next generation of data systems will bridge the gap between Parquet and Arro
 
 ### Hybrid Approach: The Best of Both Worlds
 
-**Recommended Pattern:**
+**Recommended Pattern (The Golden Rule):**
 
 ```
 Storage Layer:     Parquet (compressed, efficient)
@@ -989,11 +983,32 @@ Processing Layer:  Arrow (zero-copy, fast)
 Output Layer:      Arrow → Parquet (for persistence)
 ```
 
-**Tools That Support This:**
-- **Apache Spark**: Native Parquet/Arrow support
-- **Dask**: Seamless Parquet/Arrow integration
-- **Polars**: Built on Arrow, writes Parquet
-- **DuckDB**: Optimized for both formats
+### Tools That Support This Pattern
+
+**Apache Spark:**
+- Native Parquet/Arrow support
+- Reads Parquet with column pruning and row group skipping
+- Converts to Arrow for zero-copy operations with Pandas
+
+**Dask:**
+- Seamless Parquet/Arrow integration
+- Lazy loading from Parquet
+- Automatic Arrow conversion for in-memory operations
+
+**Polars:**
+- Built on Arrow, writes Parquet
+- All operations use Arrow format internally
+- Zero-copy operations throughout
+
+**DuckDB:**
+- Optimized for both formats
+- Queries Parquet directly with row group skipping
+- Returns Arrow results for zero-copy access
+
+**HuggingFace Datasets:**
+- Converts Parquet → Arrow IPC once (prepare time)
+- Memory-maps Arrow files for fast random access (load time)
+- Enables handling massive datasets on consumer hardware
 
 ---
 
@@ -1005,25 +1020,22 @@ Output Layer:      Arrow → Parquet (for persistence)
 
 | Format | Compression Ratio | Use Case |
 |--------|------------------|----------|
-| Parquet (Snappy) | 0.13-0.20 | Balanced compression/speed |
-| Parquet (Zstd) | 0.10-0.15 | Maximum compression |
-| Arrow (uncompressed) | 1.00-1.10 | Maximum speed |
-| Arrow (compressed) | 0.20-0.30 | Balanced option |
-| ORC (Zlib) | 0.25-0.35 | Hive/Spark ecosystem |
+| Parquet (Snappy) | 0.13-0.20 (13-20% of original) | Balanced compression/speed |
+| Parquet (Zstd) | 0.10-0.15 (10-15% of original) | Maximum compression |
+| Arrow (uncompressed) | 1.00-1.10 (100-110% of original) | Maximum speed |
+| Arrow (compressed) | 0.20-0.30 (20-30% of original) | Balanced option |
 
 ### Query Performance
 
 **Selective Query (1% selectivity):**
 
-- **Parquet**: 10-50x faster than row-oriented
+- **Parquet**: 10-50x faster than row-oriented (benefits from row group skipping)
 - **Arrow**: 5-20x faster (if data fits in memory)
-- **ORC**: 10-30x faster
 
 **Full Table Scan:**
 
 - **Parquet**: 2-5x faster than row-oriented
 - **Arrow**: 10-100x faster (zero-copy, SIMD)
-- **ORC**: 3-8x faster
 
 ### Storage Cost Impact
 
@@ -1032,72 +1044,14 @@ Output Layer:      Arrow → Parquet (for persistence)
 | Format | Storage Size | Monthly Cost (S3) | Savings |
 |--------|-------------|-------------------|---------|
 | CSV | 1 TB | $23 | Baseline |
-| Parquet | 130 GB | $3 | 87% savings |
-| Arrow | 1.07 TB | $24.61 | No savings |
-| ORC | 270 GB | $6.21 | 73% savings |
+| Parquet | 130 GB (0.13 CR) | $3 | 87% savings |
+| Arrow | 1.07 TB (1.07 CR) | $24.61 | No savings |
 
 **Annual Savings with Parquet: $240 per TB**
 
 ---
 
-## 10. Integration with Modern Data Stacks 🔗
-
-### Apache Spark
-
-**Parquet Integration:**
-```python
-# Read Parquet with column pruning
-df = spark.read.parquet("s3://bucket/data/")
-df.select("column1", "column2").filter(df.column1 > 100)
-# Only column1 and column2 are read from disk
-```
-
-**Arrow Integration:**
-```python
-# Convert to Arrow for zero-copy operations
-arrow_df = df.toPandas()  # Uses Arrow internally
-# Fast interop with Python/Pandas
-```
-
-### Dask
-
-**Seamless Format Support:**
-```python
-import dask.dataframe as dd
-
-# Read Parquet (lazy loading)
-df = dd.read_parquet("data/*.parquet")
-# Automatically uses Arrow for in-memory operations
-result = df.groupby("category").sum().compute()
-```
-
-### Polars
-
-**Built on Arrow:**
-```python
-import polars as pl
-
-# Read Parquet
-df = pl.read_parquet("data.parquet")
-# All operations use Arrow format internally
-# Zero-copy operations throughout
-result = df.filter(pl.col("age") > 30)
-```
-
-### DuckDB
-
-**Optimized for Both:**
-```sql
--- Read Parquet directly
-SELECT * FROM 'data.parquet' WHERE age > 30;
-
--- Export to Arrow
-COPY (SELECT * FROM table) TO 'output.arrow' (FORMAT ARROW);
-```
-
----
-
-## 11. Common Pitfalls and Best Practices ⚠️
+## 10. Common Pitfalls and Best Practices ⚠️
 
 ### Common Mistakes
 
@@ -1160,9 +1114,20 @@ df.write.parquet("archive/", compression="zstd")  # Cold data
 
 The core lesson for data engineers and ML practitioners is: **Parquet** wins the battle of **storage efficiency and I/O**, while **Arrow** is the **high-speed rail system** for data in motion, making both indispensable in modern large-scale pipelines.
 
+Returning to our analogy: **Parquet is the archivist**—meticulously compressing and indexing data on permanent storage, enabling efficient retrieval through column pruning and row group skipping. **Arrow is the zero-overhead desk organizer**—ready for immediate use, optimized for the CPU, enabling zero-copy operations and blazing-fast computation.
+
+**The Golden Rule (Revisited):**
+
+> **Store in Parquet, compute in Arrow, convert to tensors only when needed.**
+
+This principle encapsulates everything we've discussed:
+- **Parquet** for the warehouse (storage efficiency, compression, I/O optimization)
+- **Arrow** for the workbench (in-memory compute, zero-copy, SIMD-ready)
+- **Tensors** only at the final step (when feeding the model)
+
 **Key Takeaways:**
 
-1. **Use Parquet for Storage**: Best compression, excellent I/O efficiency, fine-grained skipping
+1. **Use Parquet for Storage**: Best compression (0.13 CR = 13% of original), excellent I/O efficiency, fine-grained row group skipping
 2. **Use Arrow for Processing**: Zero-copy operations, SIMD optimization, language interoperability
 3. **Hybrid Approach**: Store in Parquet, process in Arrow, write back to Parquet
 4. **Future is Unified**: Next-gen systems will combine Parquet's encoding with Arrow's speed

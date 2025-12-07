@@ -57,6 +57,9 @@
         "title": {
           "type": "string"
         },
+        "slug": {
+          "type": "string"
+        },
         "featured": {
           "type": "boolean"
         },
@@ -94,7 +97,8 @@
             "GenAI Systems",
             "MLOps & Production",
             "Robotics",
-            "Agentic AI"
+            "Agentic AI",
+            "Geospatial"
           ]
         },
         "difficulty": {
