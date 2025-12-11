@@ -46,6 +46,7 @@ A curated collection of books that have shaped my thinking on personal developme
 ## Philosophy & Spirituality
 
 - **Krishnamurti: Reflections on the Self** by Jiddu Krishnamurti
+- **Mind and Its Control** by Swami Budhananda
 - **Karma: A Yogi's Guide to Crafting Your Destiny** by Sadhguru
 - **Inner Engineering: A Yogi's Guide to Joy** by Jaggi Vasudev (Sadhguru)
 - **The Book of Joy** by Dalai Lama and Desmond Tutu
