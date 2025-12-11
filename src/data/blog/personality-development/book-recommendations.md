@@ -88,7 +88,7 @@ A curated collection of books that have shaped my thinking on personal developme
   - Harry Potter and the Goblet of Fire
   - Harry Potter and the Order of the Phoenix
 - **Sherlock Holmes: The Definitive Collection** by Arthur Conan Doyle
-- **The Immortals of Meluha - The Shiva Trilogy** by Sanjali Das
+- **The Immortals of Meluha - The Shiva Trilogy** by Amish Tripathi
 
 ---
 
