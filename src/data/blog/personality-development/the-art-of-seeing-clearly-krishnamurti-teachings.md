@@ -14,7 +14,7 @@ tags:
   - psychology
   - krishnamurti
 description: "Can the human mind be completely free from fear and noise? Jiddu Krishnamurti's insights on \"Choiceless Awareness\" offer a radical approach to modern clarity. Here is how to apply them."
-track: Fundamentals
+track: Personality Development
 difficulty: Beginner
 estimated_read_time: 12
 ---

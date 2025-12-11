@@ -1,7 +1,7 @@
 ---
 import { slugifyStr } from "@/utils/slugify";
 import type { CollectionEntry } from "astro:content";
-import { getPath } from "@/utils/getPath";
+import { getPostPath } from "@/utils/getPath";
 import Datetime from "./Datetime.astro";
 
 export interface Props extends CollectionEntry<"blog"> {
@@ -9,6 +9,12 @@ export interface Props extends CollectionEntry<"blog"> {
 }
 
 const { variant = "h2", data, id, filePath } = Astro.props;
+const post = Astro.props as CollectionEntry<"blog">;
+
+// Ensure post.data exists (use destructured data if post.data is missing)
+if (post && !post.data && data) {
+  (post as any).data = data;
+}
 
 const { title, description, pubDatetime, modDatetime, timezone, difficulty, track, estimated_read_time, slug } = data;
 
@@ -58,6 +64,7 @@ const trackColors = {
   "GenAI Systems": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   "MLOps & Production": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   Robotics: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  "Personality Development": "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   "Agentic AI": "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
   Geospatial: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
 };
@@ -101,7 +108,7 @@ const headerProps = {
   >
     <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/15 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
     <a
-      href={getPath(id, filePath)}
+      href={getPostPath(post)}
       class="inline-flex items-center gap-2 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
     >
       {

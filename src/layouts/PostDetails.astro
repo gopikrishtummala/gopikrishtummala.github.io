@@ -9,7 +9,7 @@ import EditPost from "@/components/EditPost.astro";
 import ShareLinks from "@/components/ShareLinks.astro";
 import BackButton from "@/components/BackButton.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
-import { getPath } from "@/utils/getPath";
+import { getPostPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
@@ -48,7 +48,7 @@ if (typeof initOgImage === "string") {
 
 // Use dynamic OG image if enabled and no remote|local ogImage
 if (!ogImageUrl && SITE.dynamicOgImage) {
-  ogImageUrl = `${getPath(post.id, post.filePath)}/index.png`;
+  ogImageUrl = `${getPostPath(post)}/index.png`;
 }
 
 // Resolve OG image URL (or fallback to SITE.ogImage / default `og.png`)
@@ -149,7 +149,7 @@ const nextPost =
         {
           prevPost && (
             <a
-              href={getPath(prevPost.id, prevPost.filePath)}
+              href={getPostPath(prevPost)}
               class="group flex w-full items-center gap-3 rounded-2xl border border-white/40 bg-white/70 p-4 text-start text-sm text-secondary-foreground transition hover:-translate-y-1 hover:border-accent/60 hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70"
             >
               <span class="inline-flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent transition group-hover:bg-accent group-hover:text-white">
@@ -169,7 +169,7 @@ const nextPost =
         {
           nextPost && (
             <a
-              href={getPath(nextPost.id, nextPost.filePath)}
+              href={getPostPath(nextPost)}
               class="group flex w-full items-center justify-end gap-3 rounded-2xl border border-white/40 bg-white/70 p-4 text-end text-sm text-secondary-foreground transition hover:-translate-y-1 hover:border-accent/60 hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70"
             >
               <div>

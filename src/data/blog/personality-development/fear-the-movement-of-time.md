@@ -14,7 +14,7 @@ tags:
   - psychology
   - krishnamurti
 description: "We spend our lives trying to escape fear, yet it follows us everywhere. Part 2 explores Krishnamurti's radical insight: Fear is not an emotion; it is a movement of time."
-track: Fundamentals
+track: Personality Development
 difficulty: Intermediate
 estimated_read_time: 14
 ---

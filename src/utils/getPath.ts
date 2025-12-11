@@ -1,5 +1,6 @@
 import { BLOG_PATH } from "@/content.config";
 import { slugifyStr } from "./slugify";
+import type { CollectionEntry } from "astro:content";
 
 /**
  * Get full path of a blog post
@@ -33,4 +34,37 @@ export function getPath(
   }
 
   return [basePath, ...pathSegments, slug].join("/");
+}
+
+/**
+ * Get the URL path for a blog post, using frontmatter slug if available
+ * @param post - the blog post entry
+ * @param includeBase - whether to include `/posts` in return value
+ * @returns blog post URL path
+ */
+export function getPostPath(
+  post: CollectionEntry<"blog"> | null | undefined,
+  includeBase = true
+) {
+  // Safety check for post
+  if (!post) {
+    throw new Error("Invalid post entry: post is null or undefined");
+  }
+  
+  // Check if post.data exists, if not try to use id and filePath
+  if (!post.data) {
+    if (post.id && post.filePath) {
+      return getPath(post.id, post.filePath, includeBase);
+    }
+    throw new Error("Invalid post entry: post.data is undefined and cannot generate path");
+  }
+  
+  // Use frontmatter slug if available, otherwise use path-based slug
+  // Use optional chaining for extra safety
+  const slug = post.data?.slug;
+  if (slug) {
+    const basePath = includeBase ? "/posts" : "";
+    return [basePath, slug].filter(Boolean).join("/");
+  }
+  return getPath(post.id, post.filePath, includeBase);
 }

@@ -17,6 +17,7 @@ export async function getStaticPaths() {
     { params: { track: "robotics" }, props: { track: "Robotics" as Track } },
     { params: { track: "agentic-ai" }, props: { track: "Agentic AI" as Track } },
     { params: { track: "geospatial" }, props: { track: "Geospatial" as Track } },
+    { params: { track: "personality-development" }, props: { track: "Personality Development" as Track } },
   ];
 }
 
@@ -99,6 +100,18 @@ const trackInfo = {
       "Finish with **Module 8: Applications & Future** (Disaster Management, Ethics, Emerging Trends)"
     ],
     color: "from-purple-500 to-indigo-600"
+  },
+  "Personality Development": {
+    title: "Personality Development",
+    subtitle: "The Inner Journey",
+    description: "Exploring self-awareness, mindfulness, and psychological freedom through the teachings of Jiddu Krishnamurti and other wisdom traditions. Practical insights for modern life.",
+    syllabus: [
+      "Start with **Krishnamurti Introduction** to understand choiceless awareness",
+      "Move to **Part 1: Understanding Thought** (functional vs psychological thought)",
+      "Explore **Part 2: Fear & Time** (why time is the root of fear)",
+      "Discover **Book Recommendations** for personal growth and philosophy"
+    ],
+    color: "from-rose-500 to-pink-600"
   }
 };
 

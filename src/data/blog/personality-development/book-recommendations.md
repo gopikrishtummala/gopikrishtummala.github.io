@@ -13,7 +13,7 @@ tags:
   - reading
   - self-improvement
 description: 'A curated list of book recommendations covering personal development, philosophy, psychology, and life lessons from my personal library.'
-track: Fundamentals
+track: Personality Development
 difficulty: Beginner
 estimated_read_time: 5
 ---

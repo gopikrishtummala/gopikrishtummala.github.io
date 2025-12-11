@@ -12,7 +12,7 @@ tags:
   - productivity
   - practice
 description: A structured articulation and pacing warm-up designed to help technologists speak with clarity and confidence in high-stakes meetings.
-track: Fundamentals
+track: Personality Development
 difficulty: Beginner
 interview_relevance:
   - Behavioral
