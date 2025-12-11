@@ -29,6 +29,7 @@ estimated_read_time: 14
     <a href="/posts/krishnamurti-part-0-introduction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Introduction</a>
     <a href="/posts/krishnamurti-part-1-thought" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Thought</a>
     <span style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 2: Fear & Time</span>
+    <a href="/posts/krishnamurti-part-3-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Ambition</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 2</strong> — Why time is the root of fear.</div>
 </div>
@@ -207,9 +208,9 @@ In Part 3, we will explore the "Architecture of Ambition"—and why our constant
 <div class="series-nav" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-top: 3rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Continue Reading</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/krishnamurti-part-1-thought" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">← Part 1: Thought</a>
-    <span style="opacity: 0.5; padding: 0.5rem 1rem; color: white;">Part 3: Ambition & Desire (Coming Soon)</span>
+    <a href="/posts/krishnamurti-part-1-thought" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">&larr; Part 1: Thought</a>
+    <a href="/posts/krishnamurti-part-3-ambition" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 3: Ambition & Becoming &rarr;</a>
   </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">Next: We explore the difference between needs and desires, and why "becoming someone" creates conflict.</div>
+  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">Next: We explore the difference between excellence and ambition, and why "becoming someone" creates conflict.</div>
 </div>
 
