@@ -31,6 +31,7 @@ estimated_read_time: 10
     <a href="/posts/krishnamurti-part-2-fear" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Fear</a>
     <a href="/posts/krishnamurti-part-3-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Ambition</a>
     <span style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 5: Relationships</span>
+    <a href="/posts/krishnamurti-part-6-meditation" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Meditation</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">You are reading <strong>Part 5</strong> — The hidden violence we call love.</div>
 </div>
@@ -175,7 +176,7 @@ In **Part 6** — the last part of this series — we will go into the heart of 
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Continue the Journey</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/krishnamurti-part-3-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">&larr; Part 3: Ambition</a>
-    <span style="opacity: 0.6; padding: 0.5rem 1rem; color: white;">Part 6: The Silence That Is Not (Coming Soon)</span>
+    <a href="/posts/krishnamurti-part-6-meditation" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 6: Meditation (Finale) &rarr;</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">The finale: What remains when the observer is not?</div>
 </div>
