@@ -30,6 +30,7 @@ estimated_read_time: 11
     <a href="/posts/krishnamurti-part-1-thought" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Thought</a>
     <a href="/posts/krishnamurti-part-2-fear" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Fear</a>
     <span style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 3: Ambition & Becoming</span>
+    <a href="/posts/krishnamurti-part-5-relationships" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Relationships</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 3</strong> — The subtle difference between doing good work and trying to "be" somebody.</div>
 </div>
