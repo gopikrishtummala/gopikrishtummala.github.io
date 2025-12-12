@@ -13,7 +13,7 @@ tags:
   - mindfulness
   - psychology
   - krishnamurti
-description: 'A gentle introduction to Krishnamurti's deepest teaching: real meditation is not something you do — it is what remains when the doing stops.'
+description: "A gentle introduction to Krishnamurti's deepest teaching: real meditation is not something you do — it is what remains when the doing stops."
 track: Personality Development
 difficulty: Advanced
 estimated_read_time: 10
