@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-20T00:00:00Z
 modDatetime: 2025-01-20T00:00:00Z
-title: 'The Art of Seeing Clearly: What Jiddu Krishnamurti Teaches Us Today'
-slug: krishnamurti-part-0-introduction
+title: 'The Art of Seeing Clearly: What Jiddu Krishnamurti Teaches Us Today — Part 1'
+slug: krishnamurti-part-1-introduction
 featured: true
 draft: false
 tags:
@@ -129,12 +129,12 @@ mindmap
 
 Based on this framework, here is the logical progression of this series:
 
-* **Part 1: Understanding Thought** — The distinction between functional and psychological thought
-* **Part 2: Fear & Time** — Why time is the root of fear
-* **Part 3: The Trap of "Becoming"** — Why self-improvement obsession prevents actual change
-* **Part 4: The Myth of the "I"** — The observer and the observed
+* **Part 2: Understanding Thought** — The distinction between functional and psychological thought
+* **Part 3: Fear & Time** — Why time is the root of fear
+* **Part 4: The Trap of "Becoming"** — Why self-improvement obsession prevents actual change
 * **Part 5: Relationship and Images** — Looking at others without the screen of past judgments
-* **Part 6: What is Love?** — Stripping away jealousy and attachment
+* **Part 6: The Screen of Images** — How labels and memories block direct perception
+* **Part 7: What is True Meditation?** — The silence in which the self is not
 
 ---
 
@@ -142,7 +142,7 @@ Based on this framework, here is the logical progression of this series:
   <div style="font-size: 0.75rem; opacity: 0.9; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;">Krishnamurti Learning Series</div>
   <h3 style="margin: 0 0 1rem 0; font-size: 1.5rem; color: white;">Ready to begin?</h3>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/krishnamurti-part-1-thought" style="background: white; padding: 0.75rem 1.5rem; border-radius: 50px; text-decoration: none; color: #667eea; font-weight: 700; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Read Part 1: Understanding Thought &rarr;</a>
+    <a href="/posts/krishnamurti-part-2-thought" style="background: white; padding: 0.75rem 1.5rem; border-radius: 50px; text-decoration: none; color: #667eea; font-weight: 700; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Read Part 2: Understanding Thought &rarr;</a>
   </div>
   <div style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.9; line-height: 1.5;">
     Next, we explore why thought is an excellent servant but a terrible master, and how to tell the difference.

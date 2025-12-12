@@ -26,12 +26,13 @@ estimated_read_time: 10
 <div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Krishnamurti Learning Series</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/krishnamurti-part-0-introduction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Introduction</a>
-    <a href="/posts/krishnamurti-part-1-thought" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Thought</a>
-    <a href="/posts/krishnamurti-part-2-fear" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Fear</a>
-    <a href="/posts/krishnamurti-part-3-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Ambition</a>
+    <a href="/posts/krishnamurti-part-1-introduction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Introduction</a>
+    <a href="/posts/krishnamurti-part-2-thought" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Thought</a>
+    <a href="/posts/krishnamurti-part-3-fear" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Fear</a>
+    <a href="/posts/krishnamurti-part-4-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Ambition</a>
     <span style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 5: Relationships</span>
-    <a href="/posts/krishnamurti-part-6-meditation" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Meditation</a>
+    <a href="/posts/krishnamurti-part-6-images" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Images</a>
+    <a href="/posts/krishnamurti-part-7-meditation" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: Meditation</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 5</strong> — Rediscovering connection by dropping our assumptions.</div>
 </div>
@@ -147,9 +148,10 @@ In the final part of our series, **Part 6**, we will explore **Meditation**—no
 <div class="series-nav" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-top: 3rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
   <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Continue Reading</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/krishnamurti-part-3-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">&larr; Part 3: Ambition</a>
-    <a href="/posts/krishnamurti-part-6-meditation" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 6: Meditation (Finale) &rarr;</a>
+    <a href="/posts/krishnamurti-part-4-ambition" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">&larr; Part 4: Ambition</a>
+    <a href="/posts/krishnamurti-part-6-images" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Images</a>
+    <a href="/posts/krishnamurti-part-7-meditation" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 7: Meditation (Finale) &rarr;</a>
   </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">Next: The finale. What happens when the mind is finally silent?</div>
+  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">Next: How our mind puts labels on everything it sees, then the finale on meditation.</div>
 </div>
 

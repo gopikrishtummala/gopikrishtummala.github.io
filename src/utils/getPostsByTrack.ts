@@ -84,6 +84,21 @@ function sortPostsWithSeries(posts: CollectionEntry<"blog">[]): CollectionEntry<
     seriesPosts.push(...seriesPostsList);
   }
   
+  // Sort series posts by part number across all series (in case of multiple series)
+  seriesPosts.sort((a, b) => {
+    const identifierA = getPostIdentifier(a);
+    const identifierB = getPostIdentifier(b);
+    const partA = extractPartNumber(identifierA) ?? 0;
+    const partB = extractPartNumber(identifierB) ?? 0;
+    // If same part number, maintain original order (by series base)
+    if (partA === partB) {
+      const baseA = getSeriesBase(identifierA);
+      const baseB = getSeriesBase(identifierB);
+      return baseA.localeCompare(baseB);
+    }
+    return partA - partB;
+  });
+  
   // Return series posts first, then non-series posts (already sorted by date from getSortedPosts)
   return [...seriesPosts, ...nonSeriesPosts];
 }
