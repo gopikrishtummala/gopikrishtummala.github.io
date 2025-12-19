@@ -1,0 +1,36 @@
+---
+// Scroll Progress Indicator inspired by DevPro theme
+---
+
+<div class="scroll-progress" id="scroll-progress"></div>
+
+<script>
+  // Update scroll progress bar
+  function updateScrollProgress() {
+    const scrollProgress = document.getElementById('scroll-progress');
+    if (!scrollProgress) return;
+
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollPercent = (scrollTop / (documentHeight - windowHeight)) * 100;
+    
+    scrollProgress.style.width = scrollPercent + '%';
+  }
+
+  // Throttle scroll events for performance
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        updateScrollProgress();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // Initial update
+  updateScrollProgress();
+</script>
+

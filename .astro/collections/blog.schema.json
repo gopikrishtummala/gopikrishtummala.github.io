@@ -1,0 +1,143 @@
+{
+  "$ref": "#/definitions/blog",
+  "definitions": {
+    "blog": {
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "string",
+          "default": "Gopi Krishna Tummala"
+        },
+        "pubDatetime": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "integer",
+              "format": "unix-time"
+            }
+          ]
+        },
+        "modDatetime": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "not": {}
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    {
+                      "type": "integer",
+                      "format": "unix-time"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "featured": {
+          "type": "boolean"
+        },
+        "draft": {
+          "type": "boolean"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "others"
+          ]
+        },
+        "ogImage": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "canonicalURL": {
+          "type": "string"
+        },
+        "hideEditPost": {
+          "type": "boolean"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "track": {
+          "type": "string",
+          "enum": [
+            "Fundamentals",
+            "GenAI Systems",
+            "MLOps & Production",
+            "Robotics",
+            "Agentic AI"
+          ]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": [
+            "Beginner",
+            "Intermediate",
+            "Advanced"
+          ]
+        },
+        "interview_relevance": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Theory",
+              "System Design",
+              "Coding",
+              "Behavioral",
+              "ML-Infra"
+            ]
+          }
+        },
+        "related_paper": {
+          "type": "string"
+        },
+        "estimated_read_time": {
+          "type": "number"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "pubDatetime",
+        "title",
+        "description"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,149 @@
+---
+import { slugifyStr } from "@/utils/slugify";
+import type { CollectionEntry } from "astro:content";
+import { getPostPath } from "@/utils/getPath";
+import Datetime from "./Datetime.astro";
+
+export interface Props extends CollectionEntry<"blog"> {
+  variant?: "h2" | "h3";
+}
+
+const { variant = "h2", data, id, filePath } = Astro.props;
+const post = Astro.props as CollectionEntry<"blog">;
+
+// Ensure post.data exists (use destructured data if post.data is missing)
+if (post && !post.data && data) {
+  (post as any).data = data;
+}
+
+const { title, description, pubDatetime, modDatetime, timezone, difficulty, track, estimated_read_time, slug } = data;
+
+/**
+ * Extract part/module number and format title with unified numbering
+ */
+function formatTitleWithNumber(title: string, identifier: string): string {
+  // Extract part number (e.g., "agentic-ai-design-patterns-part-1" -> 1)
+  const partMatch = identifier.match(/-part-(\d+)$/);
+  if (partMatch) {
+    const partNum = parseInt(partMatch[1], 10);
+    const paddedNum = partNum.toString().padStart(2, '0');
+    // Check if title already has "Part X:" format
+    if (title.match(/^Part \d+:/i)) {
+      return title.replace(/^Part \d+:/i, `Part ${paddedNum}:`);
+    }
+    return `Part ${paddedNum}: ${title}`;
+  }
+  
+  // Extract module number (e.g., "autonomous-stack-module-1" -> 1)
+  const moduleMatch = identifier.match(/-module-(\d+)$/);
+  if (moduleMatch) {
+    const moduleNum = parseInt(moduleMatch[1], 10);
+    const paddedNum = moduleNum.toString().padStart(2, '0');
+    // Check if title already has "Module X:" format
+    if (title.match(/^Module \d+:/i)) {
+      return title.replace(/^Module \d+:/i, `Module ${paddedNum}:`);
+    }
+    return `Module ${paddedNum}: ${title}`;
+  }
+  
+  return title;
+}
+
+// Get identifier (slug or filename from id)
+const identifier = slug || id.split('/').pop()?.replace(/\.(md|mdx)$/, '') || id;
+const displayTitle = formatTitleWithNumber(title, identifier);
+
+const difficultyColors = {
+  Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  Intermediate: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  Advanced: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+};
+
+const trackColors = {
+  Fundamentals: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  "GenAI Systems": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+  "MLOps & Production": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+  Robotics: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  "Agentic AI": "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
+};
+
+// Different gradient colors for blog post titles (variety)
+const titleGradients = [
+  "from-emerald-600 via-teal-600 to-cyan-600",
+  "from-amber-600 via-orange-600 to-red-600",
+  "from-violet-600 via-indigo-600 to-blue-600",
+  "from-blue-600 via-cyan-600 to-teal-600",
+  "from-green-600 via-emerald-600 to-teal-600",
+  "from-sky-600 via-blue-600 to-indigo-600",
+  "from-yellow-600 via-amber-600 to-orange-600",
+  "from-slate-600 via-gray-600 to-zinc-600",
+];
+
+// Generate consistent color based on post slug
+function getTitleGradient(slug: string): string {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) {
+    hash = ((hash << 5) - hash) + slug.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return titleGradients[Math.abs(hash) % titleGradients.length];
+}
+
+const titleGradient = getTitleGradient(id);
+
+const baseHeaderClass = variant === "h3" ? "text-base font-semibold decoration-dashed hover:underline" : "text-lg font-medium decoration-dashed hover:underline";
+const headerClass = `bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent ${baseHeaderClass}`;
+
+const headerProps = {
+  style: { viewTransitionName: slugifyStr(title) },
+  class: headerClass,
+};
+---
+
+<li class="group">
+  <article
+    class="relative overflow-hidden rounded-xl border border-white/40 bg-white/80 p-4 shadow-[var(--shadow-xl-soft)] transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_25px_55px_-20px_rgba(59,130,246,0.55)] dark:border-slate-700/40 dark:bg-slate-900/70"
+  >
+    <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/15 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <a
+      href={getPostPath(post)}
+      class="inline-flex items-center gap-2 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+    >
+      {
+        variant === "h2" ? (
+          <h2 {...headerProps}>{displayTitle}</h2>
+        ) : (
+          <h3 {...headerProps}>{displayTitle}</h3>
+        )
+      }
+      <span
+        aria-hidden="true"
+        class="translate-y-[1px] text-lg opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100"
+        set:html="&rarr;"
+      />
+    </a>
+    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+      {difficulty && difficulty in difficultyColors && (
+        <span class={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${difficultyColors[difficulty]}`}>
+          {difficulty}
+        </span>
+      )}
+      {track && track in trackColors && (
+        <span class={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${trackColors[track]}`}>
+          {track}
+        </span>
+      )}
+      {estimated_read_time && (
+        <span class="text-[10px] text-secondary-foreground/70">
+          {estimated_read_time} min
+        </span>
+      )}
+    </div>
+    <div class="mt-1.5 flex items-center">
+      <time class="text-[10px] text-secondary-foreground/60" datetime={new Date(pubDatetime).toISOString()}>
+        {new Date(pubDatetime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+      </time>
+    </div>
+    <p class="mt-2 text-xs text-secondary-foreground sm:text-sm leading-relaxed">{description}</p>
+  </article>
+</li>

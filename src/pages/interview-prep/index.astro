@@ -1,0 +1,310 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Card from "@/components/Card.astro";
+import Hr from "@/components/Hr.astro";
+import LinkButton from "@/components/LinkButton.astro";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import getPostsByInterviewType, { type InterviewType } from "@/utils/getPostsByInterviewType";
+import getSortedPosts from "@/utils/getSortedPosts";
+
+const allPosts = await getCollection("blog");
+const posts = getSortedPosts(allPosts);
+
+// Get posts by type
+const theoryPosts = getPostsByInterviewType(allPosts, "Theory");
+const systemDesignPosts = getPostsByInterviewType(allPosts, "System Design");
+const mlInfraPosts = getPostsByInterviewType(allPosts, "ML-Infra");
+const codingPosts = getPostsByInterviewType(allPosts, "Coding");
+const behavioralPosts = getPostsByInterviewType(allPosts, "Behavioral");
+
+// Create a map to track which posts appear in multiple categories
+const postSlugs = new Map<string, string[]>();
+const combinedPosts = [...theoryPosts, ...systemDesignPosts, ...mlInfraPosts, ...codingPosts, ...behavioralPosts];
+combinedPosts.forEach((post) => {
+  const slug = post.id;
+  const categories: string[] = [];
+  if (theoryPosts.some(p => p.id === slug)) categories.push("Theory");
+  if (systemDesignPosts.some(p => p.id === slug)) categories.push("System Design");
+  if (mlInfraPosts.some(p => p.id === slug)) categories.push("ML-Infra");
+  if (codingPosts.some(p => p.id === slug)) categories.push("Coding");
+  if (behavioralPosts.some(p => p.id === slug)) categories.push("Behavioral");
+  postSlugs.set(slug, categories);
+});
+
+// Helper to check if post is in multiple categories
+const isMultiCategory = (slug: string) => (postSlugs.get(slug)?.length ?? 0) > 1;
+const getCategories = (slug: string) => postSlugs.get(slug) ?? [];
+---
+
+<Layout>
+  <Header />
+  <main
+    id="main-content"
+    class="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6 lg:px-8"
+  >
+    <section class="pt-12">
+      <div class="mb-6">
+        <LinkButton href="/" class="mb-4">
+          ← Back to Home
+        </LinkButton>
+        <h1 class="text-3xl font-semibold leading-tight sm:text-4xl">
+          <span class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+            🎓 The Interview Vault
+          </span>
+        </h1>
+        <p class="mt-3 max-w-3xl text-sm leading-relaxed text-secondary-foreground sm:text-base">
+          Curated content organized by interview round. Prep for your ML System Design & Theory interviews with content that bridges research papers and production systems.
+        </p>
+        <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div class="rounded-lg border border-white/30 bg-white/70 px-2.5 py-1.5 text-center dark:border-slate-700/40 dark:bg-slate-900/70">
+            <div class="text-base font-semibold text-foreground">{theoryPosts.length}</div>
+            <div class="text-[10px] text-secondary-foreground">Theory</div>
+          </div>
+          <div class="rounded-lg border border-white/30 bg-white/70 px-2.5 py-1.5 text-center dark:border-slate-700/40 dark:bg-slate-900/70">
+            <div class="text-base font-semibold text-foreground">{systemDesignPosts.length}</div>
+            <div class="text-[10px] text-secondary-foreground">System Design</div>
+          </div>
+          <div class="rounded-lg border border-white/30 bg-white/70 px-2.5 py-1.5 text-center dark:border-slate-700/40 dark:bg-slate-900/70">
+            <div class="text-base font-semibold text-foreground">{mlInfraPosts.length}</div>
+            <div class="text-[10px] text-secondary-foreground">ML-Infra</div>
+          </div>
+          <div class="rounded-lg border border-white/30 bg-white/70 px-2.5 py-1.5 text-center dark:border-slate-700/40 dark:bg-slate-900/70">
+            <div class="text-base font-semibold text-foreground">{codingPosts.length}</div>
+            <div class="text-[10px] text-secondary-foreground">Coding</div>
+          </div>
+          <div class="rounded-lg border border-white/30 bg-white/70 px-2.5 py-1.5 text-center dark:border-slate-700/40 dark:bg-slate-900/70">
+            <div class="text-base font-semibold text-foreground">{behavioralPosts.length}</div>
+            <div class="text-[10px] text-secondary-foreground">Behavioral</div>
+          </div>
+        </div>
+        <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50/50 p-2 text-[10px] text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+          <strong>💡 Tip:</strong> Posts marked with a <span class="inline-flex items-center rounded-full bg-blue-500 px-1 py-0.5 text-[9px] font-semibold text-white">2x</span> or <span class="inline-flex items-center rounded-full bg-blue-500 px-1 py-0.5 text-[9px] font-semibold text-white">3x</span> badge appear in multiple categories—they're relevant to multiple interview rounds.
+        </div>
+      </div>
+    </section>
+
+    <Hr />
+
+    <section class="pt-8">
+      <div class="mb-4 flex items-baseline justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-foreground sm:text-2xl">
+            Machine Learning Theory
+          </h2>
+          <p class="mt-1 text-xs text-secondary-foreground sm:text-sm">
+            Deep dives into mathematical foundations, algorithms, and architectures. Essential for theory rounds.
+          </p>
+        </div>
+        <span class="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+          {theoryPosts.length}
+        </span>
+      </div>
+      {theoryPosts.length > 0 ? (
+        <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {theoryPosts.map((data) => {
+            const multiCat = isMultiCategory(data.id);
+            const categories = getCategories(data.id);
+            return (
+              <li class="relative">
+                {multiCat && (
+                  <div class="absolute -right-2 -top-2 z-10 rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm" title={`Also in: ${categories.filter(c => c !== "Theory").join(", ")}`}>
+                    {categories.length}x
+                  </div>
+                )}
+                <Card variant="h3" {...data} />
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p class="text-sm text-secondary-foreground">No theory posts found.</p>
+      )}
+    </section>
+
+    <Hr />
+
+    <section class="pt-8">
+      <div class="mb-4 flex items-baseline justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-foreground sm:text-2xl">
+            ML System Design
+          </h2>
+          <p class="mt-1 text-xs text-secondary-foreground sm:text-sm">
+            Production systems, scaling, optimization, and architecture. Critical for system design rounds.
+          </p>
+        </div>
+        <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+          {systemDesignPosts.length}
+        </span>
+      </div>
+      {systemDesignPosts.length > 0 ? (
+        <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {systemDesignPosts.map((data) => {
+            const multiCat = isMultiCategory(data.id);
+            const categories = getCategories(data.id);
+            return (
+              <li class="relative">
+                {multiCat && (
+                  <div class="absolute -right-2 -top-2 z-10 rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white shadow-sm" title={`Also in: ${categories.filter(c => c !== "System Design").join(", ")}`}>
+                    {categories.length}x
+                  </div>
+                )}
+                <Card variant="h3" {...data} />
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p class="text-sm text-secondary-foreground">No system design posts found.</p>
+      )}
+    </section>
+
+    <Hr />
+
+    {mlInfraPosts.length > 0 && (
+      <>
+        <section class="pt-8">
+          <div class="mb-4 flex items-baseline justify-between">
+            <div>
+              <h2 class="text-xl font-semibold text-foreground sm:text-2xl">
+                ML Infrastructure
+              </h2>
+              <p class="mt-1 text-xs text-secondary-foreground sm:text-sm">
+                Scaling, optimization, GPU kernels, and production infrastructure for ML systems.
+              </p>
+            </div>
+            <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+              {mlInfraPosts.length}
+            </span>
+          </div>
+          <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {mlInfraPosts.map((data) => {
+              const multiCat = isMultiCategory(data.id);
+              const categories = getCategories(data.id);
+              return (
+                <li class="relative">
+                  {multiCat && (
+                    <div class="absolute -right-2 -top-2 z-10 rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm" title={`Also in: ${categories.filter(c => c !== "ML-Infra").join(", ")}`}>
+                      {categories.length}x
+                    </div>
+                  )}
+                  <Card variant="h3" {...data} />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+        <Hr />
+      </>
+    )}
+
+    {codingPosts.length > 0 && (
+      <>
+        <Hr />
+        <section class="pt-8">
+          <div class="mb-4 flex items-baseline justify-between">
+            <div>
+              <h2 class="text-xl font-semibold text-foreground sm:text-2xl">
+                Coding & Problem Solving
+              </h2>
+              <p class="mt-1 text-xs text-secondary-foreground sm:text-sm">
+                Algorithms, data structures, and problem-solving frameworks.
+              </p>
+            </div>
+            <span class="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+              {codingPosts.length}
+            </span>
+          </div>
+          <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {codingPosts.map((data) => {
+              const multiCat = isMultiCategory(data.id);
+              const categories = getCategories(data.id);
+              return (
+                <li class="relative">
+                  {multiCat && (
+                    <div class="absolute -right-2 -top-2 z-10 rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white shadow-sm" title={`Also in: ${categories.filter(c => c !== "Coding").join(", ")}`}>
+                      {categories.length}x
+                    </div>
+                  )}
+                  <Card variant="h3" {...data} />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </>
+    )}
+
+    {behavioralPosts.length > 0 && (
+      <>
+        <Hr />
+        <section class="pt-8">
+          <div class="mb-4 flex items-baseline justify-between">
+            <div>
+              <h2 class="text-xl font-semibold text-foreground sm:text-2xl">
+                Behavioral & Soft Skills
+              </h2>
+              <p class="mt-1 text-xs text-secondary-foreground sm:text-sm">
+                Communication, presentation, and interview frameworks.
+              </p>
+            </div>
+            <span class="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+              {behavioralPosts.length}
+            </span>
+          </div>
+          <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {behavioralPosts.map((data) => {
+              const multiCat = isMultiCategory(data.id);
+              const categories = getCategories(data.id);
+              return (
+                <li class="relative">
+                  {multiCat && (
+                    <div class="absolute -right-2 -top-2 z-10 rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white shadow-sm" title={`Also in: ${categories.filter(c => c !== "Behavioral").join(", ")}`}>
+                      {categories.length}x
+                    </div>
+                  )}
+                  <Card variant="h3" {...data} />
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </>
+    )}
+
+    <Hr />
+
+    <section class="pt-8">
+      <h2 class="mb-3 text-xl font-semibold text-foreground sm:text-2xl">
+        Explore by Learning Track
+      </h2>
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <LinkButton href="/learn/fundamentals" class="h-full justify-start p-6 text-left">
+          <div class="mb-2 text-2xl">📚</div>
+          <div class="font-semibold">Fundamentals</div>
+          <div class="mt-1 text-xs text-secondary-foreground">Theory & Math</div>
+        </LinkButton>
+        <LinkButton href="/learn/gen-ai" class="h-full justify-start p-6 text-left">
+          <div class="mb-2 text-2xl">🧠</div>
+          <div class="font-semibold">GenAI Systems</div>
+          <div class="mt-1 text-xs text-secondary-foreground">Production & Scaling</div>
+        </LinkButton>
+        <LinkButton href="/learn/robotics" class="h-full justify-start p-6 text-left">
+          <div class="mb-2 text-2xl">🏎️</div>
+          <div class="font-semibold">Robotics</div>
+          <div class="mt-1 text-xs text-secondary-foreground">Autonomous Systems</div>
+        </LinkButton>
+        <LinkButton href="/learn/agentic-ai" class="h-full justify-start p-6 text-left">
+          <div class="mb-2 text-2xl">🤖</div>
+          <div class="font-semibold">Agentic AI</div>
+          <div class="mt-1 text-xs text-secondary-foreground">Cutting Edge</div>
+        </LinkButton>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+

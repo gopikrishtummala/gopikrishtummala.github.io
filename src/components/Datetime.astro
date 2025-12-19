@@ -1,0 +1,62 @@
+---
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import IconCalendar from "@/assets/icons/IconCalendar.svg";
+import { SITE } from "@/config";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export interface Props {
+  class?: string;
+  size?: "sm" | "lg";
+  timezone: string | undefined;
+  pubDatetime: string | Date;
+  modDatetime: string | Date | undefined | null;
+}
+
+const {
+  pubDatetime,
+  modDatetime,
+  size = "sm",
+  class: className = "",
+  timezone: postTimezone,
+} = Astro.props;
+
+/* ========== Formatted Datetime ========== */
+const isModified = modDatetime && modDatetime > pubDatetime;
+
+const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
+  postTimezone || SITE.timezone
+);
+
+const date = datetime.format("D MMM, YYYY"); // e.g., '22 Mar, 2025'
+---
+
+<div
+  class:list={[
+    "inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/70 px-3 py-1 text-xs uppercase tracking-[0.24em] text-secondary-foreground transition dark:border-slate-700/40 dark:bg-slate-900/60",
+    { "px-4 py-1.5 text-[0.72rem] tracking-[0.3em]": size === "lg" },
+    className,
+  ]}
+>
+  <IconCalendar
+    class:list={[
+      "size-4 opacity-70",
+      { "size-5": size === "lg" },
+    ]}
+  />
+  {
+    isModified && (
+      <span class="font-semibold text-foreground">Updated</span>
+    )
+  }
+  <time
+    class:list={[
+      "font-semibold tracking-normal text-foreground",
+      { "text-sm": size === "lg" },
+    ]}
+    datetime={datetime.toISOString()}>{date}</time
+  >
+</div>
