@@ -1,0 +1,37 @@
+---
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import LinkButton from "./LinkButton.astro";
+import { SITE } from "@/config";
+---
+
+{
+  SITE.showBackButton && (
+    <div class="mx-auto flex w-full max-w-6xl items-center justify-start px-4 sm:px-6 lg:px-8">
+      <LinkButton
+        id="back-button"
+        href="/"
+        class="mt-8 mb-4 inline-flex items-center gap-2 border border-white/30 bg-white/70 px-4 py-2 text-sm font-medium text-secondary-foreground hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70"
+      >
+        <IconChevronLeft class="inline-block size-4 rtl:rotate-180" />
+        <span>Back</span>
+      </LinkButton>
+    </div>
+  )
+}
+
+<script>
+  /* Update Search Praam */
+  function updateGoBackUrl() {
+    const backButton: HTMLAnchorElement | null =
+      document.querySelector("#back-button");
+
+    const backUrl = sessionStorage.getItem("backUrl");
+
+    if (backUrl && backButton) {
+      backButton.href = backUrl;
+    }
+  }
+
+  document.addEventListener("astro:page-load", updateGoBackUrl);
+  updateGoBackUrl();
+</script>

@@ -1,0 +1,1347 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Tag from "@/components/Tag.astro";
+import Datetime from "@/components/Datetime.astro";
+import EditPost from "@/components/EditPost.astro";
+import ShareLinks from "@/components/ShareLinks.astro";
+import BackButton from "@/components/BackButton.astro";
+import BackToTopButton from "@/components/BackToTopButton.astro";
+import { getPostPath, getPath } from "@/utils/getPath";
+import { slugifyStr } from "@/utils/slugify";
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
+import { SITE } from "@/config";
+
+export interface Props {
+  post: CollectionEntry<"blog">;
+  posts: CollectionEntry<"blog">[];
+}
+
+const { post, posts } = Astro.props;
+
+const {
+  title,
+  author,
+  description,
+  ogImage: initOgImage,
+  canonicalURL,
+  pubDatetime,
+  modDatetime,
+  timezone,
+  tags,
+  hideEditPost,
+} = post.data;
+
+const { Content } = await render(post);
+
+let ogImageUrl: string | undefined;
+
+// Determine OG image source
+if (typeof initOgImage === "string") {
+  ogImageUrl = initOgImage; // Remote OG image (absolute URL)
+} else if (initOgImage?.src) {
+  ogImageUrl = initOgImage.src; // Local asset
+}
+
+// Use dynamic OG image if enabled and no remote|local ogImage
+if (!ogImageUrl && SITE.dynamicOgImage) {
+  ogImageUrl = `${getPostPath(post)}/index.png`;
+}
+
+// Resolve OG image URL (or fallback to SITE.ogImage / default `og.png`)
+const ogImage = ogImageUrl
+  ? new URL(ogImageUrl, Astro.url.origin).href
+  : undefined;
+
+const layoutProps = {
+  title: `${title} | ${SITE.title}`,
+  author,
+  description,
+  pubDatetime,
+  modDatetime,
+  canonicalURL,
+  ogImage,
+  scrollSmooth: true,
+};
+
+/* ========== Prev/Next Posts ========== */
+
+const allPosts = posts.map(({ data: { title }, id, filePath }) => ({
+  id,
+  title,
+  filePath,
+}));
+
+const currentPostIndex = allPosts.findIndex(a => a.id === post.id);
+
+const prevPost = currentPostIndex !== 0 ? allPosts[currentPostIndex - 1] : null;
+const nextPost =
+  currentPostIndex !== allPosts.length ? allPosts[currentPostIndex + 1] : null;
+
+// Get full post objects for prev/next to use with getPostPath
+const prevPostFull = prevPost ? posts.find(p => p.id === prevPost.id) : null;
+const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
+---
+
+<Layout {...layoutProps}>
+  <Header />
+  <BackButton />
+  <main
+    id="main-content"
+    class:list={[
+      "mx-auto w-full max-w-5xl px-4 pb-20 sm:px-6 lg:px-8",
+      { "mt-10": !SITE.showBackButton },
+    ]}
+    data-pagefind-body
+  >
+    <div
+      class="relative overflow-hidden rounded-3xl border border-white/40 bg-white/80 px-6 py-10 shadow-[var(--shadow-xl-soft)] backdrop-blur-xl sm:px-10 sm:py-14 dark:border-slate-700/40 dark:bg-slate-900/70"
+    >
+      <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/18 via-transparent to-transparent opacity-90" />
+      <h1
+        transition:name={slugifyStr(title)}
+        class="text-3xl font-semibold leading-tight text-foreground sm:text-4xl"
+      >
+        <span class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+          {title}
+        </span>
+      </h1>
+      <div class="mt-6 flex flex-wrap items-center gap-3 text-sm text-secondary-foreground">
+        <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" />
+        <span
+          aria-hidden="true"
+          class:list={[
+            "hidden text-secondary-foreground/50 sm:inline-flex",
+            { hidden: !SITE.editPost.enabled || hideEditPost },
+          ]}
+        >
+          |
+        </span>
+        <EditPost
+          {hideEditPost}
+          {post}
+          class="hidden rounded-full border border-white/40 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-foreground transition hover:border-accent/60 hover:text-accent sm:inline-flex dark:border-slate-700/40 dark:bg-slate-900/70"
+        />
+      </div>
+      <article
+        id="article"
+        class="app-prose prose prose-slate mt-10 max-w-none text-base leading-8 text-foreground prose-headings:scroll-mt-24 prose-headings:font-semibold prose-headings:text-foreground prose-a:text-accent prose-blockquote:border-accent prose-blockquote:bg-accent/10 dark:prose-invert lg:text-lg"
+      >
+        <Content />
+      </article>
+
+      <EditPost
+        class="mt-8 inline-flex rounded-full border border-white/40 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-foreground transition hover:border-accent/60 hover:text-accent sm:hidden dark:border-slate-700/40 dark:bg-slate-900/70"
+        {hideEditPost}
+        {post}
+      />
+
+      <ul class="mt-10 flex flex-wrap gap-2">
+        {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} />)}
+      </ul>
+
+      <ShareLinks />
+
+      <!-- Previous/Next Post Buttons -->
+      <div
+        data-pagefind-ignore
+        class="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2"
+      >
+        {
+          prevPost && (
+            <a
+              href={prevPostFull ? getPostPath(prevPostFull) : (prevPost ? getPath(prevPost.id, prevPost.filePath) : '#')}
+              class="group flex w-full items-center gap-3 rounded-2xl border border-white/40 bg-white/70 p-4 text-start text-sm text-secondary-foreground transition hover:-translate-y-1 hover:border-accent/60 hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70"
+            >
+              <span class="inline-flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent transition group-hover:bg-accent group-hover:text-white">
+                <IconChevronLeft class="inline-block rtl:rotate-180" />
+              </span>
+              <div>
+                <span class="block text-xs uppercase tracking-[0.24em] text-secondary-foreground/70">
+                  Previous
+                </span>
+                <div class="mt-1 font-medium text-foreground group-hover:text-inherit">
+                  {prevPost.title}
+                </div>
+              </div>
+            </a>
+          )
+        }
+        {
+          nextPost && (
+            <a
+              href={nextPostFull ? getPostPath(nextPostFull) : (nextPost ? getPath(nextPost.id, nextPost.filePath) : '#')}
+              class="group flex w-full items-center justify-end gap-3 rounded-2xl border border-white/40 bg-white/70 p-4 text-end text-sm text-secondary-foreground transition hover:-translate-y-1 hover:border-accent/60 hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70"
+            >
+              <div>
+                <span class="block text-xs uppercase tracking-[0.24em] text-secondary-foreground/70">
+                  Next
+                </span>
+                <div class="mt-1 font-medium text-foreground group-hover:text-inherit">
+                  {nextPost.title}
+                </div>
+              </div>
+              <span class="inline-flex size-9 items-center justify-center rounded-full bg-accent/15 text-accent transition group-hover:bg-accent group-hover:text-white">
+                <IconChevronRight class="inline-block rtl:rotate-180" />
+              </span>
+            </a>
+          )
+        }
+      </div>
+    </div>
+    <BackToTopButton />
+  </main>
+  <Footer />
+</Layout>
+
+<script is:inline data-astro-rerun>
+  /** Create a progress indicator
+   *  at the top */
+  function createProgressBar() {
+    // Create the main container div
+    const progressContainer = document.createElement("div");
+    progressContainer.className =
+      "progress-container fixed top-0 z-10 h-1 w-full bg-background";
+
+    // Create the progress bar div
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-accent";
+    progressBar.id = "myBar";
+
+    // Append the progress bar to the progress container
+    progressContainer.appendChild(progressBar);
+
+    // Append the progress container to the document body or any other desired parent element
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+
+  /** Update the progress bar
+   *  when user scrolls */
+  function updateScrollProgress() {
+    document.addEventListener("scroll", () => {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      if (document) {
+        const myBar = document.getElementById("myBar");
+        if (myBar) {
+          myBar.style.width = scrolled + "%";
+        }
+      }
+    });
+  }
+  updateScrollProgress();
+
+  /** Attaches links to headings in the document,
+   *  allowing sharing of sections easily */
+  function addHeadingLinks() {
+    const headings = Array.from(
+      document.querySelectorAll("h2, h3, h4, h5, h6")
+    );
+    for (const heading of headings) {
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
+      link.href = "#" + heading.id;
+
+      const span = document.createElement("span");
+      span.ariaHidden = "true";
+      span.innerText = "#";
+      link.appendChild(span);
+      heading.appendChild(link);
+    }
+  }
+  addHeadingLinks();
+
+  /** Attaches copy buttons to code blocks in the document,
+   * allowing users to copy code easily. */
+  function attachCopyButtons() {
+    const copyButtonLabel = "Copy";
+    const codeBlocks = Array.from(document.querySelectorAll("pre"));
+
+    for (const codeBlock of codeBlocks) {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+
+      // Check if --file-name-offset custom property exists
+      const computedStyle = getComputedStyle(codeBlock);
+      const hasFileNameOffset =
+        computedStyle.getPropertyValue("--file-name-offset").trim() !== "";
+
+      // Determine the top positioning class
+      const topClass = hasFileNameOffset
+        ? "top-(--file-name-offset)"
+        : "-top-3";
+
+      const copyButton = document.createElement("button");
+      copyButton.className = `copy-code absolute end-3 ${topClass} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
+      copyButton.innerHTML = copyButtonLabel;
+      codeBlock.setAttribute("tabindex", "0");
+      codeBlock.appendChild(copyButton);
+
+      // wrap codebock with relative parent element
+      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
+      wrapper.appendChild(codeBlock);
+
+      copyButton.addEventListener("click", async () => {
+        await copyCode(codeBlock, copyButton);
+      });
+    }
+
+    async function copyCode(block, button) {
+      const code = block.querySelector("code");
+      const text = code?.innerText;
+
+      await navigator.clipboard.writeText(text ?? "");
+
+      // visual feedback that task is completed
+      button.innerText = "Copied";
+
+      setTimeout(() => {
+        button.innerText = copyButtonLabel;
+      }, 700);
+    }
+  }
+  attachCopyButtons();
+
+  /* Go to page start after page swap - prevent auto-scroll */
+  document.addEventListener("astro:after-swap", () => {
+    // Prevent browser's default hash scroll behavior
+    if (window.location.hash) {
+      // Temporarily remove hash to prevent auto-scroll
+      const hash = window.location.hash;
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      // Only restore hash if user explicitly navigated to it (not on initial load)
+      // This prevents automatic scrolling on page load
+    }
+    // Always scroll to top on page swap
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+  });
+
+  // Prevent automatic scroll on initial page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // If there's a hash, don't auto-scroll - let user click links instead
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+    });
+  } else {
+    // Page already loaded, ensure we're at top
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+  }
+</script>
+
+<script is:inline>
+  /** Load and initialize Mermaid diagrams */
+  (function() {
+    let mermaidLoaded = false;
+
+    function loadMermaid() {
+      if (typeof window.mermaid !== "undefined") {
+        mermaidLoaded = true;
+        initializeMermaid();
+        return;
+      }
+
+      if (!mermaidLoaded) {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
+        script.onload = function() {
+          mermaidLoaded = true;
+          initializeMermaid();
+        };
+        script.onerror = function() {
+          console.error("Failed to load Mermaid library");
+        };
+        document.head.appendChild(script);
+      }
+    }
+
+    async function initializeMermaid() {
+      // Wait for mermaid to be available
+      if (typeof window.mermaid === "undefined") {
+        setTimeout(initializeMermaid, 100);
+        return;
+      }
+
+      // Configure Mermaid theme based on current color scheme
+      const isDark = document.documentElement.classList.contains("dark") || 
+                     document.documentElement.getAttribute("data-theme") === "dark";
+      
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? "dark" : "default",
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: "basis",
+          padding: 25,
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          wrap: true,
+          // Force text wrapping
+          wrapPadding: 8
+        },
+        sequence: {
+          wrap: true,
+          wrapPadding: 8,
+          diagramMarginX: 50,
+          diagramMarginY: 10,
+          actorMargin: 50,
+          width: 150,
+          height: 65,
+          boxMargin: 10,
+          boxTextMargin: 5,
+          noteMargin: 10,
+          messageMargin: 35
+        },
+        er: {
+          wrap: true,
+          wrapPadding: 8
+        },
+        gantt: {
+          wrap: true
+        },
+        gitgraph: {
+          wrap: true
+        },
+        themeVariables: {
+          fontFamily: "inherit",
+          fontSize: "14px",
+          lineHeight: "1.5",
+          // critical: prevents text from overflowing shape
+          // Lower width = more aggressive wrapping = less clipping
+          textWrapWidth: 80,
+          textWrapPadding: 8,
+          nodePadding: "14px",
+          width: "auto",
+          padding: 25,
+          // Additional spacing for better text display
+          primaryBorderRadius: "8px",
+          secondaryBorderRadius: "8px",
+          tertiaryBorderRadius: "8px",
+          // Theme colors
+          primaryColor: isDark ? "#ff6b01" : "#006cac",
+          primaryTextColor: isDark ? "#eaedf3" : "#282728",
+          primaryBorderColor: isDark ? "#ab4b08" : "#006cac",
+          lineColor: isDark ? "#eaedf3" : "#282728",
+          secondaryColor: isDark ? "#343f60" : "#e6e6e6",
+          tertiaryColor: isDark ? "#212737" : "#fdfdfd",
+          noteBkgColor: isDark ? "#343f60" : "#e6e6e6",
+          noteTextColor: isDark ? "#eaedf3" : "#282728",
+          noteBorderColor: isDark ? "#ab4b08" : "#006cac",
+          textColor: isDark ? "#eaedf3" : "#282728",
+          mainBkgColor: isDark ? "#212737" : "#fdfdfd",
+          secondBkgColor: isDark ? "#343f60" : "#e6e6e6",
+          edgeLabelBackground: isDark ? "#212737" : "#fdfdfd",
+          clusterBkgColor: isDark ? "#343f60" : "#e6e6e6",
+          clusterBorder: isDark ? "#ab4b08" : "#006cac",
+          defaultLinkColor: isDark ? "#ff6b01" : "#006cac",
+          titleColor: isDark ? "#ff6b01" : "#006cac",
+          // Node styling
+          cScale0: isDark ? "#ff6b01" : "#006cac",
+          cScale1: isDark ? "#343f60" : "#e6e6e6",
+          cScale2: isDark ? "#ab4b08" : "#006cac",
+        },
+        securityLevel: "loose",
+      });
+
+      // Find all code blocks - try multiple approaches
+      // First, try standard selectors
+      const selectors = [
+        "pre code.language-mermaid",
+        "pre code[class*='language-mermaid']",
+        "pre code[class*='mermaid']",
+        "code.language-mermaid",
+        "code[class*='language-mermaid']"
+      ];
+
+      let mermaidBlocks = [];
+      for (const selector of selectors) {
+        mermaidBlocks = Array.from(document.querySelectorAll(selector));
+        if (mermaidBlocks.length > 0) break;
+      }
+
+      // If no blocks found by class, try finding by content (Shiki might use different classes)
+      if (mermaidBlocks.length === 0) {
+        const allCodeBlocks = document.querySelectorAll("pre code");
+        allCodeBlocks.forEach(function(block) {
+          const code = block.textContent || block.innerText || "";
+          // Check if it looks like Mermaid code (starts with graph, flowchart, etc.)
+          if (code.trim().match(/^\s*(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|gitgraph|journey|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|mindmap|timeline|sankey-beta|quadrantChart)/)) {
+            mermaidBlocks.push(block);
+          }
+        });
+      }
+
+      if (mermaidBlocks.length === 0) {
+        // Try again after a short delay in case content hasn't rendered yet
+        setTimeout(initializeMermaid, 200);
+        return;
+      }
+      
+      mermaidBlocks.forEach((block, index) => {
+        // Skip if already processed
+        if (block.closest(".mermaid-processed") || block.closest(".mermaid")) {
+          return;
+        }
+
+        // Get the code content - try multiple methods
+        let mermaidCode = "";
+        if (block.textContent) {
+          mermaidCode = block.textContent;
+        } else if (block.innerText) {
+          mermaidCode = block.innerText;
+        } else {
+          // Try to get text from all child nodes
+          mermaidCode = Array.from(block.childNodes)
+            .map(node => node.textContent || "")
+            .join("");
+        }
+
+        mermaidCode = mermaidCode.trim();
+        if (!mermaidCode) {
+          return;
+        }
+
+        const id = `mermaid-${index}-${Date.now()}`;
+        
+        // Get the parent pre element (Shiki wraps code in pre)
+        const preElement = block.closest("pre");
+        
+        // Create a new div for Mermaid to render into
+        const mermaidDiv = document.createElement("div");
+        mermaidDiv.className = "mermaid mermaid-processed";
+        mermaidDiv.id = id;
+        mermaidDiv.textContent = mermaidCode;
+        
+        // Replace the pre element (which contains the code block)
+        if (preElement) {
+          preElement.replaceWith(mermaidDiv);
+        } else {
+          // Fallback: replace just the code block
+          block.replaceWith(mermaidDiv);
+        }
+      });
+
+      // Render all Mermaid diagrams
+      if (window.mermaid && window.mermaid.run) {
+        try {
+          await window.mermaid.run({
+            querySelector: ".mermaid",
+            nodes: document.querySelectorAll(".mermaid"),
+          });
+          
+          // Post-render fix: Ensure text doesn't get clipped
+          setTimeout(() => {
+            document.querySelectorAll(".mermaid svg").forEach((svg) => {
+              // Force overflow visible on all SVG elements
+              svg.style.overflow = "visible";
+              
+              // Fix foreignObject overflow
+              svg.querySelectorAll("foreignObject").forEach((fo) => {
+                fo.style.overflow = "visible";
+                const div = fo.querySelector("div");
+                if (div) {
+                  div.style.overflow = "visible";
+                  div.style.wordWrap = "break-word";
+                  div.style.overflowWrap = "break-word";
+                  div.style.whiteSpace = "normal";
+                }
+              });
+              
+              // Ensure text elements have proper wrapping
+              svg.querySelectorAll("text").forEach((text) => {
+                text.style.whiteSpace = "normal";
+                text.style.wordWrap = "break-word";
+              });
+            });
+          }, 100);
+        } catch (e) {
+          console.error("Error rendering Mermaid diagrams:", e);
+        }
+      }
+    }
+
+    // Load Mermaid and initialize
+    function startMermaid() {
+      loadMermaid();
+    }
+
+    // Initialize on page load
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", startMermaid);
+    } else {
+      // DOM already loaded
+      setTimeout(startMermaid, 100);
+    }
+
+    // Re-initialize after Astro page swaps (for client-side navigation)
+    document.addEventListener("astro:page-load", function() {
+      setTimeout(function() {
+        if (!mermaidLoaded) {
+          loadMermaid();
+        } else {
+          initializeMermaid();
+        }
+      }, 200);
+    });
+
+    // Also try after a longer delay to catch any late-rendering content
+    setTimeout(function() {
+      if (mermaidLoaded && window.mermaid) {
+        initializeMermaid();
+      }
+    }, 500);
+
+    // Use MutationObserver to catch dynamically added content
+    if (typeof MutationObserver !== "undefined") {
+      const observer = new MutationObserver(function(mutations) {
+        let shouldCheck = false;
+        mutations.forEach(function(mutation) {
+          if (mutation.addedNodes.length > 0) {
+            for (let node of mutation.addedNodes) {
+              if (node.nodeType === 1) { // Element node
+                if (node.querySelector && (
+                  node.querySelector("pre code.language-mermaid") ||
+                  node.querySelector("pre code[class*='mermaid']") ||
+                  node.matches && node.matches("pre code.language-mermaid")
+                )) {
+                  shouldCheck = true;
+                  break;
+                }
+              }
+            }
+          }
+        });
+        if (shouldCheck && mermaidLoaded && window.mermaid) {
+          setTimeout(initializeMermaid, 100);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+  })();
+
+  /** Enhanced Table of Contents with Search */
+  (function() {
+    // TOC Toggle functionality
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocNav = document.getElementById('toc-nav');
+    const articleToc = document.getElementById('article-toc');
+    const tocSearch = document.getElementById('toc-search');
+    
+    if (tocToggle && tocNav) {
+      let tocExpanded = true;
+      
+      tocToggle.addEventListener('click', () => {
+        tocExpanded = !tocExpanded;
+        tocNav.style.display = tocExpanded ? 'block' : 'none';
+        tocToggle.innerHTML = tocExpanded ? '<span>▼</span>' : '<span>▶</span>';
+        if (tocSearch) tocSearch.style.display = tocExpanded ? 'block' : 'none';
+      });
+    }
+
+    // Search functionality
+    if (tocSearch) {
+      tocSearch.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const links = tocNav.querySelectorAll('a');
+        let hasResults = false;
+
+        links.forEach(link => {
+          const text = link.textContent.toLowerCase();
+          const listItem = link.closest('li');
+          
+          if (searchTerm === '' || text.includes(searchTerm)) {
+            listItem.style.display = '';
+            hasResults = true;
+          } else {
+            listItem.style.display = 'none';
+          }
+        });
+
+        // Show/hide no results message
+        let noResults = document.getElementById('toc-no-results');
+        if (!hasResults && searchTerm !== '') {
+          if (!noResults) {
+            noResults = document.createElement('div');
+            noResults.id = 'toc-no-results';
+            noResults.className = 'toc-no-results';
+            noResults.textContent = 'No matching sections found';
+            tocNav.appendChild(noResults);
+          }
+          noResults.style.display = 'block';
+        } else if (noResults) {
+          noResults.style.display = 'none';
+        }
+      });
+
+      // Clear search on escape
+      tocSearch.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          tocSearch.value = '';
+          tocSearch.dispatchEvent(new Event('input'));
+          tocSearch.blur();
+        }
+      });
+    }
+
+    // Create sticky sidebar navigation
+    function createStickyNav() {
+      // Check if sticky nav already exists
+      if (document.getElementById('sticky-nav')) return;
+      
+      const toc = document.getElementById('article-toc');
+      if (!toc) return;
+
+      // Clone TOC for sidebar
+      const sidebarNav = toc.cloneNode(true);
+      sidebarNav.id = 'sticky-nav';
+      sidebarNav.className = 'sticky-nav';
+      
+      // Remove toggle button from sidebar
+      const sidebarToggle = sidebarNav.querySelector('.toc-toggle');
+      if (sidebarToggle) sidebarToggle.remove();
+      
+      // Update header in sidebar
+      const sidebarHeader = sidebarNav.querySelector('.toc-header');
+      if (sidebarHeader) {
+        sidebarHeader.innerHTML = '<h3>📑 Navigation</h3>';
+      }
+      
+      // Clone search input for sidebar
+      const originalSearch = document.getElementById('toc-search');
+      if (originalSearch) {
+        const sidebarSearch = originalSearch.cloneNode(true);
+        sidebarSearch.id = 'sticky-nav-search';
+        const sidebarHeaderDiv = sidebarNav.querySelector('.toc-header');
+        if (sidebarHeaderDiv) {
+          sidebarHeaderDiv.appendChild(sidebarSearch);
+        }
+        
+        // Add search functionality to sidebar search
+        sidebarSearch.addEventListener('input', (e) => {
+          originalSearch.value = e.target.value;
+          originalSearch.dispatchEvent(new Event('input'));
+        });
+      }
+
+      // Insert sidebar after main content starts
+      const main = document.getElementById('main-content');
+      if (main) {
+        // Check if wrapper already exists
+        let wrapper = main.querySelector('.article-wrapper');
+        if (!wrapper) {
+          wrapper = document.createElement('div');
+          wrapper.className = 'article-wrapper';
+          wrapper.style.position = 'relative';
+        }
+        
+        const article = document.querySelector('#article');
+        if (article && article.parentNode) {
+          // Only wrap if not already wrapped
+          if (!article.parentNode.classList.contains('article-wrapper')) {
+            const articleParent = article.parentNode;
+            articleParent.insertBefore(wrapper, article);
+            wrapper.appendChild(article);
+          }
+          // Only append sidebar if it's not already there
+          if (!wrapper.querySelector('#sticky-nav')) {
+            wrapper.appendChild(sidebarNav);
+          }
+        }
+      }
+    }
+
+    // Active section highlighting
+    function updateActiveSection() {
+      const sections = document.querySelectorAll('h2[id], h3[id]');
+      const navLinks = document.querySelectorAll('#sticky-nav a, #article-toc a');
+      
+      if (sections.length === 0 || navLinks.length === 0) return;
+
+      const observerOptions = {
+        root: null,
+        rootMargin: '-20% 0px -70% 0px',
+        threshold: 0
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+              link.classList.remove('active');
+              if (link.getAttribute('href') === `#${id}`) {
+                link.classList.add('active');
+                // Scroll active link into view in sidebar
+                if (link.closest('#sticky-nav')) {
+                  link.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }
+            });
+          }
+        });
+      }, observerOptions);
+
+      sections.forEach(section => observer.observe(section));
+    }
+
+    // Smooth scroll for anchor links
+    function setupSmoothScroll() {
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href === '#') return;
+          
+          const target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            const offset = 100; // Account for sticky header
+            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+            
+            window.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Update URL without jumping
+            history.pushState(null, '', href);
+          }
+        });
+      });
+    }
+
+    // Collapsible sections functionality
+    function setupCollapsibleSections() {
+      const tocNav = document.getElementById('toc-nav');
+      if (!tocNav) return;
+
+      // Find all list items with children
+      const itemsWithChildren = tocNav.querySelectorAll('li:has(ul)');
+      itemsWithChildren.forEach(item => {
+        item.classList.add('has-children');
+        
+        const link = item.querySelector('> a');
+        if (link) {
+          // Create a toggle button
+          const toggle = document.createElement('button');
+          toggle.className = 'toc-toggle-section';
+          toggle.innerHTML = '▼';
+          toggle.setAttribute('aria-label', 'Toggle section');
+          toggle.style.cssText = 'position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem; transition: transform 0.2s ease;';
+          
+          link.style.position = 'relative';
+          link.appendChild(toggle);
+          
+          toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isCollapsed = item.classList.contains('collapsed');
+            if (isCollapsed) {
+              item.classList.remove('collapsed');
+              toggle.style.transform = 'translateY(-50%) rotate(0deg)';
+            } else {
+              item.classList.add('collapsed');
+              toggle.style.transform = 'translateY(-50%) rotate(-90deg)';
+            }
+          });
+        }
+      });
+
+      // Also set up for sticky nav
+      const stickyNav = document.getElementById('sticky-nav');
+      if (stickyNav) {
+        const stickyItemsWithChildren = stickyNav.querySelectorAll('li:has(ul)');
+        stickyItemsWithChildren.forEach(item => {
+          item.classList.add('has-children');
+          
+          const link = item.querySelector('> a');
+          if (link) {
+            const toggle = document.createElement('button');
+            toggle.className = 'toc-toggle-section';
+            toggle.innerHTML = '▼';
+            toggle.setAttribute('aria-label', 'Toggle section');
+            toggle.style.cssText = 'position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem; transition: transform 0.2s ease;';
+            
+            link.style.position = 'relative';
+            link.appendChild(toggle);
+            
+            toggle.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const isCollapsed = item.classList.contains('collapsed');
+              if (isCollapsed) {
+                item.classList.remove('collapsed');
+                toggle.style.transform = 'translateY(-50%) rotate(0deg)';
+              } else {
+                item.classList.add('collapsed');
+                toggle.style.transform = 'translateY(-50%) rotate(-90deg)';
+              }
+            });
+          }
+        });
+      }
+    }
+
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        createStickyNav();
+        setTimeout(() => {
+          updateActiveSection();
+          setupSmoothScroll();
+          setupCollapsibleSections();
+        }, 100);
+      });
+    } else {
+      createStickyNav();
+      setTimeout(() => {
+        updateActiveSection();
+        setupSmoothScroll();
+        setupCollapsibleSections();
+      }, 100);
+    }
+
+    // Re-initialize after Astro page swaps
+    document.addEventListener('astro:page-load', () => {
+      // Remove existing sticky nav and wrapper if they exist
+      const existingStickyNav = document.getElementById('sticky-nav');
+      if (existingStickyNav) {
+        existingStickyNav.remove();
+      }
+      const existingWrapper = document.querySelector('.article-wrapper');
+      if (existingWrapper) {
+        const article = existingWrapper.querySelector('#article');
+        if (article && existingWrapper.parentNode) {
+          existingWrapper.parentNode.insertBefore(article, existingWrapper);
+          existingWrapper.remove();
+        }
+      }
+      
+      setTimeout(() => {
+        createStickyNav();
+        updateActiveSection();
+        setupSmoothScroll();
+        setupCollapsibleSections();
+      }, 200);
+    });
+  })();
+</script>
+
+<style>
+  /* Enhanced Table of Contents Styling */
+  .article-toc {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    border-radius: 16px;
+    padding: 0;
+    margin: 2rem 0;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .article-toc::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    opacity: 0.6;
+  }
+
+  .article-toc:hover {
+    border-color: rgba(102, 126, 234, 0.25);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .toc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+  }
+
+  .toc-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--foreground);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .toc-header h3::before {
+    content: '📑';
+    font-size: 1.25rem;
+  }
+
+  .toc-toggle {
+    background: rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+  }
+
+  .toc-toggle:hover {
+    background: rgba(102, 126, 234, 0.25);
+    transform: scale(1.1);
+    border-color: rgba(102, 126, 234, 0.4);
+  }
+
+  .toc-toggle span {
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  /* Search Input */
+  .toc-search-wrapper {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .dark .toc-search-wrapper {
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  .toc-search {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--foreground);
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .toc-search:focus {
+    outline: none;
+    border-color: rgba(102, 126, 234, 0.5);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .dark .toc-search {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(102, 126, 234, 0.3);
+  }
+
+  .dark .toc-search:focus {
+    background: rgba(15, 23, 42, 1);
+  }
+
+  .toc-search-wrapper {
+    position: relative;
+  }
+
+  .toc-search-wrapper::before {
+    content: '🔍';
+    position: absolute;
+    left: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .toc-no-results {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--secondary-foreground);
+    font-size: 0.9375rem;
+    opacity: 0.7;
+  }
+
+  .toc-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .toc-nav > ul {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+
+  .toc-nav li {
+    margin: 0.5rem 0;
+  }
+
+  .toc-nav {
+    padding: 1rem 1.5rem 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  .toc-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    color: var(--secondary-foreground);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    position: relative;
+    margin: 0.25rem 0;
+    font-weight: 500;
+  }
+
+  .toc-nav a::before {
+    content: '';
+    width: 4px;
+    height: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+    transition: height 0.2s ease;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .toc-nav a:hover {
+    background: rgba(102, 126, 234, 0.12);
+    color: var(--accent);
+    transform: translateX(6px);
+    padding-left: 1.125rem;
+  }
+
+  .toc-nav a:hover::before {
+    height: 60%;
+  }
+
+  .toc-nav a.active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    color: var(--accent);
+    font-weight: 600;
+    padding-left: 1.125rem;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    transform: translateX(2px);
+  }
+
+  .toc-nav a.active::before {
+    height: 100%;
+    width: 4px;
+    box-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
+  }
+
+  .toc-nav ul ul {
+    margin-left: 1.25rem;
+    margin-top: 0.25rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .toc-nav ul ul a {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.6rem;
+    color: var(--secondary-foreground);
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  .toc-nav ul ul a:hover {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+
+  .toc-nav ul ul a.active {
+    opacity: 1;
+    font-weight: 500;
+  }
+
+  /* Collapsible sections */
+  .toc-nav li.has-children > a {
+    position: relative;
+    padding-right: 2.5rem;
+  }
+
+  .toc-toggle-section {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75rem;
+    opacity: 0.5;
+    padding: 0.25rem;
+    transition: all 0.2s ease;
+    color: var(--secondary-foreground);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .toc-toggle-section:hover {
+    opacity: 1;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--accent);
+  }
+
+  .toc-nav li.has-children.collapsed > ul {
+    display: none;
+  }
+
+  .toc-nav li.has-children.collapsed .toc-toggle-section {
+    transform: translateY(-50%) rotate(-90deg);
+  }
+
+  /* Sticky Sidebar Navigation */
+  .article-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    .article-wrapper {
+      grid-template-columns: 1fr 280px;
+    }
+  }
+
+  .sticky-nav {
+    display: none;
+    position: sticky;
+    top: 120px;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+    overflow: hidden;
+  }
+
+  @media (min-width: 1024px) {
+    .sticky-nav {
+      display: block;
+    }
+  }
+
+  .dark .sticky-nav {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(102, 126, 234, 0.25);
+  }
+
+  .sticky-nav .toc-header {
+    margin-bottom: 0;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.15);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  }
+
+  .sticky-nav .toc-search-wrapper {
+    padding: 0.75rem 1.25rem;
+  }
+
+  .sticky-nav .toc-nav {
+    padding: 0.75rem 1.25rem 1rem;
+  }
+
+  .sticky-nav .toc-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .sticky-nav .toc-nav {
+    font-size: 0.875rem;
+  }
+
+  .sticky-nav .toc-nav > ul {
+    max-height: calc(100vh - 220px);
+  }
+
+  .sticky-nav .toc-nav a {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.875rem;
+  }
+
+  .sticky-nav .toc-nav ul ul {
+    margin-left: 0.75rem;
+  }
+
+  .sticky-nav .toc-nav ul ul a {
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.4rem;
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar for TOC */
+  .toc-nav > ul::-webkit-scrollbar,
+  .sticky-nav .toc-nav > ul::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .toc-nav > ul::-webkit-scrollbar-track,
+  .sticky-nav .toc-nav > ul::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+  }
+
+  .toc-nav > ul::-webkit-scrollbar-thumb,
+  .sticky-nav .toc-nav > ul::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 3px;
+  }
+
+  .toc-nav > ul::-webkit-scrollbar-thumb:hover,
+  .sticky-nav .toc-nav > ul::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.5);
+  }
+</style>

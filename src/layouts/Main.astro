@@ -1,0 +1,72 @@
+---
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import { SITE } from "@/config";
+
+interface StringTitleProp {
+  pageTitle: string;
+  pageDesc?: string;
+}
+
+interface ArrayTitleProp {
+  pageTitle: [string, string];
+  titleTransition: string;
+  pageDesc?: string;
+}
+
+export type Props = StringTitleProp | ArrayTitleProp;
+
+const { props } = Astro;
+
+const backUrl = SITE.showBackButton ? Astro.url.pathname : "/";
+---
+
+<Breadcrumb />
+<main
+  data-backUrl={backUrl}
+  id="main-content"
+  class="mx-auto w-full max-w-5xl px-4 pb-16 sm:px-6 lg:px-8"
+>
+  <div
+    class="relative overflow-hidden rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[var(--shadow-xl-soft)] backdrop-blur-xl transition dark:border-slate-700/40 dark:bg-slate-900/70 sm:p-10"
+  >
+    <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-80" />
+    {
+      "titleTransition" in props ? (
+        <h1 class="text-3xl font-semibold leading-tight sm:text-4xl">
+          {props.pageTitle[0]}
+          <span
+            class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent"
+            transition:name={props.titleTransition}
+          >
+            {props.pageTitle[1]}
+          </span>
+        </h1>
+      ) : (
+        <h1 class="text-3xl font-semibold leading-tight sm:text-4xl">
+          <span class="bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+            {props.pageTitle}
+          </span>
+        </h1>
+      )
+    }
+    {props.pageDesc && (
+      <p class="mt-4 max-w-2xl text-base text-secondary-foreground sm:text-lg">
+        {props.pageDesc}
+      </p>
+    )}
+    <div class="mt-8 space-y-8 text-base leading-7 text-foreground sm:text-lg">
+      <slot />
+    </div>
+  </div>
+</main>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const mainContent: HTMLElement | null =
+      document.querySelector("#main-content");
+    const backUrl = mainContent?.dataset?.backurl;
+    if (backUrl) {
+      sessionStorage.setItem("backUrl", backUrl);
+    }
+  });
+</script>

@@ -1,0 +1,33 @@
+---
+export interface Props {
+  name: "adobe" | "microsoft" | "qualcomm" | "osu" | "iit-madras" | "zoox" | "standard-chartered" | "tata-elxsi";
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 24, class: className = "" } = Astro.props;
+
+const iconMap: Record<string, string> = {
+  adobe: "/icons/organizations/adobe.jpg",
+  microsoft: "/icons/organizations/microsoft.svg",
+  qualcomm: "/icons/organizations/qualcomm.jpg",
+  osu: "/icons/organizations/osu.jpg",
+  "iit-madras": "/icons/organizations/iit-madras.jpg",
+  zoox: "/icons/organizations/zoox.jpg",
+  "standard-chartered": "/icons/organizations/standard-chartered.jpg",
+  "tata-elxsi": "/icons/organizations/tata-elxsi.jpg",
+};
+
+const iconPath = iconMap[name] || "/icons/organizations/default.svg";
+---
+
+<img
+  src={iconPath}
+  alt={`${name} logo`}
+  width={size}
+  height={size}
+  class={`inline-block align-middle object-contain ${className}`}
+  style="max-width: 100%; height: auto;"
+  onerror="this.style.display='none'"
+/>
+

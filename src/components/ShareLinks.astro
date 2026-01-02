@@ -1,0 +1,28 @@
+---
+import { SHARE_LINKS } from "@/constants";
+import LinkButton from "./LinkButton.astro";
+
+const URL = Astro.url;
+---
+
+{
+  SHARE_LINKS.length > 0 && (
+    <div class="mt-10 flex flex-col gap-3 rounded-2xl border border-white/30 bg-white/70 p-4 text-sm text-secondary-foreground shadow-sm backdrop-blur-lg dark:border-slate-700/40 dark:bg-slate-900/70">
+      <span class="text-xs font-semibold uppercase tracking-[0.24em] text-secondary-foreground/80">
+        Share this post
+      </span>
+      <div class="flex flex-wrap items-center gap-2">
+        {SHARE_LINKS.map(social => (
+          <LinkButton
+            href={`${social.href + URL}`}
+            class="aspect-square !px-0 !py-0 rounded-full border border-white/40 bg-white/80 p-3 text-base text-secondary-foreground transition hover:-translate-y-1 hover:border-accent/60 hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70 sm:p-2.5"
+            title={social.linkTitle}
+          >
+            <social.icon class="size-4 stroke-current stroke-[1.75] transition-transform duration-200 group-hover:scale-105" />
+            <span class="sr-only">{social.linkTitle}</span>
+          </LinkButton>
+        ))}
+      </div>
+    </div>
+  )
+}

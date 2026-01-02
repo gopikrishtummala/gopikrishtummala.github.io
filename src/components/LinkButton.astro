@@ -1,0 +1,48 @@
+---
+export interface Props {
+  id?: string;
+  href: string;
+  class?: string;
+  ariaLabel?: string;
+  title?: string;
+  disabled?: boolean;
+}
+
+const {
+  id,
+  href,
+  class: className = "",
+  ariaLabel,
+  title,
+  disabled = false,
+} = Astro.props;
+---
+
+{
+  disabled ? (
+    <span
+      id={id}
+      class:list={[
+        "group inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-4 py-2 text-sm font-medium text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 dark:border-slate-700/40 dark:bg-slate-900/70",
+        className,
+      ]}
+      title={title}
+      aria-disabled={disabled}
+    >
+      <slot />
+    </span>
+  ) : (
+    <a
+      id={id}
+      {href}
+      class:list={[
+        "group inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent hover:shadow-[0_20px_45px_-20px_rgba(59,130,246,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 dark:border-slate-700/40 dark:bg-slate-900/70",
+        className,
+      ]}
+      aria-label={ariaLabel}
+      title={title}
+    >
+      <slot />
+    </a>
+  )
+}

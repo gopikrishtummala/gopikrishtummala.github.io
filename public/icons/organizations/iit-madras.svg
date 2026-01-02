@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="11" fill="#8B4513" stroke="#654321" stroke-width="0.5"/>
+  <circle cx="12" cy="12" r="9" fill="#D2B48C"/>
+  <!-- Simplified oil lamp -->
+  <rect x="11" y="10" width="2" height="4" fill="#8B4513"/>
+  <path d="M10 10 Q12 8 14 10" stroke="#8B4513" stroke-width="1.5" fill="none"/>
+  <!-- Simplified flame with lotus -->
+  <circle cx="12" cy="8" r="2" fill="#FF6B6B"/>
+  <circle cx="12" cy="8" r="1.2" fill="#FF8E8E"/>
+  <!-- Text placeholder -->
+  <text x="12" y="18" font-family="Arial, sans-serif" font-size="3" font-weight="bold" text-anchor="middle" fill="#8B4513">IITM</text>
+</svg>

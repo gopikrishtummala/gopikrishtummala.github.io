@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect width="24" height="24" fill="black"/>
+  <!-- Z (top left) -->
+  <path d="M2 2h8v1.5H4.5v3h5.5v1.5H2V2z" fill="white"/>
+  <!-- O (top right) - rounded square -->
+  <rect x="13" y="2" width="9" height="9" rx="1.5" fill="none" stroke="white" stroke-width="1.2"/>
+  <!-- O (bottom left) - rounded square -->
+  <rect x="2" y="13" width="9" height="9" rx="1.5" fill="none" stroke="white" stroke-width="1.2"/>
+  <!-- X (bottom right) -->
+  <path d="M13 13l9 9M22 13l-9 9" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

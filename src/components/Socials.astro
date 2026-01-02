@@ -1,0 +1,30 @@
+---
+import { SOCIALS } from "@/constants";
+import LinkButton from "./LinkButton.astro";
+
+export interface Props {
+  centered?: boolean;
+}
+
+const { centered = false } = Astro.props;
+---
+
+<div
+  class:list={[
+    "flex flex-wrap items-center gap-2",
+    { "justify-center": centered },
+  ]}
+>
+  {
+    SOCIALS.map(social => (
+      <LinkButton
+        href={social.href}
+        class="aspect-square !px-0 !py-0 rounded-full border border-white/40 bg-white/70 p-3 text-base text-secondary-foreground transition hover:-translate-y-1 hover:border-accent/60 hover:text-accent dark:border-slate-700/40 dark:bg-slate-900/70 sm:p-2"
+        title={social.linkTitle}
+      >
+        <social.icon class="size-5 stroke-current stroke-[1.75] transition-transform duration-200 group-hover:scale-105" />
+        <span class="sr-only">{social.linkTitle}</span>
+      </LinkButton>
+    ))
+  }
+</div>

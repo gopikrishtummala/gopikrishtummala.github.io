@@ -1,0 +1,464 @@
+/**
+ * Neon/Cyberpunk Enhancements inspired by Neodev and DevPro themes
+ * Adds futuristic effects to blog while maintaining readability
+ */
+
+/* ============================================
+   MODERN ACCENT COLORS (Indigo/Purple Theme)
+   ============================================ */
+:root {
+  --accent-indigo: #6366f1;
+  --accent-purple: #9333ea;
+  --accent-fuchsia: #c026d3;
+  --glow-indigo: 0 0 20px rgba(99, 102, 241, 0.4),
+                 0 0 40px rgba(99, 102, 241, 0.2),
+                 0 0 60px rgba(99, 102, 241, 0.1);
+  --glow-purple: 0 0 20px rgba(147, 51, 234, 0.4),
+                 0 0 40px rgba(147, 51, 234, 0.2),
+                 0 0 60px rgba(147, 51, 234, 0.1);
+  --glow-soft: 0 0 10px rgba(99, 102, 241, 0.2),
+               0 0 20px rgba(99, 102, 241, 0.1);
+}
+
+/* Light theme - green accents */
+html[data-theme="light"] {
+  --accent-indigo: #10b981;
+  --accent-purple: #8b5cf6;
+  --accent-fuchsia: #ec4899;
+  --glow-indigo: 0 0 10px rgba(16, 185, 129, 0.2),
+                 0 0 20px rgba(16, 185, 129, 0.1);
+  --glow-purple: 0 0 10px rgba(139, 92, 246, 0.2),
+                 0 0 20px rgba(139, 92, 246, 0.1);
+  --glow-soft: 0 0 5px rgba(16, 185, 129, 0.1);
+}
+
+/* Dark theme - amber/orange accents */
+html[data-theme="dark"] {
+  --accent-indigo: #f59e0b;
+  --accent-purple: #f97316;
+  --accent-fuchsia: #ea580c;
+  --glow-indigo: 0 0 10px rgba(245, 158, 11, 0.2),
+                 0 0 20px rgba(245, 158, 11, 0.1);
+  --glow-purple: 0 0 10px rgba(249, 115, 22, 0.2),
+                 0 0 20px rgba(249, 115, 22, 0.1);
+  --glow-soft: 0 0 5px rgba(245, 158, 11, 0.1);
+}
+
+/* Cyber theme - purple/magenta neon effects */
+html[data-theme="cyber"] {
+  --accent-indigo: #a855f7;
+  --accent-purple: #c084fc;
+  --accent-fuchsia: #ec4899;
+  --glow-indigo: 0 0 20px rgba(168, 85, 247, 0.5),
+                 0 0 40px rgba(168, 85, 247, 0.3),
+                 0 0 60px rgba(168, 85, 247, 0.2);
+  --glow-purple: 0 0 20px rgba(192, 132, 252, 0.5),
+                 0 0 40px rgba(192, 132, 252, 0.3),
+                 0 0 60px rgba(192, 132, 252, 0.2);
+  --glow-soft: 0 0 10px rgba(168, 85, 247, 0.3),
+               0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+/* Academic theme - teal accents, minimal effects */
+html[data-theme="academic"] {
+  --accent-indigo: #0d9488;
+  --accent-purple: #14b8a6;
+  --accent-fuchsia: #2dd4bf;
+  --glow-indigo: none;
+  --glow-purple: none;
+  --glow-soft: none;
+}
+
+/* ============================================
+   CYBER GRID BACKGROUND
+   ============================================ */
+.cyber-grid {
+  position: relative;
+  background-image: 
+    linear-gradient(rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: 0 0, 0 0;
+}
+
+.cyber-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(147, 51, 234, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(147, 51, 234, 0.015) 1px, transparent 1px);
+  background-size: 25px 25px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ============================================
+   NEON GLOW EFFECTS
+   ============================================ */
+.glow-indigo {
+  box-shadow: var(--glow-indigo);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-purple {
+  box-shadow: var(--glow-purple);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-soft {
+  box-shadow: var(--glow-soft);
+}
+
+/* Text glow effects */
+.text-glow-indigo {
+  color: var(--accent-indigo);
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.4),
+               0 0 20px rgba(99, 102, 241, 0.2),
+               0 0 30px rgba(99, 102, 241, 0.1);
+}
+
+.text-glow-purple {
+  color: var(--accent-purple);
+  text-shadow: 0 0 10px rgba(147, 51, 234, 0.4),
+               0 0 20px rgba(147, 51, 234, 0.2),
+               0 0 30px rgba(147, 51, 234, 0.1);
+}
+
+/* ============================================
+   PULSE ANIMATIONS
+   ============================================ */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: var(--glow-soft);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: var(--glow-indigo);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ============================================
+   ENHANCED SERIES NAVIGATION
+   ============================================ */
+.series-nav {
+  position: relative;
+  overflow: hidden;
+}
+
+.series-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(147, 51, 234, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.series-nav:hover::before {
+  opacity: 1;
+}
+
+.series-nav a {
+  position: relative;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.series-nav a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.series-nav a[style*="font-weight: 600"] {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(147, 51, 234, 0.2));
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+/* ============================================
+   REVEAL ANIMATIONS (Scroll-triggered)
+   ============================================ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.reveal-on-scroll.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.reveal-on-scroll.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.reveal-on-scroll.delay-300 {
+  animation-delay: 0.3s;
+}
+
+/* ============================================
+   ENHANCED BUTTONS & LINKS
+   ============================================ */
+.modern-button {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 2px solid var(--accent-indigo);
+  color: var(--accent-indigo);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.modern-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+
+.modern-button:hover {
+  color: #fff;
+  box-shadow: var(--glow-indigo);
+}
+
+.modern-button:hover::before {
+  transform: scaleX(1);
+}
+
+/* ============================================
+   ENHANCED CODE BLOCKS
+   ============================================ */
+pre:not(.shiki),
+.astro-code,
+.shiki {
+  position: relative;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+pre:not(.shiki)::before,
+.astro-code::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-indigo), var(--accent-purple));
+  opacity: 0.6;
+}
+
+pre:not(.shiki):hover,
+.astro-code:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+}
+
+/* ============================================
+   ENHANCED HEADINGS
+   ============================================ */
+h1, h2, h3 {
+  position: relative;
+}
+
+/* Removed h2::after and h3::after to prevent strikethrough lines under titles */
+
+/* ============================================
+   ENHANCED CARDS
+   ============================================ */
+.modern-card {
+  position: relative;
+  background: var(--element-background);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.modern-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+  transform: translateY(-4px);
+}
+
+.neon-card:hover::before {
+  left: 100%;
+}
+
+/* ============================================
+   SCROLL PROGRESS INDICATOR
+   ============================================ */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-indigo), var(--accent-purple));
+  z-index: 9999;
+  transition: width 0.1s ease;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+/* ============================================
+   ENHANCED TABLE OF CONTENTS
+   ============================================ */
+.article-toc {
+  border-left: 2px solid rgba(0, 240, 255, 0.3);
+  padding-left: 1rem;
+}
+
+.article-toc a {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.article-toc a:hover {
+  color: var(--accent-indigo);
+  padding-left: 0.5rem;
+}
+
+.article-toc a:hover::before {
+  content: '▸';
+  position: absolute;
+  left: -1rem;
+  color: var(--accent-indigo);
+}
+
+/* ============================================
+   GRADIENT TEXT
+   ============================================ */
+.gradient-text-indigo-purple {
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   ENHANCED TAGS
+   ============================================ */
+.tag-modern {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 20px;
+  color: var(--accent-indigo);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.tag-modern:hover {
+  background: rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+  transform: scale(1.05);
+}
+
+/* ============================================
+   SMOOTH SCROLL ENHANCEMENTS
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-margin-top: 2rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 768px) {
+  .glow-indigo,
+  .glow-purple {
+    box-shadow: var(--glow-soft);
+  }
+  
+  .cyber-grid {
+    background-size: 30px 30px;
+  }
+  
+  /* Removed h2::after and h3::after lines */
+}
+
+/* ============================================
+   ACCESSIBILITY: Respect reduced motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .pulse-glow {
+    animation: none;
+  }
+  
+  .reveal-on-scroll {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .modern-button,
+  .modern-card,
+  .series-nav a {
+    transition: none;
+  }
+}
+

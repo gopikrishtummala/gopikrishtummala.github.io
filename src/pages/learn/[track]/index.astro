@@ -1,0 +1,165 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Card from "@/components/Card.astro";
+import Hr from "@/components/Hr.astro";
+import LinkButton from "@/components/LinkButton.astro";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import getPostsByTrack, { type Track } from "@/utils/getPostsByTrack";
+
+export async function getStaticPaths() {
+  return [
+    { params: { track: "fundamentals" }, props: { track: "Fundamentals" as Track } },
+    { params: { track: "gen-ai" }, props: { track: "GenAI Systems" as Track } },
+    { params: { track: "mlops" }, props: { track: "MLOps & Production" as Track } },
+    { params: { track: "robotics" }, props: { track: "Robotics" as Track } },
+    { params: { track: "agentic-ai" }, props: { track: "Agentic AI" as Track } },
+  ];
+}
+
+const { track } = Astro.props;
+const posts = await getCollection("blog");
+const trackPosts = getPostsByTrack(posts, track);
+
+const trackInfo: Record<Track, { title: string; subtitle: string; description: string; syllabus: string[]; color: string }> = {
+  Fundamentals: {
+    title: "ML Fundamentals",
+    subtitle: "The Theory Round",
+    description: "Deep dives into core machine learning concepts—the mathematical foundations you need for theory interviews and research.",
+    syllabus: [
+      "Start with **XGBoost** to understand gradient boosting and optimization",
+      "Move to **Transformers** for attention mechanisms and modern architectures",
+      "Explore **VAEs** for probabilistic foundations and generative models",
+      "Finish with **Reinforcement Learning** for sequential decision-making"
+    ],
+    color: "from-green-500 to-emerald-600"
+  },
+  "GenAI Systems": {
+    title: "GenAI & LLM Systems",
+    subtitle: "The System Design Round",
+    description: "Production systems for generative AI—scaling, optimization, and serving large language models at scale.",
+    syllabus: [
+      "Start with **Transformers** to understand the architecture",
+      "Move to **Diffusion Models** for image and video generation",
+      "Explore **Vision-Language Models** for multimodal systems",
+      "Finish with **Video Diffusion** for temporal generation"
+    ],
+    color: "from-emerald-500 to-teal-600"
+  },
+  "MLOps & Production": {
+    title: "MLOps & Production",
+    subtitle: "The Infrastructure Round",
+    description: "Scaling, serving, and optimizing AI systems. Custom kernels, inference engines, and production infrastructure.",
+    syllabus: [
+      "Start with **Datasets and Dataloaders** for efficient data pipelines",
+      "Move to **Training Frameworks** for distributed training and resilience",
+      "Explore **vLLM** for serving infrastructure (PagedAttention, Continuous Batching)",
+      "Finish with **Custom Kernels** for GPU optimization (FlashAttention)"
+    ],
+    color: "from-sky-500 to-blue-600"
+  },
+  Robotics: {
+    title: "Autonomous & Real-World AI",
+    subtitle: "Your Unique Edge",
+    description: "How self-driving cars actually work—prediction, calibration, sensing, and closed-loop reasoning.",
+    syllabus: [
+      "Start with **Behavior Prediction** for closed-loop autonomous driving",
+      "Explore **Camera Calibration** (AutoCalib) for perception systems",
+      "Learn about **Physics-Aware Models** for simulation and robotics"
+    ],
+    color: "from-orange-500 to-red-600"
+  },
+  "Agentic AI": {
+    title: "Agentic AI",
+    subtitle: "The Cutting Edge",
+    description: "From ReAct loops to multi-agent societies—building intelligent systems that reason, plan, and act autonomously.",
+    syllabus: [
+      "Start with **Part 1: Foundations** (ReAct, LATS, MCP, Reflexion)",
+      "Move to **Part 2: Production** (Memory, Supervisor, Parallel Tools)",
+      "Explore **Part 3: Specialized** (Environment Loop, Imagination, Multi-Agent)",
+      "Finish with **Parts 4-5** for failure modes and production guides"
+    ],
+    color: "from-amber-500 to-orange-600"
+  },
+} satisfies Record<Track, { title: string; subtitle: string; description: string; syllabus: string[]; color: string }>;
+
+const info = trackInfo[track];
+---
+
+<Layout>
+  <Header />
+  <main
+    id="main-content"
+    class="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8"
+  >
+    <section class="pt-16">
+      <div class="mb-8">
+        <LinkButton href="/" class="mb-6">
+          ← Back to Home
+        </LinkButton>
+        <h1 class="text-4xl font-semibold leading-tight sm:text-5xl">
+          <span class={`bg-gradient-to-r ${info.color} bg-clip-text text-transparent`}>
+            {info.title}
+          </span>
+        </h1>
+        <p class="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-secondary-foreground/70">
+          {info.subtitle}
+        </p>
+        <p class="mt-4 max-w-3xl text-base leading-relaxed text-secondary-foreground sm:text-lg">
+          {info.description}
+        </p>
+      </div>
+
+      {track === "Agentic AI" && (
+        <div class="mb-8 overflow-hidden rounded-3xl border border-white/30 bg-white/70 shadow-lg dark:border-slate-700/40 dark:bg-slate-900/70">
+          <img
+            src="/assets/agentic-ai-cover.png"
+            alt="Agentic AI Course Cover"
+            class="w-full h-auto object-cover"
+            loading="eager"
+          />
+        </div>
+      )}
+
+      <div class="rounded-3xl border border-white/30 bg-white/70 p-6 shadow-sm dark:border-slate-700/40 dark:bg-slate-900/70">
+        <h2 class="mb-4 text-lg font-semibold text-foreground">Learning Path</h2>
+        <ul class="space-y-3 text-sm text-secondary-foreground">
+          {info.syllabus.map((item: string) => (
+            <li class="flex items-start gap-3">
+              <span class="mt-1.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-xs font-semibold text-accent">
+                &rarr;
+              </span>
+              <span set:html={item} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <Hr />
+
+    <section class="pt-16">
+      <h2 class="text-2xl font-semibold text-foreground sm:text-3xl">
+        All Posts in This Track
+      </h2>
+      <p class="mt-2 text-sm text-secondary-foreground sm:text-base">
+        {trackPosts.length} {trackPosts.length === 1 ? "article" : "articles"} covering {track.toLowerCase()}
+      </p>
+      {trackPosts.length > 0 ? (
+        <ul class="mt-8 grid gap-6 md:grid-cols-2">
+          {trackPosts.map((data) => (
+            <Card variant="h3" {...data} />
+          ))}
+        </ul>
+      ) : (
+        <p class="mt-8 text-sm text-secondary-foreground">
+          No posts found in this track yet.
+        </p>
+      )}
+    </section>
+  </main>
+  <Footer />
+</Layout>
+

@@ -1,0 +1,62 @@
+---
+import IconHash from "@/assets/icons/IconHash.svg";
+
+const weightClasses = {
+  1: "text-xs px-3 py-1 opacity-70",
+  2: "text-sm px-3.5 py-1.5 opacity-80",
+  3: "text-base px-4 py-2",
+  4: "text-lg px-5 py-2.5 shadow-[var(--shadow-xl-soft)]",
+  5: "text-xl px-6 py-3 shadow-[0_35px_70px_-35px_rgba(56,189,248,0.65)] border-accent/40 text-accent bg-accent/10",
+} as const;
+
+export interface Props {
+  tag: string;
+  tagName: string;
+  size?: "sm" | "lg";
+  weight?: 1 | 2 | 3 | 4 | 5;
+  count?: number;
+}
+
+const { tag, tagName, size = "sm", weight, count } = Astro.props;
+
+const baseClasses =
+  "inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 text-secondary-foreground transition hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 dark:border-slate-700/40 dark:bg-slate-900/70";
+
+const sizeClasses =
+  size === "lg"
+    ? "px-4 py-2 text-sm"
+    : size === "sm"
+      ? "px-3 py-1 text-xs"
+      : "px-4 py-2 text-sm";
+
+const cloudClasses = weight ? weightClasses[weight] ?? weightClasses[3] : "";
+---
+
+<li
+  class:list={[
+    "group inline-block",
+    size === "sm" ? "my-1" : "mx-1 my-2",
+  ]}
+>
+  <a
+    href={`/tags/${tag}/`}
+    transition:name={tag}
+    class:list={[
+      baseClasses,
+      weight ? cloudClasses : sizeClasses,
+    ]}
+  >
+    <IconHash
+      class:list={[
+        "size-3 opacity-80 transition-transform duration-200 group-hover:rotate-6",
+        { "size-4": size === "lg" || weight && weight >= 4 },
+      ]}
+    />
+    <span class="font-medium">{tagName}</span>
+    {typeof count === "number" && (
+      <span class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-secondary-foreground/70">
+        {count}
+      </span>
+    )}
+  </a>
+</li>
