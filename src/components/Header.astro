@@ -89,6 +89,16 @@ const isActive = (path: string) => {
             About
           </a>
         </li>
+        <li class="col-span-2 sm:col-span-1">
+          <a
+            href="/cv"
+            class:list={[
+              { "bg-accent-soft text-accent shadow-sm": isActive("/cv") },
+            ]}
+          >
+            CV
+          </a>
+        </li>
         {
           SITE.showArchives && (
             <li class="col-span-2 flex items-center justify-center sm:col-span-1 sm:justify-start">

@@ -1,0 +1,81 @@
+---
+import Main from "@/layouts/Main.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="CV | Resume">
+  <Main pageTitle="Curriculum Vitae" pageDesc="Download my resume or view it online">
+    <div class="flex flex-col items-center gap-6">
+      <div class="w-full max-w-3xl rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50 sm:p-8">
+        <div class="flex flex-col items-center gap-4 text-center">
+          <h2 class="text-2xl font-semibold text-foreground">Gopi Krishna Tummala</h2>
+          <p class="text-base text-secondary-foreground">
+            Senior Machine Learning Engineer
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-secondary-foreground">
+            <span>📧 tummalag.cseosu@gmail.com</span>
+            <span>📍 Fremont, CA</span>
+            <span>🔗 <a href="https://www.linkedin.com/in/gopi-krishna-tummala-00294415/" target="_blank" rel="noopener noreferrer" class="text-accent hover:underline">LinkedIn</a></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4 sm:flex-row sm:justify-center">
+        <a
+          href="/resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-base font-medium text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Download PDF Resume
+        </a>
+        <a
+          href="/resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 rounded-full border-2 border-accent bg-transparent px-6 py-3 text-base font-medium text-accent transition-all hover:bg-accent-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          View in New Tab
+        </a>
+      </div>
+
+      <div class="w-full max-w-3xl rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50 sm:p-8">
+        <h3 class="mb-4 text-xl font-semibold text-foreground">Quick Summary</h3>
+        <div class="space-y-4 text-base text-secondary-foreground">
+          <p>
+            Senior Machine Learning Engineer with 12+ years of experience across the full ML lifecycle—from designing custom GPU kernels and distributed training frameworks to deploying multi-modal GenAI models.
+          </p>
+          <p>
+            Proven track record in autonomous driving prediction (L3-L5) and scalable data infrastructure for production-grade generative models. Expert in PyTorch, Distributed Training (FSDP), and Agentic AI patterns.
+          </p>
+          <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <h4 class="mb-2 font-semibold text-foreground">Current Role</h4>
+              <p class="text-sm text-secondary-foreground">Senior ML Engineer @ Adobe</p>
+              <p class="text-xs text-secondary-foreground opacity-75">Jan 2024 - Present</p>
+            </div>
+            <div>
+              <h4 class="mb-2 font-semibold text-foreground">Education</h4>
+              <p class="text-sm text-secondary-foreground">Ph.D. in Computer Science</p>
+              <p class="text-xs text-secondary-foreground opacity-75">The Ohio State University</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full max-w-3xl rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50 sm:p-8">
+        <h3 class="mb-4 text-xl font-semibold text-foreground">For More Information</h3>
+        <p class="text-base text-secondary-foreground">
+          For a detailed view of my experience, publications, and projects, please download the PDF resume above or visit my <a href="/about" class="text-accent hover:underline">About page</a>.
+        </p>
+      </div>
+    </div>
+  </Main>
+</Layout>
