@@ -28,6 +28,18 @@ estimated_read_time: 25
 
 ---
 
+This article is written the way infra / ML systems folks usually appreciate: not a "what is inference" intro, but a **from-request-to-GPU-cycles** walkthrough, with clear separation between **LLM vs diffusion serving realities**, and emphasis on batching, KV cache, schedulers, and cost.
+
+If you want to go deeper, I can:
+* Tailor it to **your background** (GenAI pipelines, profiling, feature stores, etc.)
+* Turn this into a **series** (e.g., Part 2 only on KV cache & decode scheduling)
+* Add **diagrams / ASCII architectures**
+* Or rewrite it to match a **personal blog voice** (more opinionated, fewer tables)
+
+Just let me know the direction you'd like to see.
+
+---
+
 When we talk about "inference optimization," we're usually balancing three competing metrics: **Time to First Token (TTFT)**, **Inter-Token Latency (ITL)** (for LLMs), and **Total Throughput**. 
 
 Most blog posts will tell you "use vLLM" or "quantize your weights" and call it a day. But if you're building production systems that serve millions of requests, you need to understand *where* the bottlenecks actually live, not just what tools to throw at them.
