@@ -2,7 +2,7 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-28T00:00:00Z
 modDatetime: 2025-01-28T00:00:00Z
-title: Life of a Tensor: A Deep Dive into Production Inference
+title: "Life of a Tensor: A Deep Dive into Production Inference"
 slug: life-of-a-tensor-production-inference
 featured: true
 draft: false
@@ -15,7 +15,7 @@ tags:
   - llm
   - diffusion-models
   - ml-infrastructure
-description: A comprehensive deep-dive into production inference optimization, tracing the path of a request through LLM and diffusion model serving systems. Understanding the bottlenecks from gateway to GPU kernel execution.
+description: "A comprehensive deep-dive into production inference optimization, tracing the path of a request through LLM and diffusion model serving systems. Understanding the bottlenecks from gateway to GPU kernel execution."
 track: MLOps & Production
 difficulty: Advanced
 interview_relevance:
