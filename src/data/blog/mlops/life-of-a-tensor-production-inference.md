@@ -83,7 +83,13 @@ To understand this, we have to trace the path of a request through the system. A
 
 The journey begins at the model serving endpoint (e.g., vLLM, TGI, TRT-LLM). But before we even get to the model, there are three bottlenecks that will kill your latency if you ignore them.
 
-### 1. Protocol Overhead
+### 1. Request: The Gateway
+
+**"The cost of entry."**
+
+Every inference journey begins at the network edge. Whether via gRPC or HTTP, the request payload defines the initial constraints. For LLMs, this is lightweight text JSON; for Diffusion models, it's often heavy Base64-encoded images. This phase isn't just about receiving data—it's about serialization overhead, protocol decoding, and unmarshalling payloads without blocking the event loop. If your ingress is slow, your GPU sits idle.
+
+#### Protocol Overhead
 
 The request arrives via gRPC or HTTP. While the payload for an LLM is small (text), diffusion requests often carry base64 images or masks. I've seen teams spend weeks optimizing CUDA kernels only to realize they're spending 200ms just deserializing JSON image payloads.
 
@@ -97,15 +103,30 @@ Request Flow:
 
 **The Fix:** For diffusion, avoid JSON/HTTP for image payloads. Use binary formats (Protobuf/FlatBuffers) or pre-signed S3 URLs to keep the control plane light. I've seen teams achieve a 3x reduction in request deserialization time by moving from base64 JSON to Arrow IPC for image payloads.
 
-### 2. Tokenization (LLM only)
+### 2. Queue: The Waiting Room
+
+**"Managing the flood."**
+
+When the system is under load, we can't shove every request into the GPU immediately. The queue acts as the pressure valve. This is where we make critical decisions about priority, backpressure, and timeouts. Do we use a simple FIFO queue, or a priority queue that favors VIP users? A poorly managed queue leads to increased latency for everyone, while a smart queue protects the system from collapse during traffic spikes.
+
+### 3. Tokenize: The CPU Bottleneck
+
+**"Turning text into math."**
+
+Before a model can understand "Hello," it must become `[15496]`. This step seems trivial but is a frequent silent killer in Python-based stacks. Because tokenization is CPU-bound, the Python Global Interpreter Lock (GIL) can strangle throughput, starving the GPU even if it has capacity. Efficient systems often offload this to Rust-based services or separate processes to ensure the GPU never waits on the CPU.
 
 This is CPU-bound, and here's where Python's Global Interpreter Lock (GIL) becomes your enemy. If your tokenizer runs in Python while your model runs in C++/Rust, the GIL can strangle high-concurrency throughput. I've profiled systems where tokenization was the bottleneck at 80% CPU utilization, even though the GPU was sitting at 30%.
 
 **The Fix:** Use Rust-based tokenizers (e.g., Hugging Face `tokenizers`) released from the GIL, or offload tokenization to a separate microservice layer to decouple CPU load from the GPU hosts. The microservice approach also gives you better horizontal scaling when you're serving multiple model variants.
 
-### 3. The Scheduler: Where the Magic (or Misery) Happens
+### 4. Batch: The "Ragged Tensor" Problem
 
-This is where modern inference differs from standard microservices. We don't just FIFO the requests. If you do, you're leaving money on the table.
+**"Tetris with data."**
+
+In training, we love uniform rectangles of data. In inference, real-world user prompts are chaotic: one user asks a 5-token question, another pastes a 4,000-token document.
+
+* **The Problem:** Naive "Static Batching" forces us to pad the short 5-token request with 3,995 "empty" tokens just to match the long one, wasting massive amounts of compute and VRAM on nothing.
+* **The Goal:** We need to construct batches that minimize padding waste, grouping requests dynamically to maximize the useful work done per clock cycle.
 
 **Static Batching (Old School):** Wait for N requests to arrive, pad them to the longest sequence, and send them to the GPU. This wastes huge amounts of VRAM and compute on padding tokens. I've seen teams padding 512-token sequences to 2048 just to batch them together—that's 75% wasted compute.
 
@@ -115,6 +136,12 @@ Request 1: [tok1, tok2, tok3, ..., tok512, <PAD>, <PAD>, ..., <PAD>]  ← 1536 w
 Request 2: [tok1, tok2, ..., tok1024, <PAD>, <PAD>, ..., <PAD>]      ← 1024 wasted tokens
 Request 3: [tok1, tok2, ..., tok2048]                                 ← reference length
 ```
+
+### 5. Schedule: The Orchestrator
+
+**"The heartbeat of the system."**
+
+Batching groups the data; scheduling decides *when* it runs. Modern LLM serving moves beyond request-level scheduling to **Iteration-Level Scheduling** (Continuous Batching). Instead of waiting for a whole batch to finish, the scheduler injects new requests into the batch the moment a previous request finishes a token generation. It manages the "Prefill" (processing the prompt) vs. "Decode" (generating tokens) trade-off to ensure Time-to-First-Token (TTFT) remains low without destroying overall throughput.
 
 **Continuous Batching (State of the Art):** We schedule at the *iteration* level, not the request level. New requests are injected into the batch immediately as soon as a slot frees up. This is what vLLM and TGI do, and it's the difference between 2x and 10x throughput.
 
@@ -136,6 +163,15 @@ Iteration 3: [Req2: tok1026, Req3: tok2050, Req4: tok257-512, Req5: tok1-128]  �
 ## Phase 2: The LLM Workload (Memory Bandwidth Bound)
 
 **The Bottleneck:** Loading weights and KV Cache management.
+
+### 6. Execute: The Main Event
+
+**"Where memory meets compute."**
+
+This is where the tensor actually lives on the GPU. Execution isn't just matrix multiplication; it's a war against memory bandwidth.
+
+* **Model Prep:** Before execution, the GPU must have the model weights loaded and, crucially for LLMs, the **KV Cache** allocated. We use techniques like **PagedAttention** to allocate memory in non-contiguous blocks (like OS virtual memory) so we don't run out of VRAM due to fragmentation.
+* **Maintenance:** We must maintain strict latency budgets. The execution engine effectively "swaps" the massive model weights through the compute units for every single token generated. If we are memory-bound (LLMs), we focus on bandwidth; if compute-bound (Diffusion), we focus on maximizing FLOPS.
 
 LLM inference is autoregressive. You generate token t₁, append it to the input, generate t₂, and so on. This creates two distinct phases with different hardware profiles, and understanding this split is critical for optimization.
 
@@ -284,6 +320,40 @@ If you're serving long-context models (128k+) and you have H100s, FlashAttention
 **FP8 Activations (H100s):** The H100 "Transformer Engine" natively supports FP8. This effectively doubles the compute throughput and halves the memory traffic for activation tensors compared to FP16/BF16 on A100s. If you're buying new hardware and serving large models, H100s with FP8 are a no-brainer.
 
 **My Take:** Don't quantize unless you have to. Start with FP16/BF16, optimize your batching and KV cache management, and only quantize if you're still hitting memory limits. Quantization adds complexity (different kernels, calibration, quality monitoring) that you might not need.
+
+---
+
+## Phase 5: Post-Execution Pipeline
+
+### 7. Stream: The Real-Time Feedback
+
+**"Delivering the illusion of speed."**
+
+For users, speed isn't just total time—it's **Time to First Token (TTFT)** and **Inter-Token Latency (ITL)**. Streaming allows us to send partial results back to the user immediately. This unblocks the client UI and makes the system "feel" faster, even if the total generation time is unchanged. It requires keeping a persistent, open connection (Server-Sent Events or gRPC streams) that pushes data as it exits the GPU.
+
+### 8. Post-Process: The Cleanup
+
+**"Safety and formatting."**
+
+The model outputs raw token IDs and probabilities. Post-processing converts these back into human-readable text (detokenization). But it's also the safety layer: running "stop sequence" checks to prevent the model from rambling, applying regex filters, or checking for toxic content. This step must be blazing fast to avoid adding latency to the final token delivery.
+
+### 9. Bill: Counting the Cost
+
+**"The business logic."**
+
+Inference is expensive. We don't bill by the second; we bill by the token. Accurate accounting requires tracking input tokens (prompt) and output tokens (completion) separately, as they often have different costs. This system needs to be asynchronous—you don't want to hold up the user's response while you write to a database or check a credit balance.
+
+### 10. Log: The Black Box Recorder
+
+**"Observability is survival."**
+
+When a request fails or a user complains about a hallucination, logs are your only source of truth. We capture inputs, outputs, latency metrics (P95, P99), and GPU utilization. However, logging high-volume text/image data can be expensive and a privacy risk, so this block often involves sampling or redaction strategies before data hits persistent storage.
+
+### 11. Retry: Handling the Chaos
+
+**"Resilience at scale."**
+
+GPUs crash. Networks timeout. Preemptible instances get killed. A robust inference system doesn't just fail; it recovers. The Retry block handles transient failures (like a temporary network blip) transparently. It implements exponential backoff to avoid hammering a struggling server, ensuring that a single dropped packet doesn't result in a failed user experience.
 
 ---
 
