@@ -28,15 +28,46 @@ estimated_read_time: 25
 
 ---
 
-This article is written the way infra / ML systems folks usually appreciate: not a "what is inference" intro, but a **from-request-to-GPU-cycles** walkthrough, with clear separation between **LLM vs diffusion serving realities**, and emphasis on batching, KV cache, schedulers, and cost.
+## What "Inference" Really Means at Scale
 
-If you want to go deeper, I can:
-* Tailor it to **your background** (GenAI pipelines, profiling, feature stores, etc.)
-* Turn this into a **series** (e.g., Part 2 only on KV cache & decode scheduling)
-* Add **diagrams / ASCII architectures**
-* Or rewrite it to match a **personal blog voice** (more opinionated, fewer tables)
+Serving large language models (LLMs) and diffusion models in production is *not* just about loading weights and calling `model.forward()`. Inference becomes a distributed systems problem that blends GPU architecture, memory management, batching theory, latency SLOs, and cost engineering.
 
-Just let me know the direction you'd like to see.
+At toy scale:
+
+```
+input → model → output
+```
+
+At production scale:
+
+```
+request → queue → tokenize → batch → schedule → execute → stream → post‑process → bill → log → retry
+```
+
+Inference is the *runtime execution* of a trained model, while **model serving** is the system that:
+
+* Accepts requests
+* Schedules compute
+* Enforces latency/cost constraints
+* Streams partial outputs
+* Scales elastically
+* Survives failures
+
+This article walks through the **full lifecycle of inference and serving**—from a single GPU prototype to planet‑scale production—covering both **LLMs** and **diffusion models**.
+
+---
+
+## Key Differences: LLMs vs Diffusion Models
+
+| Aspect           | LLMs                            | Diffusion Models            |
+| ---------------- | ------------------------------- | --------------------------- |
+| Compute pattern  | Autoregressive (token-by-token) | Iterative denoising (steps) |
+| Latency shape    | Long tail, streaming friendly   | Fixed but heavy per request |
+| Memory pressure  | KV cache dominates              | Activations dominate        |
+| Batching         | Continuous / dynamic            | Static / step-aligned       |
+| User expectation | Real-time text                  | Seconds-level image/video   |
+
+Understanding these differences is critical—**the serving stack diverges quickly**.
 
 ---
 
