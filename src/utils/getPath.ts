@@ -64,6 +64,18 @@ export function getPostPath(
   const slug = post.data?.slug;
   if (slug) {
     const basePath = includeBase ? "/posts" : "";
+    // Include subdirectory path if file is in a subdirectory
+    const pathSegments = post.filePath
+      ?.replace(BLOG_PATH, "")
+      .split("/")
+      .filter(path => path !== "")
+      .filter(path => !path.startsWith("_"))
+      .slice(0, -1) // remove filename
+      .map(segment => slugifyStr(segment));
+    
+    if (pathSegments && pathSegments.length > 0) {
+      return [basePath, ...pathSegments, slug].filter(Boolean).join("/");
+    }
     return [basePath, slug].filter(Boolean).join("/");
   }
   return getPath(post.id, post.filePath, includeBase);
