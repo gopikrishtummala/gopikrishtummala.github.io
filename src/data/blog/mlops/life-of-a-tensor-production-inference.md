@@ -30,7 +30,7 @@ estimated_read_time: 25
 
 When we talk about "inference optimization," we're usually balancing three competing metrics: **Time to First Token (TTFT)**, **Inter-Token Latency (ITL)** (for LLMs), and **Total Throughput**. 
 
-Most blog posts will tell you "use vLLM" or "quantize your weights" and call it a day. But if you're building production systems that serve millions of requests—like the GenAI pipelines I work on at Adobe—you need to understand *where* the bottlenecks actually live, not just what tools to throw at them.
+Most blog posts will tell you "use vLLM" or "quantize your weights" and call it a day. But if you're building production systems that serve millions of requests, you need to understand *where* the bottlenecks actually live, not just what tools to throw at them.
 
 To understand this, we have to trace the path of a request through the system. And here's the thing: **Large Language Models (LLMs)** and **Diffusion Models** have drastically different serving realities. Treating them the same way is like using a race car engine in a cargo ship—technically both use combustion, but the constraints couldn't be more different.
 
@@ -52,7 +52,7 @@ Request Flow:
 └─────────┘                      └──────────────┘                        └──────────┘
 ```
 
-**The Fix:** For diffusion, avoid JSON/HTTP for image payloads. Use binary formats (Protobuf/FlatBuffers) or pre-signed S3 URLs to keep the control plane light. At Adobe, we saw a 3x reduction in request deserialization time by moving from base64 JSON to Arrow IPC for image payloads.
+**The Fix:** For diffusion, avoid JSON/HTTP for image payloads. Use binary formats (Protobuf/FlatBuffers) or pre-signed S3 URLs to keep the control plane light. I've seen teams achieve a 3x reduction in request deserialization time by moving from base64 JSON to Arrow IPC for image payloads.
 
 ### 2. Tokenization (LLM only)
 
@@ -218,7 +218,7 @@ While we save on KV cache, production image generation relies heavily on adapter
 
 **S-LoRA** introduces "Unified Paging" for LoRA weights, storing them in a non-contiguous memory pool similar to PagedAttention. This lets you keep hundreds of LoRAs "warm" in memory without fragmentation.
 
-At Adobe, we've seen S-LoRA increase throughput by 4-5x for mixed LoRA workloads compared to naive swapping. The trade-off is increased memory usage, but for production systems serving multiple styles, it's worth it.
+I've seen S-LoRA increase throughput by 4-5x for mixed LoRA workloads compared to naive swapping. The trade-off is increased memory usage, but for production systems serving multiple styles, it's worth it.
 
 ---
 
