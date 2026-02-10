@@ -419,3 +419,51 @@ This post covered the full stack from request to GPU cycles. If you want to go d
 * **Cost Analysis: H100 vs. A100** — Real numbers for Llama 3 70B serving at scale
 
 Let me know what you want to see next, or reach out if you're building production inference systems and want to compare notes.
+
+---
+
+## References & Further Reading
+
+### 1. Request & Queue (The Gateway)
+
+* **Hugging Face Text Generation Inference (TGI) Architecture** — The TGI architecture docs explain the "Router" pattern perfectly—how a Rust-based web server handles the queue and distributes requests to Python/C++ model shards. [TGI Architecture Documentation](https://huggingface.co/docs/text-generation-inference/architecture)
+
+* **Ray Serve Architecture** (Anyscale) — Explains how to handle "Head Nodes" and "Worker Nodes" for scaling inference requests across a cluster. [Ray Serve Architecture Guide](https://docs.ray.io/en/latest/serve/architecture.html)
+
+### 2. Tokenize (The CPU Bottleneck)
+
+* **Stanford CS324: Tokenization** — A solid academic intro to BPE (Byte Pair Encoding) and why tokenization is non-trivial. [Stanford CS324 - Tokenization](https://stanford-cs324.github.io/winter2022/lectures/data-capabilities/)
+
+* **Hugging Face Tokenizers (Rust vs. Python)** — Highlights the performance difference of releasing the Python GIL by using Rust. [Hugging Face Tokenizers Library](https://github.com/huggingface/tokenizers)
+
+### 3. Batch & Schedule (The "Ragged Tensor" Problem)
+
+* **The Orca Paper (OSDI '22)** — This is the foundational paper for **Iteration-Level Scheduling**. It explains why request-level batching is bad and how "cellular batching" works. *"Orca: A Distributed Serving System for Transformer-Based Generative Models"* [USENIX OSDI '22 Presentation](https://www.usenix.org/conference/osdi22/presentation/yu)
+
+* **vLLM Blog: Continuous Batching** — The most readable explanation of how continuous batching fills "bubbles" in GPU compute. [vLLM: Easy, Fast, and Cheap LLM Serving](https://vllm.ai/)
+
+### 4. Execute (Model Prep & Maintenance)
+
+* **PagedAttention (SOSP '23)** — The definitive paper on managing KV Cache memory like OS virtual memory (non-contiguous blocks). *"Efficient Memory Management for Large Language Model Serving with PagedAttention"* [PagedAttention Paper](https://arxiv.org/abs/2309.06180)
+
+* **FlashAttention (NeurIPS '22)** — Explains the IO-aware exact attention algorithm that makes execution fast enough to be usable. [FlashAttention: Fast and Memory-Efficient Exact Attention](https://arxiv.org/abs/2205.14135)
+
+### 5. Stream (Real-Time Feedback)
+
+* **Server-Sent Events (SSE) for LLMs** — Most people use SSE for streaming tokens. Reference the MDN docs or a guide on how OpenAI implements their streaming protocol. [MDN Web Docs: Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+
+### 6. Post-Process (Safety & Cleanup)
+
+* **Guardrails AI** — Excellent documentation on "RAIL" specs and how to validate/correct LLM output structure (JSON, PII removal) before sending it to the user. [Guardrails AI Documentation](https://www.guardrailsai.com/docs)
+
+* **Lilian Weng's Blog: LLM Powered Autonomous Agents** — Contains a great section on safety, steering, and "post-generation" checks. [Lil'Log - LLM Agents](https://lilianweng.github.io/posts/2023-06-23-agent/)
+
+### 7. Bill & Log (Observability)
+
+* **Databricks: LLM Inference Performance Engineering** — Breaks down the metrics you need to log: Time to First Token (TTFT), Inter-Token Latency (ITL), and throughput. [Databricks Engineering Blog](https://www.databricks.com/blog/llm-inference-performance-engineering-best-practices)
+
+* **LangSmith / Arize Phoenix** — Reference modern observability stacks that trace the full lifecycle of a request.
+
+### 8. Retry (Resilience)
+
+* **Google SRE Book: Handling Overload** — The "Bible" for retry logic. Specifically, look at the chapters on **Exponential Backoff** and **Jitter** to avoid thundering herd problems when your inference server hiccups. [Google SRE Book - Chapter 22](https://sre.google/sre-book/addressing-cascading-failures/)
