@@ -12,27 +12,51 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
 <Layout title={`Search | ${SITE.title}`}>
   <Header />
   <Main pageTitle="Search" pageDesc="Search any article ...">
-    <div id="pagefind-search" transition:persist data-backurl={backUrl}></div>
+    <div id="pagefind-search" transition:persist data-backurl={backUrl}>
+      <!-- Placeholder search input for lazy loading -->
+      <div class="search-placeholder">
+        <input
+          type="text"
+          placeholder="Type to search..."
+          class="w-full rounded-lg border border-white/40 bg-white/80 px-4 py-3 text-foreground shadow-sm backdrop-blur-sm transition focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-slate-700/40 dark:bg-slate-900/70"
+          id="search-trigger"
+        />
+        <p class="mt-4 text-center text-sm text-secondary-foreground">
+          Search will load when you start typing...
+        </p>
+      </div>
+    </div>
   </Main>
   <Footer />
 </Layout>
 
 <script>
-  function initSearch() {
+  let searchInitialized = false;
+  let searchInstance: any = null;
+
+  async function initSearch() {
     const pageFindSearch: HTMLElement | null =
       document.querySelector("#pagefind-search");
 
-    if (!pageFindSearch) return;
+    if (!pageFindSearch || searchInitialized) return;
+
+    // Show loading state
+    pageFindSearch.innerHTML = `
+      <div class="flex items-center justify-center py-8">
+        <div class="text-center">
+          <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent"></div>
+          <p class="mt-4 text-sm text-secondary-foreground">Loading search index...</p>
+        </div>
+      </div>
+    `;
 
     const params = new URLSearchParams(window.location.search);
 
-    const onIdle = window.requestIdleCallback || (cb => setTimeout(cb, 1));
-
-    onIdle(async () => {
+    try {
       // @ts-expect-error — Missing types for @pagefind/default-ui package.
       const { PagefindUI } = await import("@pagefind/default-ui");
 
-      // Display warning inn dev mode
+      // Display warning in dev mode
       if (import.meta.env.DEV) {
         pageFindSearch.innerHTML = `
             <div class="bg-muted/75 rounded p-4 space-y-4 mb-4">
@@ -40,17 +64,24 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
               <code class="block bg-black text-white px-2 py-1 rounded">pnpm run build</code>
             </div>
           `;
+        return;
+      }
+
+      // Remove placeholder before initializing
+      const placeholder = pageFindSearch.querySelector(".search-placeholder");
+      if (placeholder) {
+        placeholder.remove();
       }
 
       // Init pagefind ui
-      const search = new PagefindUI({
+      searchInstance = new PagefindUI({
         element: "#pagefind-search",
         showSubResults: true,
         showImages: false,
-        basePath: "/", // Ensure pagefind looks for index files at root
+        basePath: "/",
         processTerm: function (term: string) {
-          params.set("q", term); // Update the `q` parameter in the URL
-          history.replaceState(history.state, "", "?" + params.toString()); // Push the new URL without reloading
+          params.set("q", term);
+          history.replaceState(history.state, "", "?" + params.toString());
 
           const backUrl = pageFindSearch?.dataset?.backurl;
           sessionStorage.setItem("backUrl", backUrl + "?" + params.toString());
@@ -59,10 +90,12 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
         },
       });
 
+      searchInitialized = true;
+
       // If search param exists (eg: search?q=astro), trigger search
       const query = params.get("q");
       if (query) {
-        search.triggerSearch(query);
+        searchInstance.triggerSearch(query);
       }
 
       // Reset search param if search input is cleared
@@ -76,23 +109,76 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
           history.replaceState(history.state, "", window.location.pathname);
         }
       }
-    });
+    } catch (error) {
+      console.error("Failed to initialize search:", error);
+      pageFindSearch.innerHTML = `
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-4">
+          <p class="text-red-800 dark:text-red-200">Failed to load search. Please refresh the page.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Lazy load search only when needed
+  function setupLazySearch() {
+    const pageFindSearch = document.querySelector("#pagefind-search");
+    if (!pageFindSearch) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const hasQuery = params.get("q");
+    const searchTrigger = document.querySelector("#search-trigger") as HTMLInputElement;
+
+    // If there's a query param, load immediately (but with delay for better UX)
+    if (hasQuery) {
+      const onIdle = window.requestIdleCallback 
+        ? (cb: () => void) => window.requestIdleCallback(cb, { timeout: 1000 })
+        : (cb: () => void) => setTimeout(cb, 100);
+      
+      onIdle(initSearch);
+      return;
+    }
+
+    // Otherwise, load on user interaction
+    let loaded = false;
+    const loadSearch = () => {
+      if (loaded) return;
+      loaded = true;
+      initSearch();
+    };
+
+    // Load when user starts typing or focuses the input
+    if (searchTrigger) {
+      searchTrigger.addEventListener("focus", loadSearch, { once: true });
+      searchTrigger.addEventListener("input", (e) => {
+        loadSearch();
+        // If search is initialized, trigger the actual search
+        if (searchInstance && (e.target as HTMLInputElement).value) {
+          setTimeout(() => {
+            searchInstance.triggerSearch((e.target as HTMLInputElement).value);
+          }, 100);
+        }
+      });
+    }
+
+    // Also load after a delay if user is still on page (low priority, background)
+    const onIdle = window.requestIdleCallback 
+      ? (cb: () => void) => window.requestIdleCallback(cb, { timeout: 5000 })
+      : (cb: () => void) => setTimeout(cb, 3000);
+    
+    onIdle(loadSearch);
   }
 
   document.addEventListener("astro:after-swap", () => {
-    const pagefindSearch = document.querySelector("#pagefind-search");
-
-    // if pagefind search form already exists, don't initialize search component
-    if (pagefindSearch && pagefindSearch.querySelector("form")) return;
-
-    initSearch();
+    searchInitialized = false;
+    searchInstance = null;
+    setupLazySearch();
   });
   
-  // Initialize search on page load
+  // Initialize lazy search on page load
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initSearch);
+    document.addEventListener("DOMContentLoaded", setupLazySearch);
   } else {
-    initSearch();
+    setupLazySearch();
   }
 </script>
 
