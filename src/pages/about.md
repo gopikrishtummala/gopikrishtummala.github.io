@@ -19,7 +19,7 @@ With 10+ years of experience in designing machine learning algorithms and models
 - Implementing runtime profiling and telemetry for performance tuning
 
 ### Previous Roles
-- **Machine Learning Engineer** (2022 - 2024): Designed prediction models for autonomous vehicle systems
+- **Software Engineer, Prediction @ Zoox** (2022 - 2024): Designed prediction models for autonomous vehicle systems
 - **Senior Systems Engineer @ Qualcomm Research** (2020 - 2022): Developed ML algorithms for behavior prediction
 - **Senior Systems Engineer @ Qualcomm** (2018 - 2020): Built testing and automation pipelines
 

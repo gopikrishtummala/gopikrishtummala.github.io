@@ -1,6 +1,10 @@
 node_modules
 dist/
 .astro/
+.astro/data-store.json
+
+# macOS
+.DS_Store
 
 # Resume build artifacts
 resume/*.aux
