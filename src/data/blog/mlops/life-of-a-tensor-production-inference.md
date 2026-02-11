@@ -174,33 +174,51 @@ flowchart TD
     L -->|No| I
 ```
 
-#### Continuous Batching Timeline
+#### Continuous Batching: Dynamic Request Flow
 
 ```mermaid
-gantt
-    title Continuous Batching Timeline
-    dateFormat X
-    axisFormat %Lms
+flowchart TB
+    subgraph Iter1["Iteration 1: Batch Size = 3"]
+        R1A[Req1: Prefill<br/>512 tokens]
+        R2A[Req2: Prefill<br/>1024 tokens]
+        R3A[Req3: Prefill<br/>2048 tokens]
+    end
     
-    section Req1
-    Prefill :0, 200
-    Decode :200, 800
+    subgraph Iter2["Iteration 2: Batch Size = 4"]
+        R1B[Req1: Decode<br/>tok 513]
+        R2B[Req2: Decode<br/>tok 1025]
+        R3B[Req3: Decode<br/>tok 2049]
+        R4A[Req4: Prefill<br/>256 tokens<br/>JOINS!]
+    end
     
-    section Req2
-    Prefill :0, 400
-    Decode :400, 1200
+    subgraph Iter3["Iteration 3: Batch Size = 5"]
+        R2C[Req2: Decode<br/>tok 1026]
+        R3C[Req3: Decode<br/>tok 2050]
+        R4B[Req4: Decode<br/>tok 257]
+        R5A[Req5: Prefill<br/>128 tokens<br/>JOINS!]
+        R1C[Req1: Decode<br/>tok 514]
+    end
     
-    section Req3
-    Prefill :0, 800
-    Decode :800, 1600
+    subgraph Iter4["Iteration 4: Batch Size = 3"]
+        R3D[Req3: Decode<br/>tok 2051]
+        R4C[Req4: Decode<br/>tok 258]
+        R5B[Req5: Decode<br/>tok 129]
+    end
     
-    section Req4
-    Prefill :200, 300
-    Decode :300, 1000
+    Iter1 -->|Requests progress| Iter2
+    Iter2 -->|New request joins| Iter3
+    Iter3 -->|More requests join| Iter4
     
-    section Req5
-    Prefill :400, 450
-    Decode :450, 1100
+    style R4A fill:#90EE90
+    style R5A fill:#90EE90
+    style R1A fill:#FFB6C1
+    style R2A fill:#FFB6C1
+    style R3A fill:#FFB6C1
+    style R1B fill:#87CEEB
+    style R2B fill:#87CEEB
+    style R3B fill:#87CEEB
+    style R4B fill:#87CEEB
+    style R5B fill:#87CEEB
 ```
 
 #### Prefill vs Decode Trade-off
