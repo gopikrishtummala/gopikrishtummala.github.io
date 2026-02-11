@@ -152,6 +152,138 @@ Iteration 2: [Req1: tok513, Req2: tok1025, Req3: tok2049, Req4: tok1-256]  ← R
 Iteration 3: [Req2: tok1026, Req3: tok2050, Req4: tok257-512, Req5: tok1-128]  ← Req5 joins!
 ```
 
+#### Iteration-Level Scheduler Flow
+
+```mermaid
+flowchart TD
+    A[Request Arrives] --> B{Queue Status}
+    B -->|Batch Slot Available| C[Inject into Batch]
+    B -->|No Slot| D[Wait in Queue]
+    D --> E{Check Timeout}
+    E -->|Timeout| F[Reject Request]
+    E -->|No Timeout| B
+    C --> G[Execute Iteration]
+    G --> H{Request Complete?}
+    H -->|Yes| I[Free Slot]
+    H -->|No| J[Continue Decode]
+    I --> B
+    J --> G
+    G --> K[Stream Token]
+    K --> L{More Tokens?}
+    L -->|Yes| G
+    L -->|No| I
+```
+
+#### Continuous Batching Timeline
+
+```mermaid
+gantt
+    title Continuous Batching: Requests Join and Leave Dynamically
+    dateFormat X
+    axisFormat %s
+    
+    section Batch Iterations
+    Req1 Prefill (512 tokens)    :0, 200
+    Req1 Decode                   :200, 800
+    Req2 Prefill (1024 tokens)   :0, 400
+    Req2 Decode                  :400, 1200
+    Req3 Prefill (2048 tokens)   :0, 800
+    Req3 Decode                  :800, 1600
+    Req4 Prefill (256 tokens)    :200, 300
+    Req4 Decode                  :300, 1000
+    Req5 Prefill (128 tokens)    :400, 450
+    Req5 Decode                  :450, 1100
+```
+
+#### Prefill vs Decode Trade-off
+
+```mermaid
+flowchart LR
+    subgraph GPU["GPU Compute Timeline"]
+        direction TB
+        P1[Prefill Phase<br/>Compute-Bound<br/>High GPU Util]
+        D1[Decode Phase<br/>Memory-Bound<br/>Lower GPU Util]
+        P2[Prefill Phase<br/>Compute-Bound]
+        D2[Decode Phase<br/>Memory-Bound]
+    end
+    
+    Q[Request Queue] -->|New Request| P1
+    P1 -->|First Token| D1
+    D1 -->|Stream Tokens| U[User]
+    Q -->|New Request| P2
+    P2 -->|First Token| D2
+    D2 -->|Stream Tokens| U
+    
+    style P1 fill:#ff9999
+    style P2 fill:#ff9999
+    style D1 fill:#99ccff
+    style D2 fill:#99ccff
+```
+
+#### Chunked Prefill: Before vs After
+
+```mermaid
+sequenceDiagram
+    participant S as Scheduler
+    participant P as Prefill Request
+    participant D1 as Decode Req 1
+    participant D2 as Decode Req 2
+    participant GPU as GPU
+    
+    Note over S,GPU: Without Chunked Prefill (Bad)
+    S->>P: Start 2048-token prefill
+    P->>GPU: Hog GPU for 800ms
+    GPU-->>D1: Blocked (waiting)
+    GPU-->>D2: Blocked (waiting)
+    P->>GPU: Complete prefill
+    GPU->>D1: Finally decode
+    GPU->>D2: Finally decode
+    
+    Note over S,GPU: With Chunked Prefill (Good)
+    S->>P: Start prefill (chunk 1)
+    P->>GPU: Process 512 tokens (200ms)
+    GPU->>D1: Decode token
+    S->>P: Continue prefill (chunk 2)
+    P->>GPU: Process 512 tokens (200ms)
+    GPU->>D2: Decode token
+    S->>P: Continue prefill (chunk 3)
+    P->>GPU: Process 512 tokens (200ms)
+    GPU->>D1: Decode token
+    S->>P: Continue prefill (chunk 4)
+    P->>GPU: Process 512 tokens (200ms)
+    GPU->>D2: Decode token
+    Note over P,GPU: Prefill complete, smooth ITL
+```
+
+#### Bad Scheduler vs Good Scheduler
+
+```mermaid
+flowchart TB
+    subgraph Bad["❌ Bad Scheduler (Request-Level)"]
+        direction TB
+        B1[Wait for 4 requests] --> B2[Pad to max length]
+        B2 --> B3[Execute entire batch]
+        B3 --> B4[Wait for slowest request]
+        B4 --> B5[All requests finish together]
+        B5 --> B6[GPU idle until next batch]
+    end
+    
+    subgraph Good["✅ Good Scheduler (Iteration-Level)"]
+        direction TB
+        G1[Request arrives] --> G2[Inject immediately]
+        G2 --> G3[Execute iteration]
+        G3 --> G4{Request done?}
+        G4 -->|No| G5[Continue decode]
+        G4 -->|Yes| G6[Free slot]
+        G5 --> G3
+        G6 --> G7[New request joins]
+        G7 --> G2
+    end
+    
+    style Bad fill:#ffcccc
+    style Good fill:#ccffcc
+```
+
 > **Advanced Technique: Chunked Prefill**
 > 
 > Even with continuous batching, a massive "prefill" (processing a long prompt) can hog the GPU, causing a stutter for all other requests waiting for a decode step. **Chunked Prefill** breaks the prompt processing into smaller pieces, interleaving them with decode steps. This sacrifices a tiny bit of TTFT for significantly smoother ITL (Inter-Token Latency).
@@ -246,6 +378,77 @@ PagedAttention Allocation:
 ```
 
 vLLM's PagedAttention implementation can fit 2-3x more concurrent requests than naive allocation. This is the difference between serving 8 vs. 24 requests on the same GPU.
+
+#### GPU Memory Timeline: KV Cache Growth vs Eviction
+
+```mermaid
+gantt
+    title GPU Memory: KV Cache Allocation Over Time
+    dateFormat X
+    axisFormat %s
+    
+    section Request 1 (128k context)
+    Allocate KV Cache (128k)    :0, 100
+    Generate Tokens             :100, 500
+    Request Complete            :500, 500
+    Evict KV Cache              :500, 550
+    
+    section Request 2 (64k context)
+    Allocate KV Cache (64k)     :200, 250
+    Generate Tokens             :250, 600
+    Request Complete            :600, 600
+    Evict KV Cache              :600, 650
+    
+    section Request 3 (32k context)
+    Allocate KV Cache (32k)     :300, 320
+    Generate Tokens             :320, 700
+    Request Complete            :700, 700
+    Evict KV Cache              :700, 750
+    
+    section Request 4 (256k context)
+    Allocate KV Cache (256k)    :550, 600
+    Generate Tokens             :600, 1000
+    Request Complete            :1000, 1000
+    Evict KV Cache              :1000, 1050
+```
+
+#### Disaggregated Prefill/Decode Architecture
+
+```mermaid
+flowchart TB
+    subgraph Frontend["Frontend Layer"]
+        LB[Load Balancer]
+        Q[Request Queue]
+    end
+    
+    subgraph PrefillCluster["Prefill Cluster (Compute-Heavy)"]
+        P1[Prefill Worker 1<br/>H100 GPUs]
+        P2[Prefill Worker 2<br/>H100 GPUs]
+        P3[Prefill Worker N<br/>H100 GPUs]
+    end
+    
+    subgraph DecodeCluster["Decode Cluster (Memory-Heavy)"]
+        D1[Decode Worker 1<br/>A100 GPUs]
+        D2[Decode Worker 2<br/>A100 GPUs]
+        D3[Decode Worker N<br/>A100 GPUs]
+    end
+    
+    subgraph KVCache["KV Cache Server"]
+        KV1[KV Cache Node 1]
+        KV2[KV Cache Node 2]
+    end
+    
+    LB --> Q
+    Q -->|New Request| PrefillCluster
+    PrefillCluster -->|Generate KV Cache| KVCache
+    KVCache -->|Load KV Cache| DecodeCluster
+    DecodeCluster -->|Stream Tokens| LB
+    LB -->|Response| User[User]
+    
+    style PrefillCluster fill:#ffcccc
+    style DecodeCluster fill:#ccffcc
+    style KVCache fill:#ffffcc
+```
 
 ### Beyond Standard Decoding: Breaking the Memory Bandwidth Wall
 
