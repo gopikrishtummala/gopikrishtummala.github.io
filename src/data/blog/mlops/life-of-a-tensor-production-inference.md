@@ -178,21 +178,29 @@ flowchart TD
 
 ```mermaid
 gantt
-    title Continuous Batching: Requests Join and Leave Dynamically
+    title Continuous Batching Timeline
     dateFormat X
-    axisFormat %s
+    axisFormat %Lms
     
-    section Batch Iterations
-    Req1 Prefill (512 tokens)    :0, 200
-    Req1 Decode                   :200, 800
-    Req2 Prefill (1024 tokens)   :0, 400
-    Req2 Decode                  :400, 1200
-    Req3 Prefill (2048 tokens)   :0, 800
-    Req3 Decode                  :800, 1600
-    Req4 Prefill (256 tokens)    :200, 300
-    Req4 Decode                  :300, 1000
-    Req5 Prefill (128 tokens)    :400, 450
-    Req5 Decode                  :450, 1100
+    section Req1
+    Prefill :0, 200
+    Decode :200, 800
+    
+    section Req2
+    Prefill :0, 400
+    Decode :400, 1200
+    
+    section Req3
+    Prefill :0, 800
+    Decode :800, 1600
+    
+    section Req4
+    Prefill :200, 300
+    Decode :300, 1000
+    
+    section Req5
+    Prefill :400, 450
+    Decode :450, 1100
 ```
 
 #### Prefill vs Decode Trade-off
