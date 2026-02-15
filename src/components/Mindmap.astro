@@ -1,0 +1,336 @@
+---
+interface MindmapNode {
+  label: string;
+  children?: MindmapNode[];
+}
+
+interface Props {
+  data: {
+    root: string;
+    children: MindmapNode[];
+  };
+}
+
+const { data } = Astro.props;
+
+// Color palette for different levels
+const colors = [
+  "from-emerald-500 to-teal-500",
+  "from-teal-500 to-cyan-500",
+  "from-cyan-500 to-blue-500",
+  "from-blue-500 to-indigo-500",
+  "from-indigo-500 to-purple-500",
+  "from-purple-500 to-pink-500",
+];
+
+function getColorForLevel(level: number): string {
+  return colors[Math.min(level, colors.length - 1)];
+}
+
+// Helper to render a node at a specific level
+function renderNode(node: MindmapNode, level: number): any {
+  const colorClass = getColorForLevel(level);
+  const hasChildren = node.children && node.children.length > 0;
+  const nodeClass = "mindmap-node mindmap-node-branch bg-gradient-to-r " + colorClass;
+  
+  return {
+    node,
+    level,
+    colorClass,
+    nodeClass,
+    hasChildren,
+  };
+}
+---
+
+<div class="mindmap-container">
+  <!-- Root Node -->
+  <div class="mindmap-root">
+    <div class="mindmap-node mindmap-node-root">
+      <span class="mindmap-label">{data.root}</span>
+    </div>
+  </div>
+
+  <!-- Children - Level 0 -->
+  <div class="mindmap-children">
+    {data.children.map((child) => {
+      const node0 = renderNode(child, 0);
+      return (
+        <div class="mindmap-branch" data-level="0">
+          <div class="mindmap-branch-content">
+            <div class="mindmap-connector"></div>
+            <div class={node0.nodeClass}>
+              <span class="mindmap-label">{node0.node.label}</span>
+            </div>
+          </div>
+          {node0.hasChildren && (
+            <div class="mindmap-children">
+              {node0.node.children!.map((child1: MindmapNode) => {
+                const node1 = renderNode(child1, 1);
+                return (
+                  <div class="mindmap-branch" data-level="1">
+                    <div class="mindmap-branch-content">
+                      <div class="mindmap-connector"></div>
+                      <div class={node1.nodeClass}>
+                        <span class="mindmap-label">{node1.node.label}</span>
+                      </div>
+                    </div>
+                    {node1.hasChildren && (
+                      <div class="mindmap-children">
+                        {node1.node.children!.map((child2: MindmapNode) => {
+                          const node2 = renderNode(child2, 2);
+                          return (
+                            <div class="mindmap-branch" data-level="2">
+                              <div class="mindmap-branch-content">
+                                <div class="mindmap-connector"></div>
+                                <div class={node2.nodeClass}>
+                                  <span class="mindmap-label">{node2.node.label}</span>
+                                </div>
+                              </div>
+                              {node2.hasChildren && (
+                                <div class="mindmap-children">
+                                  {node2.node.children!.map((child3: MindmapNode) => {
+                                    const node3 = renderNode(child3, 3);
+                                    return (
+                                      <div class="mindmap-branch" data-level="3">
+                                        <div class="mindmap-branch-content">
+                                          <div class="mindmap-connector"></div>
+                                          <div class={node3.nodeClass}>
+                                            <span class="mindmap-label">{node3.node.label}</span>
+                                          </div>
+                                        </div>
+                                        {node3.hasChildren && (
+                                          <div class="mindmap-children">
+                                            {node3.node.children!.map((child4: MindmapNode) => {
+                                              const node4 = renderNode(child4, 4);
+                                              return (
+                                                <div class="mindmap-branch" data-level="4">
+                                                  <div class="mindmap-branch-content">
+                                                    <div class="mindmap-connector"></div>
+                                                    <div class={node4.nodeClass}>
+                                                      <span class="mindmap-label">{node4.node.label}</span>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+<style>
+  .mindmap-container {
+    min-width: 100%;
+    padding: 2rem 1rem;
+    font-family: var(--font-mono, monospace);
+  }
+
+  .mindmap-root {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+
+  .mindmap-node-root {
+    background: linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #06b6d4 100%);
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+  }
+
+  .mindmap-children {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-left: 2rem;
+    position: relative;
+  }
+
+  .mindmap-children::before {
+    content: "";
+    position: absolute;
+    left: -1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, 
+      rgba(16, 185, 129, 0.3) 0%,
+      rgba(16, 185, 129, 0.2) 50%,
+      rgba(16, 185, 129, 0.1) 100%
+    );
+  }
+
+  .mindmap-branch {
+    position: relative;
+  }
+
+  .mindmap-branch-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .mindmap-connector {
+    width: 1.5rem;
+    height: 2px;
+    background: linear-gradient(to right, 
+      rgba(16, 185, 129, 0.4),
+      rgba(16, 185, 129, 0.2)
+    );
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .mindmap-connector::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  }
+
+  .mindmap-node {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: default;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mindmap-node::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .mindmap-node:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  }
+
+  .mindmap-node:hover::before {
+    opacity: 1;
+  }
+
+  .mindmap-label {
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+  }
+
+  /* Level-specific styling */
+  .mindmap-branch[data-level="0"] .mindmap-node {
+    font-size: 1rem;
+    padding: 0.625rem 1.25rem;
+  }
+
+  .mindmap-branch[data-level="1"] .mindmap-node {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .mindmap-branch[data-level="2"] .mindmap-node {
+    font-size: 0.8125rem;
+    padding: 0.4375rem 0.875rem;
+  }
+
+  .mindmap-branch[data-level="3"] .mindmap-node {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .mindmap-branch[data-level="4"] .mindmap-node {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .mindmap-container {
+      padding: 1rem 0.5rem;
+    }
+
+    .mindmap-node-root {
+      font-size: 1.25rem;
+      padding: 0.875rem 1.5rem;
+    }
+
+    .mindmap-children {
+      margin-left: 1.5rem;
+    }
+
+    .mindmap-connector {
+      width: 1rem;
+    }
+
+    .mindmap-node {
+      font-size: 0.75rem;
+      padding: 0.4375rem 0.875rem;
+    }
+  }
+
+  /* Dark mode adjustments */
+  @media (prefers-color-scheme: dark) {
+    .mindmap-children::before {
+      background: linear-gradient(to bottom, 
+        rgba(16, 185, 129, 0.4) 0%,
+        rgba(16, 185, 129, 0.3) 50%,
+        rgba(16, 185, 129, 0.2) 100%
+      );
+    }
+
+    .mindmap-connector {
+      background: linear-gradient(to right, 
+        rgba(16, 185, 129, 0.5),
+        rgba(16, 185, 129, 0.3)
+      );
+    }
+
+    .mindmap-connector::before {
+      background: rgba(16, 185, 129, 0.6);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .mindmap-node:hover {
+      transform: none;
+    }
+  }
+</style>

@@ -1,0 +1,272 @@
+---
+import Main from "@/layouts/Main.astro";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Mindmap from "@/components/Mindmap.astro";
+import { SITE } from "@/config";
+
+// Cheatsheet data - easily extensible for more topics
+const cheatsheets = [
+  {
+    id: "tree-based-ml",
+    title: "Tree-Based Machine Learning",
+    description: "A comprehensive overview of decision trees, ensemble methods, and boosting algorithms",
+  },
+  // Add more cheatsheets here as you create them
+  // {
+  //   id: "neural-networks",
+  //   title: "Neural Networks",
+  //   description: "Deep learning fundamentals and architectures",
+  // },
+];
+
+// Mindmap data for Tree-Based ML
+const treeBasedMLData = {
+  root: "Tree-Based Machine Learning",
+  children: [
+    {
+      label: "Decision Trees",
+      children: [
+        {
+          label: "Structure",
+          children: [
+            { label: "Root Node" },
+            { label: "Internal Nodes" },
+            { label: "Leaf Nodes" },
+            { label: "Depth / Height" },
+          ],
+        },
+        {
+          label: "Types",
+          children: [
+            { label: "Classification Tree" },
+            { label: "Regression Tree" },
+          ],
+        },
+        {
+          label: "Splitting Criteria",
+          children: [
+            {
+              label: "Classification",
+              children: [
+                { label: "Gini Impurity" },
+                { label: "Entropy" },
+                { label: "Information Gain" },
+              ],
+            },
+            {
+              label: "Regression",
+              children: [
+                { label: "MSE" },
+                { label: "MAE" },
+                { label: "Variance Reduction" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Stopping Criteria",
+          children: [
+            { label: "Max Depth" },
+            { label: "Min Samples Split" },
+            { label: "Min Samples Leaf" },
+            { label: "Pure Node" },
+          ],
+        },
+        {
+          label: "Pruning",
+          children: [
+            { label: "Pre-pruning" },
+            { label: "Post-pruning" },
+          ],
+        },
+        {
+          label: "Issues",
+          children: [
+            { label: "Overfitting" },
+            { label: "High Variance" },
+            { label: "Sensitive to Noise" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Bias-Variance Tradeoff",
+      children: [
+        { label: "Deep Tree -> Low Bias High Variance" },
+        { label: "Shallow Tree -> High Bias Low Variance" },
+        { label: "Ensembles Reduce Variance" },
+      ],
+    },
+    {
+      label: "Ensemble Methods",
+      children: [
+        {
+          label: "Bagging",
+          children: [
+            { label: "Bootstrap Sampling" },
+            { label: "Parallel Training" },
+            { label: "Majority Vote / Averaging" },
+            { label: "Reduces Variance" },
+          ],
+        },
+        {
+          label: "Random Forest",
+          children: [
+            { label: "Bagging + Feature Randomness" },
+            { label: "Random Feature Subset per Split" },
+            { label: "OOB Error" },
+            { label: "Feature Importance" },
+          ],
+        },
+        {
+          label: "Extra Trees",
+          children: [
+            { label: "Random Thresholds" },
+            { label: "More Randomness" },
+            { label: "Lower Variance" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Boosting",
+      children: [
+        {
+          label: "Core Idea",
+          children: [
+            { label: "Sequential Learning" },
+            { label: "Focus on Errors" },
+            { label: "Weak Learners" },
+          ],
+        },
+        {
+          label: "AdaBoost",
+          children: [
+            { label: "Reweight Samples" },
+            { label: "Weighted Voting" },
+          ],
+        },
+        {
+          label: "Gradient Boosting",
+          children: [
+            { label: "Fit Residuals" },
+            { label: "Gradient Descent in Function Space" },
+            { label: "Learning Rate" },
+            { label: "Additive Model" },
+          ],
+        },
+        {
+          label: "Regularization",
+          children: [
+            { label: "Learning Rate" },
+            { label: "Number of Trees" },
+            { label: "Max Depth" },
+            { label: "Subsampling" },
+          ],
+        },
+        {
+          label: "XGBoost",
+          children: [
+            { label: "Regularized Objective" },
+            { label: "Tree Pruning" },
+            { label: "Second-order Gradients" },
+            { label: "Missing Value Handling" },
+          ],
+        },
+        {
+          label: "LightGBM",
+          children: [
+            { label: "Leaf-wise Growth" },
+            { label: "Histogram Splitting" },
+            { label: "GOSS Sampling" },
+          ],
+        },
+        {
+          label: "CatBoost",
+          children: [
+            { label: "Native Categorical Handling" },
+            { label: "Ordered Boosting" },
+            { label: "Target Leakage Reduction" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Interpretability",
+      children: [
+        {
+          label: "Feature Importance",
+          children: [
+            { label: "Impurity-based" },
+            { label: "Permutation Importance" },
+          ],
+        },
+        { label: "SHAP Values" },
+        { label: "Partial Dependence Plots" },
+        { label: "Decision Path Visualization" },
+      ],
+    },
+    {
+      label: "Practical Considerations",
+      children: [
+        { label: "No Feature Scaling Needed" },
+        { label: "Handles Mixed Data Types" },
+        { label: "Strong for Tabular Data" },
+        { label: "Poor Extrapolation" },
+        { label: "Memory Heavy for Large Forests" },
+      ],
+    },
+    {
+      label: "Complexity",
+      children: [
+        { label: "Tree ~ O(n log n)" },
+        { label: "Boosting Sequential Slower" },
+        { label: "Random Forest Parallelizable" },
+      ],
+    },
+  ],
+};
+---
+
+<Layout title={`ML Cheatsheets | ${SITE.title}`}>
+  <Header />
+  <Main pageTitle="ML Cheatsheets" pageDesc="Visual mindmaps for machine learning concepts">
+    <div class="space-y-12">
+      <!-- Navigation for cheatsheets -->
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cheatsheets.map((cheatsheet) => (
+          <a
+            href={`#${cheatsheet.id}`}
+            class="group relative overflow-hidden rounded-2xl border border-white/40 bg-white/70 p-6 shadow-lg backdrop-blur-sm transition-all hover:border-accent/60 hover:shadow-xl hover:-translate-y-1 dark:border-slate-700/40 dark:bg-slate-900/70"
+          >
+            <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <h2 class="text-xl font-semibold text-foreground group-hover:text-accent transition-colors">
+              {cheatsheet.title}
+            </h2>
+            <p class="mt-2 text-sm text-secondary-foreground">
+              {cheatsheet.description}
+            </p>
+          </a>
+        ))}
+      </div>
+
+      <!-- Tree-Based ML Cheatsheet -->
+      <section id="tree-based-ml" class="scroll-mt-24">
+        <div class="mb-6">
+          <h2 class="text-2xl font-semibold text-foreground">
+            {cheatsheets[0].title}
+          </h2>
+          <p class="mt-2 text-sm text-secondary-foreground">
+            {cheatsheets[0].description}
+          </p>
+        </div>
+        <div class="overflow-x-auto rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50">
+          <Mindmap data={treeBasedMLData} />
+        </div>
+      </section>
+    </div>
+  </Main>
+  <Footer />
+</Layout>
