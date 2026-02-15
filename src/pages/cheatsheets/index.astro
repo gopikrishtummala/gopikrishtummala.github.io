@@ -6,22 +6,414 @@ import Footer from "@/components/Footer.astro";
 import Mindmap from "@/components/Mindmap.astro";
 import { SITE } from "@/config";
 
-// Cheatsheet data - easily extensible for more topics
+// Cheatsheet data - all 14 chapters
 const cheatsheets = [
+  {
+    id: "intro-to-ml",
+    title: "Intro to ML",
+    description: "Motivation, applications, types of learning, history, and ML pipeline",
+  },
+  {
+    id: "data-evaluation",
+    title: "Data & Evaluation",
+    description: "Data preprocessing, train/val/test splits, cross-validation, and evaluation metrics",
+  },
+  {
+    id: "classical-supervised",
+    title: "Classical Supervised Learning",
+    description: "Linear models, regularization, decision trees, and k-NN",
+  },
+  {
+    id: "stats-learning-theory",
+    title: "Stats & Learning Theory",
+    description: "Generalization bounds, VC dimension, bias-variance, and PAC learning",
+  },
+  {
+    id: "advanced-classical",
+    title: "Advanced Classical Models",
+    description: "Support Vector Machines and Bayesian methods",
+  },
+  {
+    id: "ensemble-methods",
+    title: "Ensemble Methods",
+    description: "Bagging, Random Forests, Boosting, and modern implementations",
+  },
   {
     id: "tree-based-ml",
     title: "Tree-Based Machine Learning",
     description: "A comprehensive overview of decision trees, ensemble methods, and boosting algorithms",
   },
-  // Add more cheatsheets here as you create them
-  // {
-  //   id: "neural-networks",
-  //   title: "Neural Networks",
-  //   description: "Deep learning fundamentals and architectures",
-  // },
+  {
+    id: "optimization-ml",
+    title: "Optimization for ML",
+    description: "Gradient descent variants, advanced optimizers, learning rate strategies",
+  },
+  {
+    id: "modern-deep-learning",
+    title: "Modern Deep Learning",
+    description: "Neural networks, activations, training, architectures, and representation learning",
+  },
+  {
+    id: "unsupervised-learning",
+    title: "Unsupervised Learning",
+    description: "Clustering, dimensionality reduction, and generative models",
+  },
+  {
+    id: "probabilistic-graphical",
+    title: "Probabilistic & Graphical Models",
+    description: "Mixture models, EM algorithm, Markov models, and Bayesian networks",
+  },
+  {
+    id: "modern-topics",
+    title: "Modern Topics / Extensions",
+    description: "Self-supervised learning, meta-learning, federated learning, RL, and continual learning",
+  },
+  {
+    id: "interpretability-fairness",
+    title: "Interpretability & Fairness",
+    description: "Interpretability methods, SHAP, fairness definitions, and responsible AI",
+  },
+  {
+    id: "scaling-production",
+    title: "Scaling & Production ML",
+    description: "Large-scale training, hyperparameter tuning, MLOps, and AutoML",
+  },
+  {
+    id: "project-research-skills",
+    title: "Project & Research Skills",
+    description: "Problem formulation, experiment design, model selection, and research mindset",
+  },
 ];
 
-// Mindmap data for Tree-Based ML
+// Mindmap data for all chapters
+const introToMLData = {
+  root: "🔹 Intro to ML",
+  children: [
+    {
+      label: "Motivation & Applications",
+      children: [
+        {
+          label: "Why ML?",
+          children: [
+            { label: "Rules-based systems fail on complex data" },
+            { label: "Data is abundant & cheap" },
+            { label: "Human expertise is scarce/expensive" },
+          ],
+        },
+        {
+          label: "Killer Apps",
+          children: [
+            { label: "Computer Vision" },
+            { label: "NLP / LLMs" },
+            { label: "Recommenders" },
+            { label: "Healthcare, Finance, Robotics" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Types of Learning",
+      children: [
+        {
+          label: "Supervised",
+          children: [
+            { label: "Labeled data" },
+            { label: "Regression (continuous)" },
+            { label: "Classification (discrete)" },
+          ],
+        },
+        {
+          label: "Unsupervised",
+          children: [{ label: "No labels → discover patterns" }],
+        },
+        {
+          label: "Reinforcement",
+          children: [{ label: "Agent + environment + rewards" }],
+        },
+        {
+          label: "Semi-/Self-supervised",
+          children: [{ label: "Leverage unlabeled data heavily" }],
+        },
+      ],
+    },
+    {
+      label: "History & Milestones",
+      children: [
+        { label: "1950s–60s: Perceptron, early neural nets" },
+        { label: "1980s: Backpropagation" },
+        { label: "1990s: SVMs, Boosting" },
+        { label: "2010s: Deep Learning revolution (AlexNet → Transformers)" },
+        { label: "2020s: Foundation models, multimodal, agents" },
+      ],
+    },
+    {
+      label: "ML Pipeline (End-to-End)",
+      children: [
+        { label: "Problem → Data → Features → Model → Eval → Deploy → Monitor" },
+      ],
+    },
+    {
+      label: "Bias–Variance & Generalization",
+      children: [
+        { label: "Bias: Underfitting (high training error)" },
+        { label: "Variance: Overfitting (low training, high test error)" },
+        { label: "Decomposition: Error = Bias² + Variance + Noise" },
+        { label: "Goal: Minimize test error (generalization)" },
+      ],
+    },
+  ],
+};
+
+const dataEvaluationData = {
+  root: "🔹 Data & Evaluation",
+  children: [
+    {
+      label: "Data Preprocessing",
+      children: [
+        {
+          label: "Cleaning",
+          children: [
+            { label: "Missing values (impute / drop)" },
+            { label: "Outliers" },
+          ],
+        },
+        {
+          label: "Scaling",
+          children: [
+            { label: "Min-Max, Standard, Robust, Quantile" },
+          ],
+        },
+        {
+          label: "Encoding",
+          children: [
+            { label: "One-hot, Label, Target, Embeddings" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Train/Val/Test Split",
+      children: [
+        { label: "Simple 70/15/15 or 80/10/10" },
+        { label: "Stratified (for imbalance)" },
+        { label: "Time-series / Group splits" },
+      ],
+    },
+    {
+      label: "Cross-Validation",
+      children: [
+        { label: "k-Fold, Stratified k-Fold" },
+        { label: "Leave-One-Out, Repeated CV" },
+        { label: "Nested CV (hyperparam tuning)" },
+      ],
+    },
+    {
+      label: "Evaluation Metrics",
+      children: [
+        {
+          label: "Classification",
+          children: [
+            { label: "Accuracy, Precision, Recall, F1" },
+            { label: "ROC-AUC, PR-AUC" },
+            { label: "Confusion matrix, Calibration" },
+          ],
+        },
+        {
+          label: "Regression",
+          children: [
+            { label: "MSE, RMSE, MAE, R², Adjusted R²" },
+          ],
+        },
+        {
+          label: "Ranking / Retrieval",
+          children: [
+            { label: "NDCG, MAP, MRR" },
+          ],
+        },
+        {
+          label: "Imbalanced / Real-world",
+          children: [
+            { label: "Fβ, Cohen's Kappa, Matthews Corr." },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+const classicalSupervisedData = {
+  root: "🔹 Classical Supervised Learning",
+  children: [
+    {
+      label: "Linear Models",
+      children: [
+        {
+          label: "Linear Regression",
+          children: [
+            { label: "Closed form: (XᵀX)⁻¹Xᵀy" },
+            { label: "Assumptions (linearity, homoscedasticity, independence)" },
+          ],
+        },
+        {
+          label: "Logistic Regression",
+          children: [
+            { label: "Sigmoid + Cross-entropy" },
+            { label: "Multiclass: Softmax" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Regularization",
+      children: [
+        { label: "L2 (Ridge) → shrinks coefficients" },
+        { label: "L1 (Lasso) → sparsity / feature selection" },
+        { label: "Elastic Net (L1 + L2)" },
+      ],
+    },
+    {
+      label: "Decision Trees",
+      children: [
+        { label: "Splitting: Gini / Entropy / MSE" },
+        { label: "Pruning: Cost-complexity, Reduced-error" },
+        { label: "Pros: Interpretable, non-linear" },
+        { label: "Cons: Unstable, greedy" },
+      ],
+    },
+    {
+      label: "k-Nearest Neighbors",
+      children: [
+        { label: "Distance metrics: Euclidean, Manhattan, Cosine" },
+        { label: "Curse of dimensionality" },
+        { label: "Weighted KNN, Approximate NN (FAISS, HNSW)" },
+      ],
+    },
+  ],
+};
+
+const statsLearningTheoryData = {
+  root: "🔹 Stats & Learning Theory",
+  children: [
+    {
+      label: "Generalization Bounds",
+      children: [
+        { label: "Hoeffding / Chernoff" },
+        { label: "Uniform convergence" },
+      ],
+    },
+    {
+      label: "VC Dimension",
+      children: [
+        { label: "Shattering" },
+        { label: "Linear classifiers: VC = d+1" },
+        { label: "Sample complexity ≈ VC / ε²" },
+      ],
+    },
+    {
+      label: "Bias-Variance Decomposition",
+      children: [
+        { label: "E[(y − ŷ)²] = Bias² + Var + σ²" },
+      ],
+    },
+    {
+      label: "PAC Learning",
+      children: [
+        { label: "Probably Approximately Correct" },
+        { label: "Agnostic PAC, Realizable case" },
+      ],
+    },
+    {
+      label: "Other Key Ideas",
+      children: [
+        { label: "No Free Lunch Theorem" },
+        { label: "Occam's Razor" },
+        { label: "Double Descent (modern view)" },
+      ],
+    },
+  ],
+};
+
+const advancedClassicalData = {
+  root: "🔹 Advanced Classical Models",
+  children: [
+    {
+      label: "Support Vector Machines",
+      children: [
+        { label: "Max-margin hyperplane" },
+        { label: "Soft-margin (slack + C)" },
+        {
+          label: "Kernel Trick",
+          children: [
+            { label: "RBF: exp(−γ‖x−x′‖²)" },
+            { label: "Polynomial, Sigmoid" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Bayesian Methods",
+      children: [
+        {
+          label: "Bayes Rule",
+          children: [
+            { label: "P(θ|D) ∝ P(D|θ)P(θ)" },
+          ],
+        },
+        {
+          label: "Naive Bayes",
+          children: [
+            { label: "Gaussian, Multinomial, Bernoulli" },
+          ],
+        },
+        {
+          label: "Bayesian Networks",
+          children: [
+            { label: "DAG + CPDs" },
+            { label: "Exact inference (variable elimination)" },
+            { label: "Approximate (MCMC, variational)" },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+const ensembleMethodsData = {
+  root: "🔹 Ensemble Methods",
+  children: [
+    {
+      label: "Bagging",
+      children: [
+        { label: "Bootstrap + aggregate" },
+        { label: "Reduces variance" },
+      ],
+    },
+    {
+      label: "Random Forests",
+      children: [
+        { label: "Bagging + random feature subsets" },
+        { label: "OOB error, feature importance" },
+      ],
+    },
+    {
+      label: "Boosting",
+      children: [
+        { label: "AdaBoost (exponential loss, weights)" },
+        { label: "Gradient Boosting (fit residuals)" },
+      ],
+    },
+    {
+      label: "Modern Boosting (Industry Standard)",
+      children: [
+        { label: "XGBoost (regularized, approx splits, DART)" },
+        { label: "LightGBM (histogram, leaf-wise, GOSS)" },
+        { label: "CatBoost (ordered boosting, native categoricals)" },
+      ],
+    },
+  ],
+};
+
+// Tree-Based ML data (existing)
 const treeBasedMLData = {
   root: "Tree-Based Machine Learning",
   children: [
@@ -228,11 +620,343 @@ const treeBasedMLData = {
     },
   ],
 };
+
+const optimizationMLData = {
+  root: "🔹 Optimization for ML",
+  children: [
+    {
+      label: "Gradient Descent Variants",
+      children: [
+        { label: "Batch GD" },
+        { label: "SGD (noisy but fast)" },
+        { label: "Mini-batch (sweet spot)" },
+      ],
+    },
+    {
+      label: "Advanced Optimizers",
+      children: [
+        { label: "Momentum" },
+        { label: "RMSProp / AdaGrad" },
+        { label: "Adam (β1=0.9, β2=0.999)" },
+        { label: "AdamW, Lion, Sophia (2024–25)" },
+      ],
+    },
+    {
+      label: "Learning Rate Strategies",
+      children: [
+        { label: "Step decay, Exponential, Cosine" },
+        { label: "Warmup + decay (common in transformers)" },
+        { label: "One-cycle policy" },
+      ],
+    },
+    {
+      label: "Convex vs Non-Convex",
+      children: [
+        { label: "Convex → global optimum" },
+        { label: "Non-convex → local minima, saddles, plateaus" },
+      ],
+    },
+    {
+      label: "Second-Order Methods",
+      children: [
+        { label: "Newton, Quasi-Newton (BFGS, L-BFGS)" },
+        { label: "Limited by scale" },
+      ],
+    },
+  ],
+};
+
+const modernDeepLearningData = {
+  root: "🔹 Modern Deep Learning",
+  children: [
+    {
+      label: "Neural Networks Basics",
+      children: [
+        { label: "Perceptron → MLP" },
+        { label: "Universal approximation" },
+      ],
+    },
+    {
+      label: "Activation Functions",
+      children: [
+        { label: "ReLU family (ReLU, Leaky, GELU, Swish)" },
+        { label: "Avoid vanishing gradients" },
+      ],
+    },
+    {
+      label: "Training",
+      children: [
+        { label: "Backpropagation + Chain rule" },
+        { label: "Initialization (He, Xavier)" },
+        { label: "Batch Norm / Layer Norm / Group Norm" },
+      ],
+    },
+    {
+      label: "Architectures",
+      children: [
+        { label: "CNNs (ResNet, EfficientNet, ConvNeXt)" },
+        { label: "RNNs → LSTMs/GRUs" },
+        { label: "Transformers (Self-attention, Multi-head, Positional encoding)" },
+      ],
+    },
+    {
+      label: "Representation Learning",
+      children: [
+        { label: "Embeddings (Word2Vec → BERT → modern LLMs)" },
+        { label: "Contrastive learning (SimCLR, CLIP)" },
+      ],
+    },
+  ],
+};
+
+const unsupervisedLearningData = {
+  root: "🔹 Unsupervised Learning",
+  children: [
+    {
+      label: "Clustering",
+      children: [
+        { label: "k-Means (Lloyd's, elbow, silhouette)" },
+        { label: "Hierarchical (agglomerative + dendrogram)" },
+        { label: "DBSCAN (density-based)" },
+        { label: "GMM (soft clustering)" },
+      ],
+    },
+    {
+      label: "Dimensionality Reduction",
+      children: [
+        { label: "PCA (linear, variance-max)" },
+        { label: "t-SNE (perplexity, KL divergence)" },
+        { label: "UMAP (faster, better topology preservation)" },
+      ],
+    },
+    {
+      label: "Generative Models",
+      children: [
+        { label: "Autoencoders (undercomplete, denoising, VAE)" },
+        { label: "GANs (minimax, modern variants like StyleGAN, Diffusion)" },
+      ],
+    },
+  ],
+};
+
+const probabilisticGraphicalData = {
+  root: "🔹 Probabilistic & Graphical Models",
+  children: [
+    {
+      label: "Mixture Models & EM",
+      children: [
+        { label: "Gaussian Mixture Models" },
+        { label: "EM Algorithm (E-step: responsibilities, M-step: MLE)" },
+      ],
+    },
+    {
+      label: "Markov Models",
+      children: [
+        { label: "HMMs (Forward-Backward, Viterbi)" },
+        { label: "Markov Random Fields" },
+      ],
+    },
+    {
+      label: "Bayesian Networks",
+      children: [
+        { label: "Structure learning" },
+        { label: "Inference (exact vs approximate)" },
+      ],
+    },
+    {
+      label: "Modern Connections",
+      children: [
+        { label: "Probabilistic programming (Pyro, NumPyro)" },
+        { label: "Diffusion models as hierarchical latents" },
+      ],
+    },
+  ],
+};
+
+const modernTopicsData = {
+  root: "🔹 Modern Topics / Extensions",
+  children: [
+    {
+      label: "Self-Supervised Learning",
+      children: [
+        { label: "Contrastive (SimCLR, MoCo)" },
+        { label: "Masked modeling (BERT, MAE)" },
+        { label: "BYOL, SimSiam, DINO" },
+      ],
+    },
+    {
+      label: "Meta-Learning",
+      children: [
+        { label: "Few-shot: MAML, Reptile, ProtoNets" },
+        { label: "Optimization-based vs metric-based" },
+      ],
+    },
+    {
+      label: "Federated Learning",
+      children: [
+        { label: "FedAvg, FedProx" },
+        { label: "Privacy (differential privacy, secure aggregation)" },
+      ],
+    },
+    {
+      label: "Reinforcement Learning",
+      children: [
+        { label: "MDPs, Q-Learning, Policy Gradients" },
+        { label: "Modern: PPO, SAC, Dreamer, AlphaFold-style" },
+      ],
+    },
+    {
+      label: "Continual / Lifelong Learning",
+      children: [
+        { label: "Catastrophic forgetting" },
+        { label: "Replay buffers, EWC, GEM" },
+      ],
+    },
+  ],
+};
+
+const interpretabilityFairnessData = {
+  root: "🔹 Interpretability & Fairness",
+  children: [
+    {
+      label: "Interpretability Toolbox",
+      children: [
+        { label: "Intrinsic: Decision trees, linear models" },
+        { label: "Post-hoc: Feature importance, Partial Dependence Plots" },
+      ],
+    },
+    {
+      label: "Model-Agnostic Methods",
+      children: [
+        { label: "LIME (local surrogate)" },
+        { label: "SHAP (Shapley values, KernelSHAP, TreeSHAP)" },
+      ],
+    },
+    {
+      label: "Fairness",
+      children: [
+        {
+          label: "Definitions",
+          children: [
+            { label: "Demographic Parity" },
+            { label: "Equalized Odds" },
+            { label: "Equal Opportunity" },
+          ],
+        },
+        {
+          label: "Mitigation",
+          children: [
+            { label: "Pre-processing, In-processing, Post-processing" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Responsible AI",
+      children: [
+        { label: "Bias detection, Adversarial debiasing, Explainable AI regulations" },
+      ],
+    },
+  ],
+};
+
+const scalingProductionData = {
+  root: "🔹 Scaling & Production ML",
+  children: [
+    {
+      label: "Large-Scale Training",
+      children: [
+        { label: "Data parallelism, Model parallelism, Pipeline" },
+        { label: "ZeRO, FSDP, DeepSpeed, Megatron" },
+      ],
+    },
+    {
+      label: "Hyperparameter Tuning",
+      children: [
+        { label: "Grid / Random search" },
+        { label: "Bayesian optimization (Optuna, Hyperopt)" },
+        { label: "Neural Architecture Search (DARTS, NAS)" },
+      ],
+    },
+    {
+      label: "MLOps / Production",
+      children: [
+        { label: "Experiment tracking (MLflow, Weights & Biases)" },
+        { label: "Model serving (TorchServe, TF Serving, vLLM)" },
+        { label: "Monitoring (data drift, concept drift, performance)" },
+        { label: "Feature stores (Feast, Tecton)" },
+      ],
+    },
+    {
+      label: "AutoML",
+      children: [
+        { label: "Full pipelines: Auto-sklearn, H2O, Google AutoML" },
+        { label: "Modern: LLM-powered (e.g., AutoGPT-style agents)" },
+      ],
+    },
+  ],
+};
+
+const projectResearchSkillsData = {
+  root: "🔹 Project & Research Skills",
+  children: [
+    {
+      label: "Problem Formulation",
+      children: [
+        { label: "Define task, success metric, baseline" },
+        { label: "Literature review (arXiv, PapersWithCode)" },
+      ],
+    },
+    {
+      label: "Experiment Design",
+      children: [
+        { label: "Ablation studies" },
+        { label: "Statistical significance (t-tests, bootstrap)" },
+        { label: "Reproducibility (seeds, Docker, Hydra)" },
+      ],
+    },
+    {
+      label: "Model Selection & Deployment",
+      children: [
+        { label: "Tradeoffs: accuracy vs latency vs cost" },
+        { label: "A/B testing, Canary releases" },
+      ],
+    },
+    {
+      label: "Research Mindset",
+      children: [
+        { label: "Reproducibility crisis awareness" },
+        { label: "Ethics & societal impact" },
+        { label: "Open-source contribution" },
+        { label: "Writing papers, blogging, presenting" },
+      ],
+    },
+  ],
+};
+
+// Map cheatsheet IDs to their data
+const mindmapDataMap: Record<string, any> = {
+  "intro-to-ml": introToMLData,
+  "data-evaluation": dataEvaluationData,
+  "classical-supervised": classicalSupervisedData,
+  "stats-learning-theory": statsLearningTheoryData,
+  "advanced-classical": advancedClassicalData,
+  "ensemble-methods": ensembleMethodsData,
+  "tree-based-ml": treeBasedMLData,
+  "optimization-ml": optimizationMLData,
+  "modern-deep-learning": modernDeepLearningData,
+  "unsupervised-learning": unsupervisedLearningData,
+  "probabilistic-graphical": probabilisticGraphicalData,
+  "modern-topics": modernTopicsData,
+  "interpretability-fairness": interpretabilityFairnessData,
+  "scaling-production": scalingProductionData,
+  "project-research-skills": projectResearchSkillsData,
+};
 ---
 
 <Layout title={`ML Cheatsheets | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="ML Cheatsheets" pageDesc="Visual mindmaps for machine learning concepts">
+  <Main pageTitle="ML Cheatsheets" pageDesc="Visual mindmaps for machine learning concepts - Complete ML course coverage">
     <div class="space-y-12">
       <!-- Navigation for cheatsheets -->
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -252,20 +976,22 @@ const treeBasedMLData = {
         ))}
       </div>
 
-      <!-- Tree-Based ML Cheatsheet -->
-      <section id="tree-based-ml" class="scroll-mt-24">
-        <div class="mb-6">
-          <h2 class="text-2xl font-semibold text-foreground">
-            {cheatsheets[0].title}
-          </h2>
-          <p class="mt-2 text-sm text-secondary-foreground">
-            {cheatsheets[0].description}
-          </p>
-        </div>
-        <div class="overflow-x-auto rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50">
-          <Mindmap data={treeBasedMLData} />
-        </div>
-      </section>
+      <!-- All Cheatsheet Sections -->
+      {cheatsheets.map((cheatsheet) => (
+        <section id={cheatsheet.id} class="scroll-mt-24">
+          <div class="mb-6">
+            <h2 class="text-2xl font-semibold text-foreground">
+              {cheatsheet.title}
+            </h2>
+            <p class="mt-2 text-sm text-secondary-foreground">
+              {cheatsheet.description}
+            </p>
+          </div>
+          <div class="overflow-x-auto rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50">
+            <Mindmap data={mindmapDataMap[cheatsheet.id]} />
+          </div>
+        </section>
+      ))}
     </div>
   </Main>
   <Footer />
