@@ -88,17 +88,12 @@ Machine Learning Engineer with \textbf{12+ years of experience} designing and de
 \end{itemize}
 
 \textbf{Qualcomm Research} \hfill San Diego, CA \\
-\textit{Senior Systems Engineer} \hfill Feb 2020 -- Feb 2022
+\textit{Systems Engineer} \hfill Jan 2019 -- Feb 2022
 \begin{itemize}
-    \item \textbf{Snapdragon Auto Stack:} Developed intent-based ML models for the Snapdragon Autonomous Driving Platform, focusing on discrete intention prediction and trajectory generation.
-    \item \textbf{KPI Analysis:} Led the "Prediction KPI" initiative, building an automated analysis pipeline to mine petabytes of driving logs for edge-case failures and verify model performance against safety standards.
-\end{itemize}
-
-\textbf{Qualcomm Research} \hfill San Diego, CA \\
-\textit{Senior System Integration \& Test Engineer} \hfill Aug 2018 -- Feb 2020
-\begin{itemize}
-    \item Translated research-grade ML algorithms into efficient, modular C++ implementations for embedded deployment on Snapdragon hardware.
-    \item Developed comprehensive testing and automation pipelines for the behavior prediction module.
+    \item Replaced rule-based prediction with XGBoost multi-class classifier (lane changes, ghost objects); built data pipeline parsing/annotating ROS bags → trained model beating baseline → hand-wrote C++ inference engine for Snapdragon Ride platform (zero external dependencies).
+    \item Led GRIP++ (LSTM-based) trajectory prediction implementation: developed custom rasterization pipeline using Matplotlib to convert raw ROS logs into training-ready visual renders; achieved state-of-the-art results by 2021.
+    \item Built automated Python pipelines for ROS bag analysis: extracted prediction metrics, generated weekly HTML reports for stack validation; integrated with AVS internal simulator for closed-loop testing of perception/planning modules.
+    \item Filed 2--3 patents on Vehicle-to-Vehicle (V2V) communication and prediction corner cases for autonomous driving.
 \end{itemize}
 
 \textbf{Standard Chartered Scope International} \hfill Chennai, India \\
@@ -113,9 +108,9 @@ Machine Learning Engineer with \textbf{12+ years of experience} designing and de
 \section{Research Internships}
 
 \textbf{Qualcomm Research} \hfill San Diego, CA \\
-\textit{Interim Engineering Intern} \hfill Summer 2018
+\textit{Systems Integration \& Test Intern} \hfill Summer 2018
 \begin{itemize}
-    \item Optimized modular software implementations for the AV stack, bridging the gap between Python research models and C++ production code.
+    \item Developed prediction metrics framework: analyzed ROS bags using Python APIs, extracted performance metrics from rule-based prediction system, generated automated HTML reports for weekly reviews.
 \end{itemize}
 
 \textbf{Microsoft Research} \hfill Bangalore, India \\
