@@ -82,7 +82,7 @@ Machine Learning Engineer with \textbf{12+ years of experience} designing and de
 \begin{itemize}
     \item Built prediction visualization plugin for Argus (ROS/RViz-like viewer) using TypeScript/React, Python, C++ to debug probabilistic multi-trajectory outputs across the AV stack.
     \item Modernized vehicular prediction: designed stable ground-truth labeling algorithm using agent direction + road target/waypoint orientation (TNT-inspired target-driven approach); replaced flickery closest-distance heuristic → delivered 2--3 production releases with major gains in intent/target and trajectory accuracy.
-    \item Overhauled VRU (pedestrian/cyclist/motorcycle) prediction: migrated legacy CNN/top-down + MLP to GNN-based multi-intent/trajectory architecture; solved intent generation for off-road/ambiguous agents → outperformed mature baseline; owned PyTorch → ONNX → custom C++ runtime deployment.
+    \item Overhauled VRU (pedestrian/cyclist/motorcycle) prediction: migrated legacy CNN/top-down + MLP to transformer-based multi-intent/trajectory architecture; solved intent generation for off-road/ambiguous agents → outperformed mature baseline; owned PyTorch → ONNX → custom C++ runtime deployment.
     \item Led TensorFlow → PyTorch Lightning migration: built config-driven module registry (YAML/Proto) for MLPs, CNNs, LSTMs, GNNs, Transformers, UNet backbones; integrated wandb/CometML; achieved near-parity for key models.
     \item Engineered scalable PyTorch dataloaders (TF Records → NPZ) and large-scale evaluation framework (~40,000 scenarios/batch); authored novel intent/trajectory metrics surfaced via Streamlit dashboard.
 \end{itemize}
