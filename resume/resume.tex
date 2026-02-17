@@ -78,12 +78,13 @@ Machine Learning Engineer with \textbf{12+ years of experience} designing and de
 \end{itemize}
 
 \textbf{Zoox} \hfill Foster City, CA \\
-\textit{Software Engineer - Prediction} \hfill Feb 2022 -- Jan 2024
+\textit{Software Engineer - Prediction} \hfill Feb 2022 -- Aug 2024
 \begin{itemize}
-    \item \textbf{Trajectory Prediction:} Designed and shipped multi-agent prediction models for L3-L5 autonomous fleets using \textbf{Transformers and Graph Neural Networks (GNNs)}.
-    \item \textbf{Training Frameworks:} Co-designed a production training framework integrating \textbf{closed-loop reasoning}. This directly improved vehicle safety and passenger comfort metrics in dense urban environments.
-    \item \textbf{Infrastructure Optimization:} Developed specialized dataloaders to handle high-fidelity sensor streams, reducing model training epoch time by $\sim$30\%.
-    \item \textbf{Legacy Migration:} Led the migration of legacy TensorFlow training pipelines to a modern \textbf{PyTorch} stack.
+    \item \textbf{Vehicular Prediction Models:} Re-engineered ground-truth labeling for intent map points using a stable algorithm that jointly considers agent direction and road target orientation (TNT-inspired target-driven approach), replacing a flickery closest-distance heuristic. Delivered \textbf{2--3 production model releases} with significant improvements in both intent/target prediction accuracy and downstream trajectory quality.
+    \item \textbf{VRU Model Overhaul:} Migrated pedestrian/cyclist/motorcycle prediction from legacy CNN + top-down rendered images + MLP architecture to \textbf{GNN-based multi-intent/trajectory} architecture. Solved hard problems including generating intent goal points for off-road agents and ambiguous scenarios. Achieved model parity and outperformed mature baseline; owned end-to-end deployment (PyTorch $\rightarrow$ ONNX $\rightarrow$ C++ runtime plugins).
+    \item \textbf{PyTorch Training Framework:} Built config-driven module registry from scratch (YAML/Proto) to instantiate MLPs, CNNs, RNNs/LSTMs, GNNs, Transformers, and top-down UNet backbones. Wrapped on \textbf{PyTorch Lightning} with wandb/ClearML integration. Achieved near-parity between TensorFlow and PyTorch for vehicular + VRU models, enabling framework migration.
+    \item \textbf{Data Infrastructure \& Evaluation:} Engineered PyTorch-compatible dataloaders from scratch, converting legacy TF Records to NPZ format. Scaled evaluation infrastructure to run \textbf{$\sim$40,000 autonomous driving scenarios} per batch. Authored novel intent \& trajectory prediction metrics, aggregated results into Streamlit dashboard for cross-team visibility.
+    \item \textbf{Prediction Visualization Tools:} Built prediction visualization plugin on Argus (internal ROS/RViz-like framework) using TypeScript/React, Python, and C++ to debug probabilistic multi-trajectory outputs across perception $\rightarrow$ prediction $\rightarrow$ planning pipeline.
 \end{itemize}
 
 \textbf{Qualcomm Research} \hfill San Diego, CA \\
