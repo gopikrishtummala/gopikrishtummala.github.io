@@ -83,6 +83,11 @@ const cheatsheets = [
     title: "Project & Research Skills",
     description: "Problem formulation, experiment design, model selection, and research mindset",
   },
+  {
+    id: "computer-vision",
+    title: "Computer Vision",
+    description: "Classical image processing, deep learning architectures, detection/segmentation, generative models, 3D vision, and multimodal learning",
+  },
 ];
 
 // Mindmap data for all chapters
@@ -934,6 +939,594 @@ const projectResearchSkillsData = {
   ],
 };
 
+const computerVisionData = {
+  root: "🔹 Computer Vision",
+  children: [
+    {
+      label: "Classical Image Processing & Frequency",
+      children: [
+        {
+          label: "Spatial Filters vs. Frequency Domain",
+          children: [
+            {
+              label: "Spatial Domain",
+              children: [
+                { label: "Convolution using kernels directly on pixels" },
+                { label: "Gaussian: smoothing/blurring" },
+                { label: "Sobel: edge detection" },
+              ],
+            },
+            {
+              label: "Frequency Domain (2D Fourier Transform)",
+              children: [
+                { label: "Converts image: spatial → spatial frequency" },
+                { label: "High frequencies: edges/noise" },
+                { label: "Low frequencies: smooth areas" },
+              ],
+            },
+            {
+              label: "Convolution Theorem",
+              children: [
+                { label: "Convolution in spatial domain" },
+                { label: "= Element-wise multiplication in frequency domain" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Image Restoration",
+          children: [
+            {
+              label: "Inverse Filter",
+              children: [
+                { label: "Recovers blurred image" },
+                { label: "Catastrophically amplifies noise" },
+              ],
+            },
+            {
+              label: "Wiener Filter",
+              children: [
+                { label: "Optimal tradeoff" },
+                { label: "Minimizes MSE between estimated & true image" },
+                { label: "Accounts for degradation function & noise power spectra" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Feature Matching (Classic)",
+          children: [
+            {
+              label: "Detectors (e.g., Harris Corner)",
+              children: [
+                { label: "Find interest points" },
+                { label: "Invariant to rotation/translation" },
+              ],
+            },
+            {
+              label: "Descriptors (e.g., SIFT)",
+              children: [
+                { label: "Describe patch around keypoint" },
+                { label: "Invariant to scale & illumination" },
+              ],
+            },
+            {
+              label: "Bag of Visual Words (BoW)",
+              children: [
+                { label: "Cluster descriptors via k-means" },
+                { label: "Create 'visual vocabulary'" },
+                { label: "Represent image as histogram of 'words'" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Core Deep Learning Architectures",
+      children: [
+        {
+          label: "Convolutional Neural Networks (CNNs)",
+          children: [
+            {
+              label: "Key Properties",
+              children: [
+                { label: "Weight sharing" },
+                { label: "Local connectivity" },
+                { label: "Translation invariance/equivariance" },
+              ],
+            },
+            {
+              label: "Receptive Field",
+              children: [
+                { label: "Region of input image" },
+                { label: "Affects specific feature map in deeper layers" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Vision Transformers (ViTs)",
+          children: [
+            { label: "Divide images into non-overlapping patches" },
+            { label: "Flatten patches" },
+            { label: "Apply linear projections + positional embeddings" },
+            {
+              label: "Self-Attention Equation",
+              children: [
+                { label: "Attention(Q, K, V) = softmax(QK^T / √d_k) V" },
+              ],
+            },
+            {
+              label: "Tradeoff",
+              children: [
+                { label: "Lacks CNN inductive biases (translation invariance)" },
+                { label: "Requires larger datasets to train from scratch" },
+                { label: "Scales better to massive data" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Explainability",
+          children: [
+            {
+              label: "Grad-CAM",
+              children: [
+                { label: "Uses gradients of target concept" },
+                { label: "Flows into final convolutional layer" },
+                { label: "Produces coarse localization map" },
+                { label: "Highlights important regions for prediction" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Key Vision Tasks: Detection, Segmentation, Video",
+      children: [
+        {
+          label: "Object Detection Architectures",
+          children: [
+            {
+              label: "Two-Stage (Faster R-CNN)",
+              children: [
+                { label: "Stage 1: Generate region proposals (RPN)" },
+                { label: "Stage 2: Classify & refine bounding boxes" },
+                { label: "High accuracy, slower inference" },
+              ],
+            },
+            {
+              label: "Single-Stage (YOLO, SSD)",
+              children: [
+                { label: "Frames detection as single regression problem" },
+                { label: "Over dense spatial grid" },
+                { label: "Faster, better for real-time" },
+                { label: "Historically struggled with tiny objects" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Image Segmentation Paradigms",
+          children: [
+            {
+              label: "Semantic Segmentation",
+              children: [
+                { label: "Classifies every pixel into category" },
+                { label: "e.g., 'car', 'road'" },
+                { label: "Does not distinguish between different cars" },
+              ],
+            },
+            {
+              label: "Instance Segmentation",
+              children: [
+                { label: "Identifies & delineates each distinct object" },
+                { label: "e.g., 'Car 1', 'Car 2'" },
+              ],
+            },
+            {
+              label: "Panoptic Segmentation",
+              children: [
+                { label: "Unifies semantic & instance" },
+                { label: "Segments distinct objects ('things')" },
+                { label: "Segments amorphous background ('stuff')" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Tracking & Video",
+          children: [
+            {
+              label: "Optical Flow (Lucas-Kanade)",
+              children: [
+                { label: "Estimates pixel motion between frames" },
+                { label: "Based on brightness constancy assumption" },
+                { label: "Pixel intensities don't change between frames" },
+                { label: "Spatial smoothness constraint" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Generative Models",
+      children: [
+        {
+          label: "Variational Autoencoders (VAEs)",
+          children: [
+            { label: "Learn continuous latent space" },
+            {
+              label: "Optimized by maximizing ELBO",
+              children: [
+                { label: "Evidence Lower Bound" },
+                { label: "Balances reconstruction loss" },
+                { label: "KL-divergence term forces latent to match prior (Gaussian)" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Generative Adversarial Networks (GANs)",
+          children: [
+            { label: "Minimax game" },
+            { label: "Generator tries to fool Discriminator" },
+            { label: "Known for sharp images" },
+            {
+              label: "Challenges",
+              children: [
+                { label: "Training instability" },
+                { label: "Mode collapse (limited variety of outputs)" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Diffusion Models",
+          children: [
+            {
+              label: "Forward Process",
+              children: [
+                { label: "Gradually adds Gaussian noise" },
+                { label: "Over T steps" },
+              ],
+            },
+            {
+              label: "Reverse Process",
+              children: [
+                { label: "Neural network (often U-Net) learns to denoise" },
+                { label: "Step-by-step recovery of data" },
+              ],
+            },
+            {
+              label: "Advantages",
+              children: [
+                { label: "Beats GANs in diversity" },
+                { label: "Better stability" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "3D Vision & Geometry",
+      children: [
+        {
+          label: "Camera Models & Coordinates",
+          children: [
+            {
+              label: "Homogeneous Coordinates",
+              children: [
+                { label: "2D points: [x, y, 1]" },
+                { label: "3D points: [X, Y, Z, 1]" },
+                { label: "Allows translation & perspective projection" },
+                { label: "Represented as matrix multiplications" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Epipolar Geometry",
+          children: [
+            { label: "Relates two views of same 3D scene" },
+            {
+              label: "Fundamental Matrix (F)",
+              children: [
+                { label: "Algebraic representation of epipolar geometry" },
+                { label: "If x and x' are corresponding points" },
+                { label: "They satisfy: x'^T F x = 0" },
+              ],
+            },
+            {
+              label: "Triangulation",
+              children: [
+                { label: "Using camera projection matrices" },
+                { label: "Matching 2D points across multiple views" },
+                { label: "Calculate 3D depth of point" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Bird's Eye View (BEV) Transformation",
+          children: [
+            { label: "Project 2D camera features → 3D/BEV grid" },
+            { label: "Depth estimation or transformer cross-attention" },
+            { label: "BEVFormer: transformer-based approach" },
+            { label: "Foundational for multi-camera systems" },
+            { label: "Critical for trajectory planning" },
+          ],
+        },
+        {
+          label: "Sensor Fusion",
+          children: [
+            {
+              label: "Sensor Types",
+              children: [
+                { label: "Cameras: dense, rich semantics, no depth" },
+                { label: "LiDAR: sparse, accurate depth, no color" },
+                { label: "Radar: velocity tracking, weather resistant" },
+              ],
+            },
+            {
+              label: "Fusion Strategies",
+              children: [
+                { label: "Early Fusion: raw data (e.g., LiDAR → images)" },
+                { label: "Mid Fusion: feature maps from neural networks" },
+                { label: "Late Fusion: final bounding boxes/predictions" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Visual Odometry (VO) & SLAM",
+          children: [
+            { label: "Estimate ego-motion from sequential images" },
+            { label: "Map the environment simultaneously" },
+            {
+              label: "Key Concepts",
+              children: [
+                { label: "Feature extraction/matching (SIFT, ORB)" },
+                { label: "Epipolar Geometry" },
+                { label: "Essential vs. Fundamental matrices" },
+                { label: "Bundle Adjustment" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Optical Flow & Scene Flow",
+          children: [
+            { label: "Pixel-level or point-level motion estimation" },
+            { label: "Between consecutive frames" },
+            { label: "Evaluation: End-Point Error (EPE)" },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Modern Representation & Multimodal Learning",
+      children: [
+        {
+          label: "Self-Supervised Representation Learning",
+          children: [
+            {
+              label: "Contrastive Learning (SimCLR)",
+              children: [
+                { label: "Pulls augmented views of same image together" },
+                { label: "Pushes different images apart" },
+                { label: "In latent space" },
+              ],
+            },
+            {
+              label: "Masked Image Modeling (MAE)",
+              children: [
+                { label: "Masks high percentage of image" },
+                { label: "Trains autoencoder to reconstruct missing patches" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Vision & Language",
+          children: [
+            {
+              label: "Image Captioning",
+              children: [
+                { label: "Encoder-Decoder architecture" },
+                { label: "CNN/ViT encodes image" },
+                { label: "RNN/Transformer generates text autoregressively" },
+              ],
+            },
+            {
+              label: "Large Vision Models (LVMs) & VQA",
+              children: [
+                { label: "Fusing visual tokens with LLMs" },
+                { label: "Via cross-attention or linear projection layers" },
+                { label: "Answer questions about visual content" },
+              ],
+            },
+            {
+              label: "Vision-Language Models (VLMs)",
+              children: [
+                {
+                  label: "Contrastive Learning (e.g., CLIP)",
+                  children: [
+                    { label: "Maximize cosine similarity for matching pairs" },
+                    { label: "Minimize similarity for incorrect pairs" },
+                    { label: "Within-batch negative sampling" },
+                  ],
+                },
+                {
+                  label: "Generative VLMs (e.g., LLaVA, BLIP)",
+                  children: [
+                    { label: "Frozen image encoder (e.g., CLIP ViT)" },
+                    { label: "Connected to LLM decoder via projection layer" },
+                    { label: "Visual reasoning & question answering" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Implementation & Optimization",
+      children: [
+        {
+          label: "Distributed Training",
+          children: [
+            {
+              label: "DDP (Distributed Data Parallel)",
+              children: [
+                { label: "Replicate model on every GPU" },
+                { label: "Split batch across GPUs" },
+                { label: "Best for models fitting on single GPU" },
+              ],
+            },
+            {
+              label: "FSDP (Fully Sharded Data Parallel)",
+              children: [
+                { label: "Shard parameters, gradients, optimizer states" },
+                { label: "Across multiple GPUs" },
+                { label: "Crucial for massive models (VLMs)" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Deployment & Edge Optimization",
+          children: [
+            {
+              label: "Quantization",
+              children: [
+                { label: "FP32 → INT8 or FP16" },
+                { label: "Reduce memory footprint & latency" },
+                { label: "Post-Training Quantization (PTQ)" },
+                { label: "Quantization-Aware Training (QAT)" },
+              ],
+            },
+            {
+              label: "TensorRT / ONNX",
+              children: [
+                { label: "Export PyTorch → optimized execution graph" },
+                { label: "Low-latency inference on target hardware" },
+              ],
+            },
+            {
+              label: "FlashAttention",
+              children: [
+                { label: "Hardware-aware optimization" },
+                { label: "Speeds up transformer attention layers" },
+                { label: "Reduces GPU HBM memory reads/writes" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Loss Functions & Evaluation Metrics",
+      children: [
+        {
+          label: "Detection Metrics",
+          children: [
+            {
+              label: "Intersection over Union (IoU)",
+              children: [
+                { label: "IoU = Area of Overlap / Area of Union" },
+              ],
+            },
+            {
+              label: "mean Average Precision (mAP)",
+              children: [
+                { label: "Area under Precision-Recall curve" },
+                { label: "Averaged across all classes" },
+                { label: "Various IoU thresholds" },
+              ],
+            },
+            {
+              label: "NuScenes Detection Score (NDS)",
+              children: [
+                { label: "Composite metric combining mAP" },
+                { label: "Errors in: translation, scale, orientation" },
+                { label: "Velocity & attributes" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Loss Functions",
+          children: [
+            {
+              label: "Focal Loss",
+              children: [
+                { label: "Addresses severe class imbalance" },
+                { label: "Down-weights well-classified examples" },
+                { label: "FL(p_t) = -α_t(1 - p_t)^γ log(p_t)" },
+              ],
+            },
+            {
+              label: "InfoNCE / Contrastive Loss",
+              children: [
+                { label: "Self-supervised learning & VLMs" },
+                { label: "Pull positive pairs together" },
+                { label: "Push negative pairs apart" },
+                { label: "In latent space" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Data Engines & MLOps",
+      children: [
+        {
+          label: "Active Learning",
+          children: [
+            { label: "Intelligently sample informative unlabelled data" },
+            { label: "Send for human annotation" },
+            {
+              label: "Sampling Strategies",
+              children: [
+                { label: "Highest model uncertainty" },
+                { label: "Highest entropy" },
+                { label: "Greatest ensemble disagreement" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Handling the Long Tail",
+          children: [
+            { label: "Oversampling minority classes" },
+            {
+              label: "Synthetic Data Generation",
+              children: [
+                { label: "Via simulation" },
+                { label: "Via diffusion models" },
+              ],
+            },
+            {
+              label: "Decoupled Training",
+              children: [
+                { label: "Freeze backbone representation" },
+                { label: "Retrain classifier head only" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 // Map cheatsheet IDs to their data
 const mindmapDataMap: Record<string, any> = {
   "intro-to-ml": introToMLData,
@@ -951,6 +1544,7 @@ const mindmapDataMap: Record<string, any> = {
   "interpretability-fairness": interpretabilityFairnessData,
   "scaling-production": scalingProductionData,
   "project-research-skills": projectResearchSkillsData,
+  "computer-vision": computerVisionData,
 };
 ---
 
