@@ -7,7 +7,7 @@ Materials for 5–10 minute discussion warm-ups and rapid interview prep. Based 
 | File | Purpose |
 |------|---------|
 | **questions.md** | All 150 problems with descriptions and examples |
-| **worksheet.md** | 5-line algorithm summary + complexity per problem (60 most asked). Use for 5–10 min discussion. |
+| **worksheet.md** | All 150 problems: 5-line blank + complexity + **Answer (discussion)** (choices, brute force, optimization, trade-offs). Use for 5–10 min discussion. |
 | **answers.md** | Python solutions for 36 key problems |
 
 ## How to Use (5–10 Min Discussion)
