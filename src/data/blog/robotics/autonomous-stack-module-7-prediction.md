@@ -1,4 +1,4 @@
-`---
+---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-24T00:00:00Z
 modDatetime: 2025-02-28T00:00:00Z
@@ -13,7 +13,7 @@ tags:
   - machine-learning
   - generative-ai
   - transformers
-  - bayesian-networks
+  - diffusion-models
 description: 'The hardest problem in AV: predicting human irrationality. From physics-based Kalman Filters to Generative Motion Diffusion and LLM-based intent reasoning.'
 track: Robotics
 difficulty: Advanced
@@ -21,8 +21,7 @@ interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-  - Behavioral Modeling
-estimated_read_time: 45
+estimated_read_time: 50
 ---
 
 *By Gopi Krishna Tummala*
@@ -63,164 +62,93 @@ In the autonomous vehicle (AV) stack, this is the **Prediction Module**. It is t
 
 ### Act I: The Age of Innocence (Physics & Kalman Filters)
 
-In the early days (DARPA Grand Challenges), prediction was handled by classical mechanics. The assumption was simple: **Objects in motion stay in motion.**
+In the early days, prediction was handled by classical mechanics. The assumption was simple: **Objects in motion stay in motion.**
 
-If we knew a car's position ($p$) and velocity ($v$), we could predict its future position using basic kinematics:
-
-$$p_{t+1} = p_t + v_t \cdot \Delta t + \frac{1}{2} a_t \cdot \Delta t^2$$
-
-#### The Tool: The Kalman Filter
-Because sensors are noisy, we used **Kalman Filters** to estimate the "true" state.
-1.  **Predict:** Use physics to guess where the car will be.
-2.  **Update:** Measure where the car actually is.
-3.  **Correct:** Merge the two based on uncertainty.
-
-**Why it failed:** Physics predicts that a pedestrian standing at a curb ($v=0$) will stay there forever. But a human driver knows they might step out. Physics cannot model **intent**.
+Using **Kalman Filters**, we estimated state ($p, v$) and predicted the future.
+*   **Why it failed:** Physics predicts that a pedestrian standing at a curb ($v=0$) will stay there forever. But a human driver knows they might step out. Physics cannot model **intent**.
 
 ---
 
-### Act II: The Engineer's Playground (Feature Engineering & XGBoost)
+### Act II: The Vector revolution (QC-Centric Architecture)
 
-Before deep learning took over, prediction was the domain of the **Feature Engineer**. The philosophy: Highway driving is a **Finite State Machine**. A car is either keeping its lane, changing left, or changing right.
+By 2023, the industry moved away from "rasterizing" (drawing) the road. Instead, we use **Vectorized Scene Encoding**.
 
-**The "God Features" of 2015:**
-*   **TTC (Time-to-Collision):** Seconds until impact.
-*   **TLC (Time-to-Lane-Crossing):** Seconds until the tire touches the paint.
-*   **Lateral Jerk:** Is the driver twitchy?
-
-#### The Model: XGBoost
-We fed these features into **Gradient Boosted Decision Trees**. 
-*   *Pros:* Interpretable. You could see exactly why the car predicted a lane change (e.g., "Lateral Velocity > 0.5").
-*   *Cons:* Brittle. It required infinite "If-This-Then-That" rules. It failed in construction zones or parking lots where "lanes" don't exist.
+**Landmark Architecture: QCNet (CVPR 2023)**
+Instead of a fixed map, the model treats every car as a "Query." 
+*   **Translation Invariance:** It doesn't care if you are in SF or London; it only cares about the *relative* distance between you and the lane. This allows one model to drive anywhere in the world.
 
 ---
 
-### Act III: The Deep Learning Explosion (Rasterization)
+### Act III: Mature Architecture — The Diffusion-Interaction Stack
 
-Around 2018, the industry moved to **Computer Vision** for prediction. We "drew" the road and the cars as an image (Bird's Eye View) and fed it into a CNN.
+The "Gold Standard" for 2025 is the **Generative Diffusion Transformer**. This architecture unifies social reasoning with the diversity of generative AI.
 
-#### The Architecture: CNN + RNN
-1.  **Spatial Backbone (CNN):** Processes the map and positions to understand the *Space*.
-2.  **Temporal Head (RNN/LSTM):** Unrolls the future path step-by-step to understand the *Time*.
-
-**Landmark Paper: ChauffeurNet (Waymo 2019)**
-Waymo proved that "End-to-End" imitation learning could work by teaching the car to recover from mistakes via "perturbation training"—intentionally shaking the simulated car to see if it could get back on track.
-
----
-
-### Act IV: The Vector Revolution (VectorNet)
-
-By 2020, we realized that road images are "sparse" (90% empty asphalt). **VectorNet (CVPR 2020)** changed the game by representing the road as a **Graph**.
-*   **Lanes:** Polylines (connected vectors).
-*   **Agents:** Trajectory history vectors.
-*   **Mechanism:** Use **Graph Neural Networks (GNNs)** to reason about topology. "The car is in a left-turn lane, so it *must* turn left."
-
----
-
-### Act V: The Multi-Modal Reality (Yellow Lights & Intent)
-
-The future is not a single line; it's a fan of possibilities. At a yellow light, a car might stop (30%) or accelerate (70%). An "average" prediction (driving at half speed) is dangerous.
-
-#### Multipath++ (Waymo 2022)
-Modern models output a **Gaussian Mixture Model (GMM)**:
-$$P(\text{Future} | \text{Past}) = \sum \pi_k \mathcal{N}(\mu_k, \Sigma_k)$$
-Where $\pi_k$ is the probability of a specific "mode" (e.g., "Turning Left").
-
----
-
-#### Act VI.V: Mature Architecture — The Interaction Transformer
-
-In high-complexity urban environments, simple GNNs have been superseded by **Interaction Transformers** (e.g., Waymo's **Waymax** or **Scene Transformer**). These models treat every entity (car, pedestrian, lane, traffic light) as a token in a giant sequence.
-
-**The Prediction Pipeline (Mature Architecture):**
+**The Prediction Pipeline (2025 SOTA):**
 
 ```mermaid
 graph TD
-    subgraph Inputs
-        Agents[Agent Histories: x, y, v, class]
-        Map[Map Polylines: Lane vectors, Stop lines]
-        Ego[Ego Intent: Route from Planner]
+    subgraph "1. Encoding (Vectorized)"
+        Map[Map Polylines] --> M_Enc[Hierarchical PointNet]
+        Agents[Agent History] --> A_Enc[1D-CNN / LSTM]
     end
 
-    subgraph "Encoding"
-        A_Enc[LSTM/1D-CNN Encoder]
-        M_Enc[PointNet/Polyline Encoder]
+    subgraph "2. Interaction (The Transformer Neck)"
+        M_Enc --> X_Attn[Cross-Attention: Agent-Map]
+        A_Enc --> S_Attn[Self-Attention: Social Interaction]
+        X_Attn --> Joint[Fused Latent Scene Token]
+        S_Attn --> Joint
     end
 
-    subgraph "The Interaction Neck"
-        S_Attn[Self-Attention: Agent-Agent Interaction]
-        X_Attn[Cross-Attention: Agent-Map Conditioning]
+    subgraph "3. Decoding (Generative Diffusion)"
+        Noise[Gaussian Noise Trajectories] --> DiT[Diffusion Transformer]
+        Joint --> DiT
+        DiT --> Futures[Diverse, Plausible Futures]
     end
 
-    subgraph "Heads"
-        Modes[Multi-Modal Trajectories]
-        Probs[Mode Probabilities]
-        Int[Interaction Scores]
+    subgraph "4. Scoring & Selection"
+        Futures --> Scorer[MLP Probability Head]
+        Scorer --> Final[K-Most Likely Modes]
     end
-
-    Agents --> A_Enc
-    Map --> M_Enc
-
-    A_Enc --> S_Attn
-    M_Enc --> X_Attn
-
-    S_Attn --> X_Attn
-    X_Attn --> Modes
-    X_Attn --> Probs
-    X_Attn --> Int
 ```
 
-##### 1. Self-Attention: Social Interaction
-How does one car's behavior affect another? 
-*   **The Mechanism:** Every agent token "looks" at every other agent token. 
-*   **Social Reasoning:** Car A's token sees that Car B's token is approaching a merge point at high speed. Self-attention weights this heavily, allowing the model to "predict" that Car A will slow down to yield. This is **Joint Prediction**.
+#### Why This Works
+1.  **Self-Attention (Social):** Every agent "looks" at every other agent. If Car A speeds up, the model "attends" to that and predicts Car B will brake. This is **Joint Prediction**.
+2.  **Cross-Attention (Geometric):** Agents attend to map polylines. The car "queries" the map: *"Which lane can I actually reach from here?"* This snaps predictions to valid roads.
+3.  **Diffusion Transformers (DiT):** Instead of one single line, the model generates 100 possible futures and iteratively refines them from noise. This captures the messy, multi-modal nature of human driving (e.g., at a yellow light, will they stop or go?).
 
-##### 2. Cross-Attention: Map Conditioning
-How does the road geometry constrain motion?
-*   **The Mechanism:** Agent tokens act as Queries (Q), and Map tokens (lanes, boundaries) act as Keys/Values (K, V).
-*   **Geometric Reasoning:** The agent token "asks" the map: *"Which lanes are reachable from my current position?"* Cross-attention allows the model to "snap" predicted trajectories to valid road structures, even when sensors are noisy.
-
-##### 3. Ego-Conditioning
-Unlike early models, mature architectures feed the **Ego Vehicle's planned route** into the transformer. This allows the model to predict how *others* will react to *us*. 
-*   *"If I nudge into this gap, will the driver behind me brake?"*
+#### Trade-offs & Reasoning
+*   **Diffusion vs. Gaussian Mixture Models (GMMs):** Earlier models (like Multipath) output a GMM. *Trade-off:* GMMs are fast but suffer from "mode averaging"—if an agent could go left or right, a GMM might average the two and predict "straight" (into a wall). Diffusion is computationally heavier (requires multiple denoising steps) but generates physically plausible, diverse paths without averaging out safe options.
+*   **Vector Queries vs. Raster Images:** Rasterizing the scene into an image is simple. *Trade-off:* It wastes massive computation on empty space (asphalt) and is not translation-invariant. Vectorizing elements as Queries is much more efficient and allows the model to generalize to new cities instantly.
+*   **Citations:** *Diffusion Planner: Unified Prediction and Planning (ICLR 2025)* and *QCNet: Query-Centric Network for Trajectory Prediction (CVPR 2023)*.
 
 ---
 
-### Act VII: System Design & Interview Scenarios
+### Act IV: System Design & Interview Scenarios
 
-If you are interviewing for a Prediction/Behavior role, expect these:
-
-#### Scenario 1: The "Fake" Intent
+#### Scenario 1: The "Fake" Intent (Conflict Resolution)
 *   **Question:** "A car has its left blinker on but is driving in a 'Straight Only' lane. What do you predict?"
-*   **Answer:** Discuss **Conflict Resolution**. Your model should output two modes: one following the blinker (high risk) and one following the map (high probability). The planner must "hedge" between them.
+*   **Answer:** Discuss **Causal Disentanglement** (CaDeT, CVPR 2024). The model should output two modes: one following the blinker (high risk) and one following the map (high probability). The planner must "hedge" between them.
 
-#### Scenario 2: Occluded Agents
-*   **Question:** "A child runs behind a parked van and disappears from sensors. How does prediction handle this?"
-*   **Answer:** Mention **Ghost Tracks**. We maintain a "belief" of the agent's position even without visual confirmation. The uncertainty ($\Sigma$) should grow over time until the child is seen again.
-
-#### Scenario 3: Evaluating "Safety"
-*   **Question:** "Is mAP (mean Average Precision) a good metric for prediction?"
-*   **Answer:** No. mAP is for detection. For prediction, use **ADE (Average Displacement Error)** for accuracy, and **Miss Rate** (how often did the real path fall outside our predicted 'fan'?) for safety.
+#### Scenario 2: Evaluation Metrics
+*   **Question:** "Is mAP a good metric for prediction?"
+*   **Answer:** No. Use **minADE (Minimum Average Displacement Error)** for accuracy and **Miss Rate** for safety. In 2025, we also use **Collision Rate in Simulation** to see if the predicted paths actually cause crashes in a closed loop.
 
 ---
 
-### Graduate Assignment: The Bayesian Turn
+### Graduate Assignment: The Multi-Modal Challenge
 
 **Task:**
-A car is approaching an intersection. 
-*   $P(\text{Straight}) = 0.8$, $P(\text{Left}) = 0.2$ (Priors based on map).
-*   The car starts angling left. Our classifier says $P(\text{Angling} | \text{Left}) = 0.9$ and $P(\text{Angling} | \text{Straight}) = 0.1$.
-
-1.  **Calculate the Posterior:** Use Bayes' Theorem to find $P(\text{Left} | \text{Angling})$.
-2.  **The Interaction:** If *your* car speeds up, how does that change the other car's $P(\text{Left})$? Explain the concept of **Joint Prediction**.
+You are given a scene at a 4-way stop. 
+1.  **Social Graph:** Draw the attention weights between three cars waiting at the stop. Which car has the highest "centrality"?
+2.  **Generative Logic:** If you run a **Diffusion Decoder**, why is it better than a standard MLP for a car that might either turn left or U-turn?
 
 ---
 
-**Further Reading:**
-*   *VectorNet: Encoding HD Maps (CVPR 2020)*
-*   *Multipath++: Information Fusion (ICRA 2022)*
-*   *Scene Transformer: A Unified Architecture for Prediction (ICLR 2022)*
-*   *MotionLM: Multi-Agent Motion Forecasting as Language Modeling (ICCV 2023)*
+**Further Reading (The "Big Four" Papers):**
+*   *QCNet: Query-Centric Network for Trajectory Prediction (CVPR 2023)* - The standard for efficient vectorized interaction.
+*   *Diffusion Planner: Unified Prediction and Planning (ICLR 2025)* - Proves that diffusion models outperform regression for motion forecasting.
+*   *MotionLM: Motion Forecasting as Language Modeling (ICCV 2023)* - Treats driving as a "token" sequence.
+*   *CaDeT: Causal Disentanglement for Robust Prediction (CVPR 2024)* - Solves the generalization problem.
 
 ---
 

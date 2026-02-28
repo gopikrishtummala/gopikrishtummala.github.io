@@ -18,7 +18,7 @@
   --accent-soft: rgba(16, 185, 129, 0.12);
   --muted: #d1d5db;
   --border: rgba(0, 0, 0, 0.06);
-  --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
   --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --heading-font: "JetBrains Mono", "Space Mono", "Fira Code", monospace;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -36,23 +36,23 @@
 
 /* Dark Theme - Classic dark mode with amber accent */
 html[data-theme="dark"] {
-  --background: #1a1a1a;
-  --element-background: rgba(26, 26, 26, 0.95);
-  --secondary-background: rgba(255, 255, 255, 0.05);
-  --foreground: #e5e5e5;
-  --secondary-foreground: #a3a3a3;
+  --background: #0a0a0a;
+  --element-background: rgba(18, 18, 18, 0.8);
+  --secondary-background: rgba(255, 255, 255, 0.03);
+  --foreground: #f3f4f6;
+  --secondary-foreground: #9ca3af;
   --accent: #f59e0b;
   --accent-soft: rgba(245, 158, 11, 0.15);
-  --muted: #404040;
-  --border: rgba(255, 255, 255, 0.1);
-  --shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.8);
+  --muted: #262626;
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --heading-font: "JetBrains Mono", "Space Mono", "Fira Code", monospace;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --code-bg: #1a1a1a;
-  --code-border: #2a2a2a;
+  --code-bg: #171717;
+  --code-border: #262626;
   --code-text: #f5f5f5;
-  --code-inline-bg: #252525;
+  --code-inline-bg: #262626;
   --code-line-highlight: rgba(245, 158, 11, 0.2);
   --code-token-keyword: #fbbf24;
   --code-token-string: #34d399;
@@ -63,22 +63,22 @@ html[data-theme="dark"] {
 
 /* Cyber Theme - Technical/Neon aesthetic with purple/magenta */
 html[data-theme="cyber"] {
-  --background: #0F172A;
-  --element-background: rgba(15, 23, 42, 0.95);
+  --background: #020617;
+  --element-background: rgba(15, 23, 42, 0.7);
   --secondary-background: rgba(255, 255, 255, 0.05);
-  --foreground: #E2E8F0;
-  --secondary-foreground: #94A3B8;
+  --foreground: #f8fafc;
+  --secondary-foreground: #94a3b8;
   --accent: #a855f7;
   --accent-soft: rgba(168, 85, 247, 0.15);
-  --muted: #475569;
-  --border: rgba(148, 163, 184, 0.15);
-  --shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.9);
+  --muted: #1e293b;
+  --border: rgba(148, 163, 184, 0.12);
+  --shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.7);
   --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --heading-font: "JetBrains Mono", "Space Mono", "Fira Code", monospace;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --code-bg: #1e293b;
-  --code-border: #334155;
-  --code-text: #E2E8F0;
+  --code-bg: #0f172a;
+  --code-border: #1e293b;
+  --code-text: #f1f5f9;
   --code-inline-bg: #1e293b;
   --code-line-highlight: rgba(168, 85, 247, 0.2);
   --code-token-keyword: #c084fc;
@@ -90,23 +90,23 @@ html[data-theme="cyber"] {
 
 /* Academic Theme - Warm, paper-like light theme with teal accent */
 html[data-theme="academic"] {
-  --background: #FEFCF9;
-  --element-background: rgba(255, 252, 249, 0.95);
-  --secondary-background: rgba(0, 0, 0, 0.02);
-  --foreground: #2C2C2C;
-  --secondary-foreground: #5A5A5A;
+  --background: #fdfdfc;
+  --element-background: rgba(255, 255, 255, 0.9);
+  --secondary-background: #f8f8f7;
+  --foreground: #1c1c1c;
+  --secondary-foreground: #525252;
   --accent: #0d9488;
-  --accent-soft: rgba(13, 148, 136, 0.12);
-  --muted: #D1D5DB;
+  --accent-soft: rgba(13, 148, 136, 0.1);
+  --muted: #e5e5e5;
   --border: rgba(0, 0, 0, 0.08);
-  --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
   --display-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --heading-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --code-font: "Fira Code", "JetBrains Mono", "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --code-bg: #F5F5F5;
-  --code-border: #E0E0E0;
+  --code-bg: #f9f9f8;
+  --code-border: #e5e5e5;
   --code-text: #1a1a1a;
-  --code-inline-bg: #F0F0F0;
+  --code-inline-bg: #f3f3f2;
   --code-line-highlight: rgba(13, 148, 136, 0.1);
   --code-token-keyword: #0d9488;
   --code-token-string: #059669;
@@ -132,310 +132,136 @@ html[data-theme="academic"] {
   * {
     @apply border-transparent outline-none;
     scrollbar-width: thin;
-    scrollbar-color: var(--color-muted) transparent;
+    scrollbar-color: var(--accent-soft) transparent;
   }
+  
+  *::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+  
+  *::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-accent/20 hover:bg-accent/40 transition-colors;
+  }
+
   html {
-    @apply overflow-y-scroll;
+    @apply overflow-y-scroll antialiased;
     scroll-behavior: smooth;
-    scroll-padding-top: 2rem;
+    scroll-padding-top: 5rem;
   }
+  
   body {
-    @apply flex min-h-svh flex-col font-sans text-foreground antialiased selection:bg-accent/20 selection:text-foreground;
+    @apply flex min-h-svh flex-col font-sans text-foreground selection:bg-accent/20 selection:text-foreground transition-colors duration-300;
     background-color: var(--background);
     background-attachment: fixed;
     font-family: var(--display-font);
   }
   
-  /* Theme-specific gradients */
+  /* Theme-specific background effects */
   html[data-theme="light"] body,
   html[data-theme="academic"] body {
-    background: linear-gradient(to bottom right, #fafafa, #ffffff, #f5f5f5);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.03) 0px, transparent 50%);
   }
   
   html[data-theme="dark"] body {
-    background: linear-gradient(to bottom right, #1a1a1a, #0f0f0f, #1a1a1a);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.02) 0px, transparent 50%);
   }
   
   html[data-theme="cyber"] body {
-    background: linear-gradient(to bottom right, #0F172A, #020617, #0F172A);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
   }
   
-  /* System Architect: Monospace headings for technical feel */
   h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight text-foreground;
     font-family: var(--heading-font);
-    letter-spacing: -0.02em;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-image:
-      radial-gradient(1000px circle at 0% 0%, rgba(99, 102, 241, 0.08), transparent 50%),
-      radial-gradient(800px circle at 100% 50%, rgba(139, 92, 246, 0.06), transparent 50%);
-    opacity: 1;
-    pointer-events: none;
-  }
-  a,
-  button {
-    @apply transition-all duration-150 ease-out focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 focus-visible:outline-dashed;
   }
   
-  /* Enhanced focus states for better accessibility */
+  a, button {
+    @apply transition-all duration-200 ease-in-out cursor-pointer;
+  }
+  
+  /* Refined focus states */
   a:focus-visible,
   button:focus-visible {
-    outline-width: 2px;
-    outline-style: solid;
-    outline-color: var(--accent);
-    outline-offset: 3px;
-    border-radius: 4px;
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background rounded-md;
   }
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
-section,
-footer {
-  @apply mx-auto w-full px-4 sm:px-8;
-  max-width: min(110rem, 96vw);
-}
 
-  /* Fira Code for code blocks */
-  code,
-  kbd,
-  samp {
+  section, footer {
+    @apply mx-auto w-full px-4 sm:px-8;
+    max-width: min(85rem, 94vw);
+  }
+
+  /* Refined code styles */
+  code, kbd, samp {
     font-family: var(--code-font);
-    font-size: 0.9em;
     font-variant-ligatures: contextual;
   }
   
-  /* Override: Mermaid should use display font, not Fira Code */
-  .mermaid,
-  .mermaid code,
-  .mermaid svg,
-  .mermaid svg * {
-    font-family: var(--display-font) !important;
-    font-variant-ligatures: normal !important;
-  }
-
-  /* Enhanced code block styling - only for non-Shiki blocks */
-  pre:not(.shiki) {
-    @apply my-6;
-    border: 1px solid var(--code-border);
-    background-color: var(--code-bg);
-    color: var(--code-text);
-    overflow-x: auto;
-    font-size: 0.875rem;
-    line-height: 1.45;
-    tab-size: 2;
-    padding: 1rem 1.2rem;
-    border-radius: 12px;
-  }
-
-  pre:not(.shiki) code {
-    font-family: var(--code-font);
-    font-variant-ligatures: contextual;
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    padding: 0;
-    background: transparent;
-    color: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    word-wrap: normal;
-    white-space: pre;
-  }
-
-  /* Inline code styling */
+  /* Enhanced Inline Code */
   :not(pre) > code {
-    @apply rounded text-sm;
-    font-variant-ligatures: contextual;
-    background-color: var(--code-inline-bg);
-    border: 1px solid var(--code-border);
-    font-size: 0.85em;
-    padding: 0.15em 0.3em;
-    border-radius: 6px;
+    @apply px-1.5 py-0.5 rounded-md text-[0.9em] bg-secondary border border-border/50 text-accent font-medium;
   }
 
-  /* Code block with line numbers */
-  pre[data-line-numbers] {
-    counter-reset: line-number;
+  /* Refined Blockquotes */
+  blockquote {
+    @apply pl-6 border-l-4 border-accent/30 italic text-secondary-foreground/90 my-8 py-2 bg-accent/5 rounded-r-lg;
   }
 
-  pre[data-line-numbers] code {
-    counter-increment: line-number;
-  }
-
-  /* Shiki/Astro code blocks - uses CSS variables for theming */
-  .astro-code,
-  .shiki {
-    @apply my-6 rounded-lg;
-    border: 1px solid var(--code-border);
-    overflow-x: auto;
-    padding: 1rem 1.2rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    line-height: 1.45;
-    /* Use Shiki's CSS variables for background */
-    background-color: var(--shiki-light-bg);
-  }
-
-  /* Dark mode for Shiki */
-  [data-theme="dark"] .astro-code,
-  [data-theme="cyber"] .astro-code,
-  html[data-theme="dark"] .astro-code,
-  html[data-theme="cyber"] .astro-code,
-  .astro-code-themes.catppuccin-mocha {
-    background-color: var(--shiki-dark-bg) !important;
-  }
-
-  .astro-code code,
-  .shiki code {
-    font-family: var(--code-font) !important;
-    font-variant-ligatures: contextual !important;
-    display: block;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    background: transparent !important;
-    /* Base text color - Shiki spans will override with their CSS variables */
-    color: var(--shiki-light);
-  }
-
-  /* Dark mode base text color */
-  [data-theme="dark"] .astro-code code,
-  [data-theme="cyber"] .astro-code code,
-  html[data-theme="dark"] .astro-code code,
-  html[data-theme="cyber"] .astro-code code {
-    color: var(--shiki-dark);
-  }
-
-  /* Shiki spans use CSS variables - apply them based on theme */
-  .astro-code span[style*="--shiki-light"],
-  .shiki span[style*="--shiki-light"] {
-    color: var(--shiki-light);
-  }
-
-  /* Dark mode for spans */
-  [data-theme="dark"] .astro-code span[style*="--shiki-dark"],
-  [data-theme="cyber"] .astro-code span[style*="--shiki-dark"],
-  html[data-theme="dark"] .astro-code span[style*="--shiki-dark"],
-  html[data-theme="cyber"] .astro-code span[style*="--shiki-dark"],
-  .astro-code-themes.catppuccin-mocha span[style*="--shiki-dark"] {
-    color: var(--shiki-dark) !important;
+  /* Enhanced Mermaid Styling */
+  .mermaid {
+    @apply my-10 p-6 rounded-2xl bg-element border border-border shadow-sm overflow-hidden flex justify-center items-center;
+    transition: transform 0.3s ease, border-color 0.3s ease;
   }
   
+  .mermaid:hover {
+    @apply border-accent/30;
+    transform: scale(1.01);
+  }
 
-  /* Code block copy button area */
-  pre[data-filename]::before {
-    content: attr(data-filename);
-    @apply block mb-2 text-xs text-secondary-foreground font-medium;
+  .mermaid svg {
+    @apply max-w-full h-auto;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.05));
+  }
+  
+  /* Shiki/Astro code block refinements */
+  .astro-code, .shiki {
+    @apply my-8 rounded-2xl shadow-lg border border-border/50 overflow-hidden relative;
+    padding: 1.5rem !important;
+  }
+  
+  .astro-code::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/40 via-accent to-accent/40 opacity-50;
   }
 }
 
 @utility max-w-app {
-  @apply max-w-4xl;
+  @apply max-w-5xl;
 }
 
-/* Source: https://piccalil.li/blog/a-more-modern-css-reset/ */
-/* Anything that has been anchored to should have extra scroll margin */
-:target {
-  scroll-margin-block: 1rem;
+/* Animations */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mermaid diagram styling - Enhanced to prevent text clipping */
-.mermaid {
-  @apply my-6 flex justify-center overflow-x-auto;
-  font-size: 14px;
-  width: 100%;
-  min-height: 200px;
+.animate-in {
+  animation: slideUpFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.mermaid svg {
-  @apply max-w-full;
-  max-width: 100%;
-  height: auto;
-  overflow: visible !important;
-}
-
-/* Prevent text clipping in Mermaid nodes */
-.mermaid svg .nodeLabel,
-.mermaid svg .edgeLabel,
-.mermaid svg .cluster-label,
-.mermaid svg .label,
-.mermaid svg text {
-  font-family: var(--display-font) !important;
-  font-size: 14px !important;
-  line-height: 1.5 !important;
-  white-space: normal !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  text-overflow: ellipsis !important;
-  max-width: 100% !important;
-}
-
-/* Ensure node containers have enough space */
-.mermaid svg .node rect,
-.mermaid svg .node circle,
-.mermaid svg .node ellipse,
-.mermaid svg .node polygon {
-  rx: 8px;
-  ry: 8px;
-  min-width: 60px !important;
-  min-height: 40px !important;
-}
-
-/* Increase padding in nodes to prevent text clipping */
-.mermaid svg .node .label {
-  padding: 8px 12px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 40px !important;
-}
-
-/* Fix for foreignObject (HTML labels) */
-.mermaid svg foreignObject {
-  overflow: visible !important;
-}
-
-.mermaid svg foreignObject div {
-  font-family: var(--display-font) !important;
-  padding: 8px 12px !important;
-  line-height: 1.5 !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  white-space: normal !important;
-  box-sizing: border-box !important;
-}
-
-/* Ensure Mermaid diagrams work well in prose */
-.prose .mermaid {
-  @apply mx-auto my-6;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-/* Make diagrams responsive */
-@media (max-width: 768px) {
+/* Fix for Mermaid responsiveness */
+@media (max-width: 640px) {
   .mermaid {
+    @apply p-2;
     font-size: 12px;
-  }
-  
-  .mermaid svg .nodeLabel,
-  .mermaid svg .edgeLabel,
-  .mermaid svg .cluster-label,
-  .mermaid svg .label,
-  .mermaid svg text {
-    font-family: var(--display-font) !important;
-    font-size: 12px !important;
-    line-height: 1.4 !important;
-  }
-  
-  .mermaid svg .node .label {
-    padding: 6px 10px !important;
-    min-height: 35px !important;
   }
 }

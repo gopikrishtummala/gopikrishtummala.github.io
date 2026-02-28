@@ -313,74 +313,65 @@ Where:
 ---
 
 <a id="calibration-methods"></a>
-## Calibration Methods: Online vs. Offline
+## Act V: Mature Architecture — Targetless Graph Optimization
 
-### Offline Calibration
+In 2025, no production autonomous vehicle pulls into a garage every morning to look at checkerboards. The industry standard has shifted from **Offline Target-Based Calibration** to **Online Targetless Graph Optimization**.
 
-**The Setup:** Use a known calibration target (checkerboard, AprilTag, etc.) in a controlled environment.
+**The Calibration Pipeline (Mature Architecture):**
 
-**The Process:**
+```mermaid
+graph TD
+    subgraph "Continuous Data Streams"
+        Cam[Camera Stream]
+        Lidar[LiDAR Stream]
+        IMU[IMU Stream]
+    end
 
-1. **Collect data:** Capture images/point clouds of the calibration target from multiple viewpoints
-2. **Extract features:** Detect corners/markers in images, extract points in LiDAR
-3. **Optimize:** Minimize reprojection error to estimate calibration parameters
+    subgraph "Feature Extraction"
+        C_Feat[Visual Odometry Features]
+        L_Feat[Geometric Planes/Lines]
+    end
 
-**The Math:**
+    subgraph "The Factor Graph (Continuous Time)"
+        State[Vehicle State Trajectory]
+        Calib_Nodes[Extrinsic/Intrinsic Nodes]
+        IMU_Factor[IMU Pre-integration]
+        Reproj_Factor[Visual Reprojection Error]
+        Lidar_Factor[Point-to-Plane Error]
+    end
 
-$$
-\min_{K, R, t, \text{distortion}} \sum_i \sum_j \| x_{ij} - \pi(K, R, t, X_j) \|^2
-$$
+    subgraph "Online Update"
+        Solve[Non-linear Least Squares Solver]
+        Update[Updated Extrinsic Matrices]
+    end
 
-Where:
-* $X_j$ = 3D point on calibration target
-* $x_{ij}$ = observed 2D point in image $i$
-* $\pi$ = projection function (with distortion)
+    Cam --> C_Feat
+    Lidar --> L_Feat
+    IMU --> IMU_Factor
 
-**Pros:**
-* Accurate (millimeter-level precision)
-* Can calibrate all parameters at once
-* Well-understood, standard approach
+    C_Feat --> Reproj_Factor
+    L_Feat --> Lidar_Factor
 
-**Cons:**
-* Requires controlled environment
-* Time-consuming (30-60 minutes)
-* Doesn't handle calibration drift
+    Reproj_Factor --> State
+    Lidar_Factor --> State
+    IMU_Factor --> State
 
-### Online Calibration
+    Reproj_Factor --> Calib_Nodes
+    Lidar_Factor --> Calib_Nodes
 
-**The Setup:** Continuously estimate calibration from natural scene observations (no calibration target needed).
+    State --> Solve
+    Calib_Nodes --> Solve
+    Solve --> Update
+```
 
-**The Process:**
+### The SOTA Method: Continuous-Time Factor Graphs
+Instead of treating calibration as a one-time setup, we treat the $x, y, z$ and pitch, yaw, roll of the sensors as **variables** in the same Factor Graph used for localization (Module 4).
+*   **Targetless:** The car uses the natural environment (lane lines, buildings, traffic poles) as its "checkerboards."
+*   **Continuous-Time:** Because the car is moving while scanning, we use Continuous-Time Trajectories (often represented as B-Splines). This allows the solver to know the exact state of the car at the *microsecond* a specific laser fired.
 
-1. **Detect correspondences:** Find matching features between camera and LiDAR
-2. **Estimate transform:** Use RANSAC or optimization to find best transform
-3. **Monitor drift:** Track calibration over time, detect when it drifts
-
-**The Math:**
-
-**Correspondence-based:**
-
-Given correspondences $(X_i^{\text{LiDAR}}, x_i^{\text{camera}})$:
-
-$$
-\min_{R, t} \sum_i \| x_i - \pi(R \cdot X_i + t) \|^2
-$$
-
-**RANSAC:** Robustly handle outliers (false correspondences).
-
-**Pros:**
-* No calibration target needed
-* Handles calibration drift
-* Can run continuously
-
-**Cons:**
-* Less accurate than offline (centimeter-level)
-* Requires good correspondences
-* Computationally expensive
-
-**Production Practice:** A **hybrid approach** is commonly used:
-* **Offline calibration** at factory (high accuracy baseline)
-* **Online calibration** in the field (monitor and correct drift)
+### Trade-offs & Reasoning
+*   **Offline Target-Based (The Old Way):** Extremely accurate (sub-millimeter). *Trade-off:* Brittle. A thermal expansion from a hot Arizona day or a pot-hole bump will permanently shift the extrinsics.
+*   **Online Targetless (The New Way):** Highly resilient. If a sensor gets bumped, the factor graph detects the rising "tension" (error) between the camera and LiDAR, and seamlessly re-optimizes the extrinsic matrix while driving at 65mph. *Trade-off:* Computationally heavy. Requires solving massive sparse matrices in the background.
 
 ---
 

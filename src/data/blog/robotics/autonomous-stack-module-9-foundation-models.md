@@ -22,7 +22,6 @@ interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-  - Generative AI
 estimated_read_time: 50
 ---
 
@@ -127,6 +126,10 @@ How do foundation models bridge the gap between "pixels" and "steering"?
 ##### 2. The Power of Self-Attention
 *   **Reasoning:** Self-attention allows the visual tokens (the pixels showing a ball in the road) to "attend" to the language tokens (the world knowledge that balls are followed by children). 
 *   **Emergent Behavior:** The model doesn't need a specific "Ball Rule." It has seen enough data to "know" that this specific pattern of pixels implies a future risk.
+
+##### 3. Trade-offs & Reasoning
+*   **Tokenization vs. Explicit Geometry:** Traditional planners compute exact distances ($d = 5.23m$) using floating-point math. *Trade-off:* Tokenizing continuous values (like in EMMA) into text strings relies entirely on the LLM's capacity to "memorize" physics. While this allows the model to leverage vast internet knowledge (common sense), it is computationally slow (token generation latency) and can suffer from precision loss. Hence, production systems run a fast geometric C++ check (Think Fast) as a guardrail over the VLM's semantic output.
+*   **Citations:** *EMMA: End-to-End Multimodal Model for Autonomous Driving (Waymo 2024)* and *GAIA-1: A Generative World Model for Autonomous Driving (Wayve 2023)*.
 
 ---
 

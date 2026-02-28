@@ -21,7 +21,6 @@ interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-  - Control Theory
 estimated_read_time: 45
 ---
 
@@ -147,6 +146,10 @@ How does a neural network "decide" where to go?
 ##### 2. Differentiable Cost Functions
 Unlike old-school planners where we hand-tuned weights, mature architectures use **Learned Cost Functions**. 
 *   The model is trained on millions of hours of expert human driving. It "learns" the cost of discomfort or illegality by trying to minimize the difference between its chosen path and the human's path (**Imitation Learning**).
+
+##### 3. Trade-offs & Reasoning
+*   **Hand-Tuned Rules vs. Imitation Learning:** A classic C++ planner requires thousands of "If-Else" rules (e.g., *If pedestrian distance < 5m, brake*). *Trade-off:* It is perfectly interpretable and debuggable, but it fails in complex, unscripted situations (like a 4-way stop with aggressive drivers). Neural Planners (Imitation Learning) scale naturally with data and handle complex interactions smoothly. *Trade-off:* They act as "Black Boxes" and can suffer from the "Causal Confusion" problem—learning the wrong correlation (e.g., "always slow down near tall buildings" instead of "slow down because tall buildings hide pedestrians").
+*   **Citations:** *ChauffeurNet: Learning to Drive by Imitating the Best and Synthesizing the Worst (Waymo 2019)* and *Planning-oriented Autonomous Driving (UniAD CVPR 2023)*.
 
 ---
 

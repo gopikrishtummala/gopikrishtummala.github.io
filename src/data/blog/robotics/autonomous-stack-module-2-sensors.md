@@ -21,7 +21,6 @@ difficulty: Advanced
 interview_relevance:
   - System Design
   - Theory
-  - Sensor Physics
 estimated_read_time: 45
 ---
 
@@ -162,6 +161,22 @@ Radar uses radio waves. Unlike lasers, radio waves go *through* rain and fog.
 
 ---
 
+#### Act IV.V: Mature Architecture — Redundancy vs. Vision-Only
+
+There are currently two competing sensor suite architectures in the automotive industry.
+
+**1. The Redundant Suite (Waymo Gen 6, Zoox)**
+*   **Design:** 13 Cameras, 6 Radars, 4 LiDARs, and Audio receivers.
+*   **Reasoning:** "Redundancy by Physics." If the sun blinds a camera, the LiDAR provides depth. If fog blinds the LiDAR, Radar tracks velocity. 
+*   **Trade-off:** High cost (thousands of dollars per car), massive data processing requirements, and complex calibration. However, it is the only architecture currently approved for driverless L4 operation.
+
+**2. The Vision-Only Suite (Tesla HW4)**
+*   **Design:** 8 Cameras (high-resolution), 0 LiDAR, 0 Radar.
+*   **Reasoning:** "The Human Model." Humans drive using only two optical sensors (eyes) and a neural net (brain). Therefore, cameras and a massive compute cluster should be sufficient.
+*   **Trade-off:** Drastically lower cost and power consumption, allowing for mass-market deployment. However, estimating depth from 2D images relies heavily on machine learning inferences rather than physical measurements, making it susceptible to "hallucinations" in rare, untrained environments (e.g., mistaking the side of a white truck for the sky).
+
+---
+
 ### Act V: Sensor Fusion (The Best of All Worlds)
 
 No sensor is perfect. The principle: **Complementary Failures**.
@@ -207,7 +222,7 @@ graph LR
 
 ---
 
-### Act V: System Design & Interview Scenarios
+### Act VI: System Design & Interview Scenarios
 
 #### Scenario 1: The "Tesla vs. Waymo" Debate
 *   **Question:** "Tesla uses only cameras. Waymo uses Lidar, Radar, and Cameras. Which is better?"

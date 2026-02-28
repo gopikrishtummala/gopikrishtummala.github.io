@@ -26,7 +26,6 @@ interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-  - Computer Vision
 estimated_read_time: 45
 ---
 
@@ -189,6 +188,10 @@ How do you know which pixel in a camera image corresponds to a point $(x, y)$ on
 ##### 2. Self-Attention: Spatial & Temporal Context
 *   **Spatial Self-Attention:** Queries for "Patch A" look at "Patch B" to ensure lane lines are continuous across camera boundaries (e.g., stitching the front-left and front-right camera views).
 *   **Temporal Self-Attention:** Queries from the *current* frame look at queries from the *previous* frame. This is how the car "remembers" a car that is now occluded or calculates velocity without a radar.
+
+##### 3. Trade-offs & Reasoning
+*   **Geometric Projection (LSS) vs. Attention (BEVFormer):** Early BEV models used strict geometric math (Lift-Splat-Shoot) to project pixels. *Trade-off:* Fast, but highly sensitive to calibration errors. The modern Attention approach is slower to train but extremely robust to vibration and calibration drift because it "learns" the optimal projection.
+*   **Citations:** *BEVFormer: Learning Bird's-Eye-View Representation from Multi-Camera Images via Spatiotemporal Transformers (ECCV 2022)* and *Lift, Splat, Shoot (ECCV 2020)*.
 
 ---
 

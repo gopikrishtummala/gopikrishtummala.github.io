@@ -22,24 +22,20 @@ const { title, description, pubDatetime, modDatetime, timezone, difficulty, trac
  * Extract part/module number and format title with unified numbering
  */
 function formatTitleWithNumber(title: string, identifier: string): string {
-  // Extract part number (e.g., "agentic-ai-design-patterns-part-1" -> 1)
   const partMatch = identifier.match(/-part-(\d+)$/);
   if (partMatch) {
     const partNum = parseInt(partMatch[1], 10);
     const paddedNum = partNum.toString().padStart(2, '0');
-    // Check if title already has "Part X:" format
     if (title.match(/^Part \d+:/i)) {
       return title.replace(/^Part \d+:/i, `Part ${paddedNum}:`);
     }
     return `Part ${paddedNum}: ${title}`;
   }
   
-  // Extract module number (e.g., "autonomous-stack-module-1" -> 1)
   const moduleMatch = identifier.match(/-module-(\d+)$/);
   if (moduleMatch) {
     const moduleNum = parseInt(moduleMatch[1], 10);
     const paddedNum = moduleNum.toString().padStart(2, '0');
-    // Check if title already has "Module X:" format
     if (title.match(/^Module \d+:/i)) {
       return title.replace(/^Module \d+:/i, `Module ${paddedNum}:`);
     }
@@ -49,37 +45,31 @@ function formatTitleWithNumber(title: string, identifier: string): string {
   return title;
 }
 
-// Get identifier (slug or filename from id)
 const identifier = slug || id.split('/').pop()?.replace(/\.(md|mdx)$/, '') || id;
 const displayTitle = formatTitleWithNumber(title, identifier);
 
 const difficultyColors = {
-  Beginner: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  Intermediate: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  Advanced: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  Beginner: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  Intermediate: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  Advanced: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
 };
 
-const trackColors = {
-  Fundamentals: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  "GenAI Systems": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-  "MLOps & Production": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
-  Robotics: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  "Agentic AI": "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
+const trackGradients = {
+  Fundamentals: "from-blue-500 to-indigo-500",
+  "GenAI Systems": "from-purple-500 to-fuchsia-500",
+  "MLOps & Production": "from-cyan-500 to-blue-500",
+  Robotics: "from-orange-500 to-red-500",
+  "Agentic AI": "from-pink-500 to-rose-500",
 };
 
-// Different gradient colors for blog post titles (variety)
 const titleGradients = [
-  "from-emerald-600 via-teal-600 to-cyan-600",
-  "from-amber-600 via-orange-600 to-red-600",
-  "from-violet-600 via-indigo-600 to-blue-600",
-  "from-blue-600 via-cyan-600 to-teal-600",
-  "from-green-600 via-emerald-600 to-teal-600",
-  "from-sky-600 via-blue-600 to-indigo-600",
-  "from-yellow-600 via-amber-600 to-orange-600",
-  "from-slate-600 via-gray-600 to-zinc-600",
+  "from-emerald-500 to-teal-500",
+  "from-amber-500 to-orange-500",
+  "from-violet-500 to-indigo-500",
+  "from-blue-500 to-cyan-500",
+  "from-sky-500 to-blue-500",
 ];
 
-// Generate consistent color based on post slug
 function getTitleGradient(slug: string): string {
   let hash = 0;
   for (let i = 0; i < slug.length; i++) {
@@ -90,9 +80,7 @@ function getTitleGradient(slug: string): string {
 }
 
 const titleGradient = getTitleGradient(id);
-
-const baseHeaderClass = variant === "h3" ? "text-base font-semibold decoration-dashed hover:underline" : "text-lg font-medium decoration-dashed hover:underline";
-const headerClass = `bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent ${baseHeaderClass}`;
+const headerClass = `bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent transition-all duration-300 group-hover:brightness-110`;
 
 const headerProps = {
   style: { viewTransitionName: slugifyStr(title) },
@@ -100,50 +88,47 @@ const headerProps = {
 };
 ---
 
-<li class="group">
-  <article
-    class="relative overflow-hidden rounded-xl border border-white/40 bg-white/80 p-4 shadow-[var(--shadow-xl-soft)] transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_25px_55px_-20px_rgba(59,130,246,0.55)] dark:border-slate-700/40 dark:bg-slate-900/70"
-  >
-    <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/15 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-    <a
-      href={getPostPath(post)}
-      class="inline-flex items-center gap-2 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-    >
-      {
-        variant === "h2" ? (
-          <h2 {...headerProps}>{displayTitle}</h2>
-        ) : (
-          <h3 {...headerProps}>{displayTitle}</h3>
-        )
-      }
-      <span
-        aria-hidden="true"
-        class="translate-y-[1px] text-lg opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100"
-        set:html="&rarr;"
-      />
-    </a>
-    <div class="mt-2 flex flex-wrap items-center gap-1.5">
-      {difficulty && difficulty in difficultyColors && (
-        <span class={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${difficultyColors[difficulty]}`}>
-          {difficulty}
-        </span>
-      )}
-      {track && track in trackColors && (
-        <span class={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${trackColors[track]}`}>
-          {track}
-        </span>
-      )}
+<li class="group reveal">
+  <article class="glass-card p-6 rounded-3xl h-full flex flex-col relative overflow-hidden group-hover:border-accent/30">
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <div class="flex flex-wrap gap-2">
+        {difficulty && difficulty in difficultyColors && (
+          <span class={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${difficultyColors[difficulty as keyof typeof difficultyColors]}`}>
+            {difficulty}
+          </span>
+        )}
+        {track && (
+          <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent/5 text-accent border border-accent/10">
+            {track}
+          </span>
+        )}
+      </div>
       {estimated_read_time && (
-        <span class="text-[10px] text-secondary-foreground/70">
-          {estimated_read_time} min
+        <span class="text-[10px] font-bold text-secondary-foreground/40 uppercase tracking-tighter">
+          {estimated_read_time} MIN READ
         </span>
       )}
     </div>
-    <div class="mt-1.5 flex items-center">
-      <time class="text-[10px] text-secondary-foreground/60" datetime={new Date(pubDatetime).toISOString()}>
-        {new Date(pubDatetime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+
+    <a href={getPostPath(post)} class="block mb-3 group/link">
+      {variant === "h2" ? (
+        <h2 {...headerProps} class={`${headerClass} text-2xl font-extrabold leading-tight`}>{displayTitle}</h2>
+      ) : (
+        <h3 {...headerProps} class={`${headerClass} text-xl font-bold leading-tight`}>{displayTitle}</h3>
+      )}
+    </a>
+
+    <p class="text-sm text-secondary-foreground/80 leading-relaxed line-clamp-3 flex-1 mb-6">
+      {description}
+    </p>
+
+    <div class="flex items-center justify-between mt-auto pt-4 border-t border-border/30">
+      <time class="text-[10px] font-bold text-secondary-foreground/50 uppercase tracking-widest" datetime={new Date(pubDatetime).toISOString()}>
+        {new Date(pubDatetime).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
       </time>
+      <div class="size-8 rounded-full bg-accent/5 border border-accent/10 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </div>
     </div>
-    <p class="mt-2 text-xs text-secondary-foreground sm:text-sm leading-relaxed">{description}</p>
   </article>
 </li>
