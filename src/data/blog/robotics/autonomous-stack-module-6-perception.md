@@ -52,14 +52,14 @@ estimated_read_time: 35
 
 ### The Story: From Pixels to Understanding
 
-So far, we've built the car's **body** (sensors), **proprioception** (calibration), **spatial awareness** (localization), and **memory** (mapping).
+In [Module 2](/posts/robotics/autonomous-stack-module-2-sensors), we introduced the car's raw senses—cameras, LiDAR, radar, ultrasonics, and microphones. Each provides a different window into reality: pixels, point clouds, Doppler returns, proximity readings, and audio waveforms.
 
-Now comes the hard part: **Perception**—the ability to understand what's actually happening in the world.
+But raw data isn't enough. **Perception** transforms those signals into *meaning*.
 
-Perception is where raw sensor data becomes *meaning*. It's the difference between:
+The difference:
 
-* "There are 50,000 LiDAR points in front of me"
-* "There is a pedestrian 15 meters ahead, walking left at 1.2 m/s"
+* "There are 50,000 LiDAR points in front of me" → **raw data**
+* "There is a pedestrian 15 meters ahead, walking left at 1.2 m/s" → **perception output**
 
 This transformation—from photons, laser pulses, radio waves, sound waves, and acoustic signals to semantic objects with positions, velocities, and classes—is arguably the most challenging problem in autonomous driving.
 
@@ -120,7 +120,33 @@ This object list feeds directly into [Module 7 (Prediction)](/posts/robotics/aut
 
 ### Act II: Object Detection (Finding Things)
 
-Detection is the first step: locate objects in the scene and draw boxes around them.
+Detection is the first step: locate objects in the scene and draw boxes around them. But before we detect, we need to understand how to get sensor data into a common representation—**Bird's Eye View (BEV)**.
+
+#### From Perspective to Bird's Eye View
+
+Cameras see the world in **perspective**: parallel lines converge, objects shrink with distance. This makes planning and fusion difficult. We want a **Bird's Eye View** where distances are metric and geometry is undistorted.
+
+**Inverse Perspective Mapping (IPM): The Geometric Approach**
+
+If we know the camera's height and angle, we can "unwarp" the image onto a ground plane:
+
+$$\begin{bmatrix} X \\ Y \\ 1 \end{bmatrix} \propto H^{-1} \begin{bmatrix} u \\ v \\ 1 \end{bmatrix}$$
+
+Where $H$ is the homography matrix encoding the camera's pose relative to a flat ground plane ($Z=0$).
+
+**The Trap:** IPM assumes flat ground. Hills, dips, and speed bumps break the geometry—a hill "looks" farther away than it is.
+
+**Neural BEV: Learning to Project**
+
+Modern systems use learned depth estimation to handle non-flat terrain:
+
+| Approach | How It Works | Pros | Cons |
+|----------|--------------|------|------|
+| **LSS (Lift, Splat, Shoot)** | Predict depth distribution per pixel, lift to 3D, splat to BEV | Handles arbitrary geometry | Requires depth supervision |
+| **BEVFormer** | Transformer queries BEV grid, attends to camera features | No explicit depth needed | Compute-heavy |
+| **BEVDet** | Depth-aware feature lifting | Balanced speed/accuracy | Sensitive to depth errors |
+
+**The Result:** A unified BEV representation where all sensors can contribute—cameras provide semantics, LiDAR provides geometry, radar provides velocity—all in the same metric coordinate frame.
 
 #### 2D Detection (Images)
 
@@ -228,34 +254,66 @@ Radar is often overlooked in perception tutorials, but it's **non-negotiable for
 
 #### Multi-Modal Fusion: The Full Picture
 
-Production systems go beyond camera-LiDAR: **radar is fused at multiple levels**.
+Production systems go beyond camera-LiDAR: **all modalities are fused** into a unified scene representation.
 
-**Why Include Radar in Fusion?**
+**Why Fusion Matters**
 
-* Radar provides **direct velocity** without temporal differencing—more reliable for fast-moving objects.
-* In fog or heavy rain, cameras become blind and LiDAR scatters; radar maintains detection.
-* Redundancy: If one modality fails or hallucinates, others can correct or flag the uncertainty.
+| Sensor | What It Contributes | What It Lacks |
+|--------|---------------------|---------------|
+| **Camera** | Rich semantics (class, color, text) | Depth, velocity |
+| **LiDAR** | Precise 3D geometry | Semantics, velocity |
+| **Radar** | Direct velocity, all-weather | Resolution, classification |
 
-**Fusion Strategies (Updated):**
+No single sensor provides everything. Fusion combines their strengths.
+
+**The Data Association Problem**
+
+Before fusing, you must **match observations across modalities**. The camera sees a car; the radar sees a moving object—are they the same?
+
+Techniques:
+- **Frustum Association:** Project camera detection into 3D cone, find radar/LiDAR points inside
+- **Hungarian Matching:** Optimize global assignment minimizing distance/appearance cost
+- **Learned Association:** Train networks to predict matches from features
+
+**Fusion Architecture Comparison**
+
+| Approach | Where Fusion Happens | Synergy | Traceability | Use Case |
+|----------|---------------------|---------|--------------|----------|
+| **Late Fusion** | Merge detection boxes | Low | Easy to debug | Validation, fallback |
+| **Mid Fusion** | Merge encoded features | High | Requires tooling | Primary production path |
+| **Early Fusion** | Merge raw sensor data | Highest | Very hard | Research, rarely deployed |
+
+**Mid-Fusion Architecture (Production Standard)**
+
+Waymo's **Sensor Fusion Encoder** is the canonical example:
 
 ```
-Early Fusion:
-  Camera features + LiDAR voxels + Radar velocity maps
-      │
-      ▼
-  Cross-Attention / Concatenation in BEV
-      │
-      ▼
-  Unified Feature Map → Detection Head
-
-Mid-Fusion (e.g., Waymo's Sensor Fusion Encoder):
-  - Radar contributes velocity maps and occupancy grids
-  - Attention mechanisms dynamically weight modalities
-  - In fog: upweight radar, downweight LiDAR
-  - In clear weather: all modalities contribute equally
+Camera Images → CNN → Camera Features
+LiDAR Points → PointNet → LiDAR Features  
+Radar Returns → RadarNet → Radar Features
+                    │
+                    ▼
+            Project to BEV Space
+                    │
+                    ▼
+         Cross-Modal Attention
+    (dynamically weight by confidence)
+                    │
+                    ▼
+         Unified Detection Head
+                    │
+                    ▼
+    3D Boxes + Velocity + Class + Uncertainty
 ```
 
-This creates a more redundant, trustworthy perception output—see [Module 9](/posts/robotics/autonomous-stack-module-9-foundation-models) for how foundation models extend this with semantic reasoning.
+**Dynamic Weighting by Conditions:**
+- In fog: Upweight radar (penetrates), downweight LiDAR (scatters)
+- In darkness: Upweight LiDAR/radar, downweight cameras
+- In clear weather: All contribute equally
+
+**The Traceability Trade-off:** Mid-fusion entangles sensor contributions. When something goes wrong, tracing the error to a specific sensor requires XAI tooling (attention maps, gradient attribution). But the accuracy gains justify the debugging complexity.
+
+See [Module 9](/posts/robotics/autonomous-stack-module-9-foundation-models) for how foundation models extend this with semantic reasoning.
 
 #### Ultrasonic Sensors: The Close-Range Specialists
 
