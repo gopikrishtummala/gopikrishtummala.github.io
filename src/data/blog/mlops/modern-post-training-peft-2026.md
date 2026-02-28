@@ -31,9 +31,13 @@ estimated_read_time: 30
 
 ---
 
-## Post-Training and Parameter-Efficient Fine-Tuning
+## The Post-Training Revolution
 
-Post-training transforms pre-trained models into production-ready systems. Full fine-tuning is computationally expensive and prone to catastrophic forgetting. Parameter-Efficient Fine-Tuning (PEFT) methods address these limitations by adapting models with minimal parameter updates.
+In 2026, the real intelligence of frontier models isn't born in pre-training anymore—it's *sculpted* in post-training.
+
+Pre-training gives you raw capability. Post-training turns that capability into something useful, safe, controllable, and deployable. Whether you're building behavior predictors for autonomous vehicles, fine-tuning Vision-Language Models (VLMs) for edge-case driving scenarios, or adapting diffusion models for hyper-specific creative control, full fine-tuning is now obsolete for most teams. It's too expensive, too forgetful, and too slow.
+
+This is your **senior-engineer cheatsheet** to the modern post-training stack—battle-tested across LLMs, VLMs, and diffusion models. Updated for Q1 2026.
 
 ## The PEFT Ecosystem: The Adapter Zoo
 
@@ -140,7 +144,7 @@ Many libraries (PEFT, Unsloth, Axolotl) default to **q_proj + v_proj** or **q+v+
 
 ### DoRA (Weight-Decomposed LoRA)
 
-DoRA decouples the pre-trained weight matrix into two components: **magnitude** and **direction**.
+**The breakthrough of 2025.** DoRA decouples the pre-trained weight matrix into two components: **magnitude** and **direction**.
 
 **The Insight:** Full fine-tuning usually exhibits a negative correlation between magnitude and directional updates, whereas standard LoRA exhibits a positive correlation. DoRA forces the model to learn more like full fine-tuning.
 
@@ -170,9 +174,13 @@ Where:
 
 ### PiSSA (Principal Singular Values and Singular Vectors Adaptation)
 
+**The fast convergence king.**
+
 Instead of initializing the LoRA matrices randomly and with zeros, PiSSA initializes them using the principal singular values of the original weight matrix. This allows the adapter to capture the most critical structural information immediately.
 
 **Result:** 2–3× faster convergence than standard LoRA.
+
+**When to use:** When you need fast iteration cycles and can't wait for standard LoRA to converge.
 
 ### Other Power Tools
 
@@ -184,7 +192,9 @@ Instead of initializing the LoRA matrices randomly and with zeros, PiSSA initial
 | **RsLoRA** | Rank-stabilized training | Better stability at low ranks |
 | **LoftQ** | Quantization-aware initialization | Better QLoRA performance |
 
-#### Comparison Table
+**Pro tip (2026):** Start with **DoRA + QLoRA** for 90% of use cases. It's the new default in Hugging Face PEFT.
+
+#### Quick Comparison Table (2026 Perspective)
 
 | Method | Trainable Params | VRAM Needed (70B Model) | Inference Speed | Forgetting Risk | Mergeable? |
 | --- | --- | --- | --- | --- | --- |
@@ -193,6 +203,7 @@ Instead of initializing the LoRA matrices randomly and with zeros, PiSSA initial
 | **QLoRA** (4-bit) | ~20–80M | 24–40 GB | Base Speed (Merged) | Low | Yes |
 | **DoRA** (2024) | Similar to LoRA | Similar to LoRA | Base Speed (Merged) | Very Low | Yes |
 
+LoRA (and its descendants like QLoRA, DoRA, PiSSA, VeRA…) is why individuals and small teams can fine-tune 70B–405B models on consumer hardware in 2026.
 
 ## The Alignment Stack: From Messy RL to Clean Math
 
@@ -200,7 +211,7 @@ The industry has decisively moved away from brittle PPO-based RLHF. The new stan
 
 ### DPO (Direct Preference Optimization)
 
-DPO skips the reward model entirely.
+**The current industry favorite.** DPO skips the reward model entirely.
 
 **How it works:**
 - Directly optimizes policy on preference data (a "chosen" response y_w and a "rejected" response y_l)
@@ -218,7 +229,7 @@ Where:
 - `β` is a temperature parameter
 - `π_ref` is the reference model (usually the SFT model)
 
-**Advantages:**
+**Why it wins:**
 - No separate reward model needed
 - More stable than RLHF
 - Faster to train
@@ -226,24 +237,31 @@ Where:
 
 ### ORPO (Odds Ratio Preference Optimization)
 
-ORPO merges SFT + alignment into **one stage**.
+**The efficiency king.** ORPO merges SFT + alignment into **one stage**.
 
-**Mechanism:**
+**The innovation:**
 - Adds an odds ratio penalty to the standard negative log-likelihood loss
 - Penalizes the generation of rejected responses during the initial instruction tuning phase
 - Saves 30–50% compute compared to SFT → DPO pipeline
-- Strong safety performance
+- Surprisingly strong safety performance
+
+**When to use:** When you want to save compute and reduce pipeline complexity.
 
 ### KTO (Kahneman-Tversky Optimization)
 
-KTO only needs "desirable" vs "undesirable" labels (no pairwise data).
+**For the real world.** KTO only needs "desirable" vs "undesirable" labels (no pairwise data).
 
-**Mechanism:** Inspired by prospect theory—penalizes bad outcomes more than it rewards good ones.
+**The insight:** Inspired by prospect theory—penalizes bad outcomes more than it rewards good ones.
 
-**Advantages:**
-- Works with weak supervision (e.g., user thumbs-down logs)
+**Why it matters:**
+- Perfect when you have tons of weak supervision (e.g., user thumbs-down logs)
 - No need for carefully curated preference pairs
-- Effective for noisy or safety data
+- Great for noisy or safety data
+
+**When to use:**
+- You have good/bad signals but not preference pairs
+- Working with user feedback data
+- Safety-focused fine-tuning
 
 ### Newer Contenders (2025–2026)
 
@@ -251,6 +269,12 @@ KTO only needs "desirable" vs "undesirable" labels (no pairwise data).
 - **IPO (Identity Preference Optimization)**: Better handling of noisy preferences
 - **CPO (Contrastive Preference Optimization)**: Improved stability
 
+### Decision Tree: Which Alignment Method?
+
+- **Have clean preference pairs?** → **DPO**
+- **Want one-stage efficiency?** → **ORPO**
+- **Only have good/bad signals?** → **KTO**
+- **Need maximum stability at scale?** → **SimPO + ORPO hybrid**
 
 ## Post-Training for Multimodal & Diffusion Models
 
@@ -270,6 +294,7 @@ PEFT has fully colonized continuous domains. No longer restricted to LLMs.
 - Result: pixel-perfect localized edits with perfect temporal consistency
 - Critical for autonomous driving edge cases where you need to modify specific objects without affecting the scene
 
+**Example use case:** Fine-tuning a VLM to better detect and reason about rare edge cases in driving scenarios (e.g., construction zones, unusual weather conditions).
 
 ### Diffusion Models
 
@@ -303,7 +328,7 @@ Instead of naive per-video fine-tuning, researchers now use **Mask-guided LoRA**
 
 **Result:** High temporal consistency without bleeding the style transfer into the environment.
 
-## Supervised Fine-Tuning (SFT)
+## Supervised Fine-Tuning (SFT) Best Practices
 
 ### Instruction Tuning
 
@@ -313,9 +338,9 @@ Instead of naive per-video fine-tuning, researchers now use **Mask-guided LoRA**
 
 ### Catastrophic Forgetting Mitigation
 
-Fine-tuning on new data can cause the model to forget pre-training knowledge.
+**The problem:** Fine-tuning on new data can cause the model to forget pre-training knowledge.
 
-**Mitigation strategies:**
+**Solutions:**
 1. **Replay buffers**: Mix a small percentage of pre-training data into fine-tuning batches
 2. **LoRA on critical layers only**: Freeze more layers, only adapt attention or specific modules
 3. **Multi-task training**: Train on both new and old tasks simultaneously
@@ -327,24 +352,55 @@ Modern LLMs expect specific chat formats. Common formats:
 - **Llama-3**: `[INST] {prompt} [/INST]`
 - **Vicuna**: `USER: {prompt}\nASSISTANT:`
 
-## Adapter Merging and Inference
+Always use the format your base model was trained with.
 
-### Merging Adapters
+## Production Best Practices (2026 Edition)
 
-- vLLM, TGI, and Outlines support merged adapter serving natively
+### 1. Always Merge Adapters Before Serving
+
+- vLLM, TGI, and Outlines all support merged adapter serving natively
 - Merging eliminates inference overhead
 - Use `peft.merge_and_unload()` or equivalent
 
-### Inference Options
+### 2. Use Training Acceleration Tools
 
-- **Merged**: Zero latency cost, same speed as base model
-- **Separate**: Keep adapters separate for hot-swapping (supported by vLLM, TGI, llama.cpp)
+- **Unsloth** or **Axolotl**: 3–5× faster training
+- Optimized kernels for LoRA updates
+- Better memory efficiency
 
-## Hyperparameters
+### 3. Monitor Catastrophic Forgetting
+
+- Track perplexity on held-out pre-training data
+- Set up alerts if performance degrades significantly
+- Use replay buffers if forgetting is detected
+
+### 4. Multi-Stage Pipeline That Wins
+
+**The 2026 standard pipeline:**
+
+1. **Stage 1: ORPO (or KTO)** on 10k–100k examples
+   - One-stage SFT + alignment
+   - Fast iteration
+
+2. **Stage 2: DoRA refinement** on high-quality domain data
+   - Fine-tune on your specific domain
+   - Use QDoRA if memory-constrained
+
+3. **Stage 3: SimPO/DPO** on final preference set
+   - Final alignment polish
+   - Use if you have high-quality preference data
+
+### 5. Quantize Early
+
+- QDoRA + 4-bit is production default
+- No significant performance loss
+- Massive memory savings
+
+### 6. Hyperparameter Recipes (2026 Meta)
 
 **For LoRA/DoRA:**
 - Learning rate: 1e-4 to 5e-4 (10× base model LR)
-- Rank: Common values are 4, 8, 16, 32
+- Rank: Start with r=8, increase to 16 if needed
 - Alpha: Usually 2× rank (alpha=16 for r=8)
 - Target modules: `q_proj, v_proj` for attention, `gate_proj, up_proj, down_proj` for MLP
 
@@ -358,12 +414,57 @@ Modern LLMs expect specific chat formats. Common formats:
 - Desirable weight: 1.0
 - Undesirable weight: 1.0 to 2.0 (penalize bad more)
 
+## When to Use What: A Practical Guide
+
+### Scenario 1: Fine-tuning a 70B LLM on a Single GPU
+→ **QDoRA (r=8, alpha=16)**
+
+### Scenario 2: Fast iteration on a 7B model
+→ **PiSSA (r=8)** for fast convergence
+
+### Scenario 3: Autonomous driving VLM edge cases
+→ **Mask-Aware DoRA** on vision encoder + cross-attention
+
+### Scenario 4: Video editing with temporal consistency
+→ **Temporal LoRA** on diffusion U-Net
+
+### Scenario 5: Alignment with limited preference data
+→ **KTO** (works with good/bad labels)
+
+### Scenario 6: Maximum efficiency (one-stage)
+→ **ORPO** (SFT + alignment combined)
+
+### Scenario 7: Production deployment
+→ **DoRA + merge adapters** before serving
+
+## The Future: What's Next?
+
+**Emerging trends (2026–2027):**
+
+1. **Unified PEFT frameworks**: One adapter architecture for LLMs, VLMs, and diffusion
+2. **Automated rank selection**: Learn optimal rank per layer automatically
+3. **Federated PEFT**: Fine-tuning across distributed data without sharing raw data
+4. **Continual learning**: Add new capabilities without forgetting old ones
+5. **Compositional adapters**: Combine multiple adapters for multi-task scenarios
+
+## Conclusion
+
+The post-training stack in 2026 is mature, efficient, and battle-tested. Full fine-tuning is dead for most use cases. The combination of:
+
+- **DoRA/QLoRA** for efficient adaptation
+- **ORPO/KTO** for alignment
+- **Mask-aware and temporal LoRA** for multimodal tasks
+
+...gives you production-grade models with a fraction of the compute and memory.
+
+**The bottom line:** Pre-training gives you intelligence. Post-training gives you value. Master the post-training stack, and you'll build models that actually work in production.
+
 ---
 
 ## Related Resources
 
 - [ML Cheatsheets: Tree-Based Machine Learning](/cheatsheets#tree-based-ml) - Comprehensive overview of ensemble methods
-- [Life of a Tensor: Production Inference](/posts/life-of-a-tensor-production-inference) - Deep dive into inference optimization
+- [Life of a Tensor: Production Inference](/posts/mlops/life-of-a-tensor-production-inference) - Deep dive into inference optimization
 
 ## References
 

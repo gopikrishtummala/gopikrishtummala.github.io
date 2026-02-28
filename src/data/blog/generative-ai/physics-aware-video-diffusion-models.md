@@ -289,5 +289,5 @@ The field is rapidly maturing from research prototypes to production-ready syste
 
 ---
 
-*This article is part of an ongoing series on cutting-edge AI research. For more on agentic AI design patterns, see the [Agentic AI Design Patterns series](/posts/agentic-ai-design-patterns-part-1).*
+*This article is part of an ongoing series on cutting-edge AI research. For more on agentic AI design patterns, see the [Agentic AI Design Patterns series](/posts/agentic-ai/agentic-ai-design-patterns-part-1).*
 

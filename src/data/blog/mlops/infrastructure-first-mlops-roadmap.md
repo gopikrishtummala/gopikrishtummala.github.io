@@ -104,7 +104,7 @@ Most engineers start at the top (serving) and work their way down. This roadmap 
 - **The Pattern:** Store in Parquet → Convert to Arrow → Use for compute → Convert to tensors only at the final step
 
 #### Deep Dive Article:
-📖 **[The DNA of Data: Parquet, Arrow, and the Quest for Analytic Speed](/posts/parquet-arrow-quest-for-analytic-speed)**
+📖 **[The DNA of Data: Parquet, Arrow, and the Quest for Analytic Speed](/posts/mlops/parquet-arrow-quest-for-analytic-speed)**
 
 This article explains why "just use CSV" is the bottleneck you didn't know you had. Learn how modern systems like HuggingFace Datasets handle petabytes of data by understanding the fundamental trade-off between storage efficiency (Parquet) and compute speed (Arrow).
 
@@ -129,7 +129,7 @@ Set up a data pipeline that converts 10GB of CSV files to Parquet, loads them wi
 - **The Pipeline:** S3 → Parquet → Arrow → Sharded Arrow → Dataloader → GPU
 
 #### Deep Dive Article:
-📖 **[The Hidden Engine of AI: Datasets and Dataloaders](/posts/datasets-and-dataloaders)**
+📖 **[The Hidden Engine of AI: Datasets and Dataloaders](/posts/mlops/datasets-and-dataloaders)**
 
 This comprehensive guide explains how data flows from storage to model, covering PyTorch DataLoader internals, HuggingFace Datasets architecture, and NVIDIA DALI for GPU-accelerated preprocessing. Learn why "just increase batch size" doesn't solve throughput problems.
 
@@ -154,7 +154,7 @@ Build a custom DataLoader that streams data from S3, implements proper sharding 
 - **The Challenge:** Coordinating 1000 GPUs across multiple data centers
 
 #### Deep Dive Article:
-📖 **[The Hidden Engine of AI: Training Frameworks and Resilience](/posts/hidden-engine-of-ai)**
+📖 **[The Hidden Engine of AI: Training Frameworks and Resilience](/posts/mlops/hidden-engine-of-ai)**
 
 Dive deep into PyTorch's distributed training ecosystem, covering DDP, FSDP, and the checkpointing strategies that keep large-scale training jobs alive. Learn why "just use more GPUs" requires sophisticated orchestration.
 
@@ -179,7 +179,7 @@ Set up a multi-GPU training job using FSDP, implement checkpointing that saves s
 - **Quantization:** Weight-only vs. Activation quantization (AWQ, FP8)
 
 #### Deep Dive Article:
-📖 **[vLLM and the Trilogy of Modern LLM Scaling](/posts/vllm-trilogy-of-modern-llm-scaling)**
+📖 **[vLLM and the Trilogy of Modern LLM Scaling](/posts/mlops/vllm-trilogy-of-modern-llm-scaling)**
 
 This article explains how PagedAttention, Continuous Batching, and Speculative Decoding work together to make LLM serving 10x faster than naive implementations. Learn why serving a 70B model to millions of users requires rethinking memory management from first principles.
 
@@ -204,7 +204,7 @@ Set up a vLLM server with a quantized model (AWQ or GPTQ), measure throughput wi
 - **The Reality:** Sometimes you need to write code that talks directly to hardware
 
 #### Deep Dive Article:
-📖 **[The Custom Kernel Craze: Why Developers Are Taking the Wheel on GPU Optimization](/posts/custom-kernel-craze)**
+📖 **[The Custom Kernel Craze: Why Developers Are Taking the Wheel on GPU Optimization](/posts/mlops/custom-kernel-craze)**
 
 Explore why teams at OpenAI, Anthropic, and other AI labs write custom CUDA kernels instead of relying on PyTorch's built-in operations. Learn about the Memory Wall, IO-bound operations, and how FlashAttention changed the game for transformer inference.
 
@@ -315,22 +315,22 @@ The difference? **This roadmap focuses on the infrastructure layer that makes ev
 
 This roadmap is built on deep-dive articles that explore each topic in detail:
 
-1. **[The DNA of Data: Parquet, Arrow, and the Quest for Analytic Speed](/posts/parquet-arrow-quest-for-analytic-speed)**  
+1. **[The DNA of Data: Parquet, Arrow, and the Quest for Analytic Speed](/posts/mlops/parquet-arrow-quest-for-analytic-speed)**  
    *Why columnar formats and zero-copy reads are the foundation of modern ML pipelines.*
 
-2. **[The Hidden Engine of AI: Datasets and Dataloaders](/posts/datasets-and-dataloaders)**  
+2. **[The Hidden Engine of AI: Datasets and Dataloaders](/posts/mlops/datasets-and-dataloaders)**  
    *How data flows from storage to GPU, covering PyTorch, HuggingFace, and NVIDIA DALI.*
 
-3. **[The Hidden Engine of AI: Training Frameworks and Resilience](/posts/hidden-engine-of-ai)**  
+3. **[The Hidden Engine of AI: Training Frameworks and Resilience](/posts/mlops/hidden-engine-of-ai)**  
    *Scaling training across 1000 GPUs with DDP, FSDP, and fault tolerance.*
 
-4. **[vLLM and the Trilogy of Modern LLM Scaling](/posts/vllm-trilogy-of-modern-llm-scaling)**  
+4. **[vLLM and the Trilogy of Modern LLM Scaling](/posts/mlops/vllm-trilogy-of-modern-llm-scaling)**  
    *How PagedAttention, Continuous Batching, and Speculative Decoding make LLM serving 10x faster.*
 
-5. **[The Custom Kernel Craze: Why Developers Are Taking the Wheel on GPU Optimization](/posts/custom-kernel-craze)**  
+5. **[The Custom Kernel Craze: Why Developers Are Taking the Wheel on GPU Optimization](/posts/mlops/custom-kernel-craze)**  
    *When and why to write custom CUDA/Triton kernels instead of using standard libraries.*
 
-6. **[Beyond Inference: Architecting Infrastructure for Agentic MLOps & The Model Context Protocol (MCP)](/posts/beyond-inference-agentic-mlops-mcp)**  
+6. **[Beyond Inference: Architecting Infrastructure for Agentic MLOps & The Model Context Protocol (MCP)](/posts/mlops/beyond-inference-agentic-mlops-mcp)**  
    *The journey from stateless inference to stateful, tool-augmented AI agents. Learn how MCP, secure sandbox environments, distributed tracing, and holistic versioning enable the next generation of agentic AI systems.*
 
 Each article stands alone, but together they form a coherent curriculum for mastering ML infrastructure.
@@ -355,7 +355,7 @@ This is the difference between an engineer who can train a model and an engineer
 
 ## Ready to Start?
 
-Begin with **[Month 1: The DNA of Data](/posts/parquet-arrow-quest-for-analytic-speed)**.
+Begin with **[Month 1: The DNA of Data](/posts/mlops/parquet-arrow-quest-for-analytic-speed)**.
 
 Understand how data is structured before you try to move it at scale. Master the foundation, and the rest of the stack becomes intuitive.
 

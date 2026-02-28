@@ -410,5 +410,5 @@ The next generation of breakthroughs won't come from bigger models alone—but f
 
 ---
 
-*This article is part of the [Infrastructure-First MLOps Roadmap](/posts/infrastructure-first-mlops-roadmap). For more on building production ML systems, explore the [MLOps & Production](/learn/mlops) track.*
+*This article is part of the [Infrastructure-First MLOps Roadmap](/posts/mlops/infrastructure-first-mlops-roadmap). For more on building production ML systems, explore the [MLOps & Production](/learn/mlops) track.*
 
