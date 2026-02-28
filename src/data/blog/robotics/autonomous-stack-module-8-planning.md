@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-01-25T00:00:00Z
+modDatetime: 2025-02-28T00:00:00Z
 title: 'Module 08: The Chess Master — The Art of Planning'
 slug: autonomous-stack-module-8-planning
 featured: true
@@ -12,14 +12,17 @@ tags:
   - planning
   - game-theory
   - control-systems
-description: 'From perception to action: How autonomous vehicles make decisions. Covers cost functions, game-theoretic planning, and the modular vs. end-to-end debate.'
+  - reinforcement-learning
+  - mpc
+description: 'From perception to action: How autonomous vehicles make decisions. Covers cost functions, game-theoretic planning, MPC, and the "End-to-End" debate.'
 track: Robotics
 difficulty: Advanced
 interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-estimated_read_time: 30
+  - Control Theory
+estimated_read_time: 45
 ---
 
 *By Gopi Krishna Tummala*
@@ -44,208 +47,171 @@ estimated_read_time: 30
 
 ---
 
-### The Story: From Seeing to Acting
+### Act 0: Planning in Plain English
 
-So far, our car has **Eyes** (Cameras), **Ears** (Radar), and a sense of **Truth** (LiDAR). It knows exactly where the world is.
+Imagine you are playing a high-stakes game of Chess while riding a bicycle through a busy market. 
 
-But "knowing" isn't driving.
+*   **Perception** tells you where the other people and obstacles are. 
+*   **Prediction** tells you where they are *going* to be in 3 seconds. 
+*   **Planning** is the "Grandmaster" in your head deciding, "Should I swerve left to avoid the cart, or slow down and wait for the lady with the groceries to pass?"
 
-* **Perception** says: *"There is a cyclist 12 meters ahead, moving left."*
+The Planner has to balance four conflicting goals:
+1.  **Safety:** Don't hit anything. (Priority #1)
+2.  **Legality:** Follow the rules (Stop at red lights).
+3.  **Comfort:** Don't slam the brakes or jerk the wheel.
+4.  **Progress:** Actually get to the destination.
 
-* **Prediction** says: *"He will likely cross our lane in 2.5 seconds."*
-
-* **The Planner** has to decide: *"Do I brake? Do I swerve? Do I nudge forward to signal intent?"*
-
-If Perception is the visual cortex, the **Planner** is the frontal lobe. It is the module that weighs *Risk* vs. *Reward* 10 times per second.
-
-This post explores how autonomous vehicles transform raw sensor data and predictions into safe, comfortable, and legal driving decisions.
+If the Planner is too "scared," the car never moves. If it's too "aggressive," it drives like a maniac. The "Art of Planning" is finding the perfect middle ground.
 
 ---
 
 ### Act I: The Cost Function (How Robots Think)
 
-Humans drive on intuition. Robots drive on math. Specifically, they drive by minimizing a **Cost Function**.
+Humans drive on intuition; robots drive on **Cost Functions**. Imagine the road is covered in "invisible hills" (high cost) and "valleys" (low cost).
 
-Imagine a transparent "surface" floating over the road.
+*   **High Cost (The Hills):** Hitting a pedestrian (Infinite cost), driving over a curb, jerky steering.
+*   **Low Cost (The Valleys):** Staying in the center of the lane, maintaining speed, smooth braking.
 
-* **High Cost (Hills):** Hitting a car, driving off-road, jerking the steering wheel (uncomfortable).
-
-* **Low Cost (Valleys):** Staying in the lane center, maintaining 30 mph, driving smoothly.
-
-The Planner's job is to roll a marble through this landscape so it stays in the deepest valley.
-
+The Planner's job is to roll a "marble" (the car) through the deepest valleys.
 $$J_{total} = w_1(\text{Safety}) + w_2(\text{Comfort}) + w_3(\text{Progress}) + w_4(\text{Legality})$$
 
-Where:
-
-* $w_1$: Safety weight (collision avoidance, staying on road)
-
-* $w_2$: Comfort weight (smooth acceleration, gentle turns)
-
-* $w_3$: Progress weight (reaching the destination)
-
-* $w_4$: Legality weight (following traffic rules, speed limits)
-
-**The Tuning Challenge:**
-
-* If $w_1$ is too high, the car never moves (safest option).
-
-* If $w_3$ is too high, the car drives like a maniac to get there faster.
-
-* **The Art of Planning** is tuning these weights ($w$) so the car feels "human."
+> **Interview Pro-Tip:** If an interviewer asks how to handle a "stalled vehicle on a double-yellow line," talk about **Cost Relaxation**. The cost of crossing a double-yellow is high, but the cost of "infinite wait" (zero progress) eventually becomes higher. The car "decides" to break a small rule to satisfy a larger goal.
 
 ---
 
-### Act II: The Hard Part (Interactive Planning & Game Theory)
+### Act II: Classical Planning (MPC & Lattice)
 
-Driving would be easy if no one else was on the road. The problem is **Other Humans**.
+#### 1. Model Predictive Control (MPC)
+MPC is like a "rolling window" of decisions. 
+1.  Look ahead 5 seconds.
+2.  Find the best path for those 5 seconds.
+3.  Execute only the *first* 100ms.
+4.  Repeat.
+This allows the car to constantly adjust to new information.
 
-#### The "Frozen Robot" Problem
+#### 2. Frenet Lattice Planning
+Instead of $(x, y)$ coordinates, we use **$s$** (distance along the road) and **$d$** (lateral offset from center). 
+*   *Pros:* Simplifies the math. "Stay in lane" just means $d=0$.
+*   *Cons:* Fails in intersections or parking lots where there is no "center line."
 
-Early self-driving cars treated other cars like moving rocks. They predicted a path and tried to avoid it.
+---
 
-* *Result:* The "Frozen Robot" problem. The car waits endlessly at a 4-way stop because it's terrified of cutting someone off.
+#### Act II.V: Mature Architecture — The Neural Planner
 
-* *Why it happens:* The planner sees infinite risk in any action that involves uncertainty about other drivers' intentions.
+In modern end-to-end and hybrid stacks (Tesla FSD v12, Wayve), planning has evolved from a series of "If-Then" rules to **Learned Differentiable Planners**. These architectures use **World Models** to simulate outcomes before taking action.
 
-#### Game Theoretic Planning
+**The Planning Pipeline (Mature Architecture):**
 
-Modern planners (like those in Waymo's latest stack) use **Game Theoretic Planning**.
+```mermaid
+graph TD
+    subgraph "Perception/Prediction Latent"
+        Scene[Scene Embeddings]
+        Agents[Agent Intent Tokens]
+    end
 
-They treat driving as a **Multi-Agent Game**.
+    subgraph "The World Model"
+        W_Model[Predictive World Model: Differentiable Simulator]
+        Future[Hallucinated Future States]
+    end
 
-* *"If I nudge forward 1 foot, will that other driver slow down?"*
+    subgraph "The Transformer Planner"
+        Queries[Trajectory Queries]
+        X_Attn[Cross-Attention: Querying the World Model]
+        S_Attn[Self-Attention: Trajectory Refinement]
+    end
 
-* *"He is driving aggressively (high risk acceptance); I should yield."*
+    subgraph "Final Actuation"
+        Traj[Optimal Trajectory]
+        Cost[Cost Refinement/Guardrails]
+        Control[Brake/Steer/Throttle]
+    end
 
-* *"He is hesitant; I should take the right of way."*
+    Scene --> W_Model
+    Agents --> W_Model
+    W_Model --> Future
+    
+    Future --> X_Attn
+    Queries --> X_Attn
+    X_Attn --> S_Attn
+    S_Attn --> Traj
+    Traj --> Cost
+    Cost --> Control
+```
 
-This isn't just physics; it's negotiation. The car simulates thousands of "I do X, you do Y" futures every millisecond to find the **Nash Equilibrium**—the move where everyone is least unhappy.
+##### 1. Querying the Future
+How does a neural network "decide" where to go? 
+*   **The Mechanism:** The planner generates a set of "Trajectory Queries"—potential paths the car could take. 
+*   **Cross-Attention:** These queries attend to the **World Model's** predicted future. Each query "asks": *"If I take this path, how likely am I to collide with the hallucinated pedestrian in 2 seconds?"*
+*   **The Selection:** The model weights the trajectories based on safety and progress, selecting the "cleanest" path through the latent space.
 
-#### Recent Breakthroughs (Waymo Open Dataset Challenge)
-
-The industry focus has shifted heavily here. The **2025 Waymo Open Dataset Challenges** explicitly added an **"Interaction Prediction"** track. The goal isn't just predicting where a car *will* go, but predicting how it will *react* to us.
-
-Winners of the 2024 challenge (like the ModeSeq team) used advanced Transformer models to handle this "social uncertainty."
-
-Here is a video that perfectly illustrates the "Game Theoretic" nature of modern planning—watch how the Waymo vehicle negotiates space with human drivers in a dense, unstructured environment.
-
-[Waymo driverless car navigating chaos in SF](https://www.youtube.com/watch?v=B8R148hFxGw)
-
-This video shows the "Frozen Robot" problem being solved in real-time: notice how the car nudges, waits, and negotiates with pedestrians and aggressive drivers rather than just stopping passively.
+##### 2. Differentiable Cost Functions
+Unlike old-school planners where we hand-tuned weights, mature architectures use **Learned Cost Functions**. 
+*   The model is trained on millions of hours of expert human driving. It "learns" the cost of discomfort or illegality by trying to minimize the difference between its chosen path and the human's path (**Imitation Learning**).
 
 ---
 
 ### Act III: The Great Divergence (Modular vs. End-to-End)
 
-Right now, there is a massive philosophical war in the industry.
+There is a philosophical war in AV right now.
 
-#### Team Modular (Waymo, Aurora, Mobileye)
+#### Team Modular (Waymo, Aurora)
+**Philosophy:** "Explainable AI."
+*   *How:* Separate boxes for Perception → Prediction → Planning.
+*   *Pros:* If it makes a mistake, you know exactly why. Easy to "fix" a specific rule.
 
-**Philosophy:** "Divide and Conquer."
-
-**How it works:** You have a distinct Perception box, a distinct Prediction box, and a distinct Planner box.
-
-**Pros:**
-
-* **Explainable:** If the car crashes, you know exactly why ("The Planner chose a bad path" vs "The Camera didn't see the truck").
-
-* **Debuggable:** You can test each module independently.
-
-* **Regulatory Friendly:** Easier to certify and validate individual components.
-
-**Cons:**
-
-* **Brittle:** You have to hand-code rules for every weird edge case (e.g., "If a man in a chicken suit is holding a sign, do X").
-
-* **Integration Complexity:** Errors compound across module boundaries.
-
-* **Limited Generalization:** Struggles with scenarios not explicitly programmed.
-
-#### Team End-to-End (Tesla FSD v12, Wayve, Comma.ai)
-
+#### Team End-to-End (Tesla FSD v12, Wayve)
 **Philosophy:** "Muscle Memory."
-
-**How it works:** You replace the entire stack with one giant Neural Network.
-
-* **Input:** Photons (Video). **Output:** Steering control.
-
-**The Shift:** Tesla recently deleted 300,000+ lines of C++ planning code for FSD v12. Instead of writing rules, they feed the network millions of hours of human driving video. The car doesn't "calculate" a cost function; it simply *imitates* what a good human driver would do in that visual context.
-
-**Pros:**
-
-* **Natural Feel:** It feels incredibly natural. It can handle weird situations (like a parade) that no programmer ever wrote a rule for.
-
-* **Generalization:** Learns from data, not explicit rules.
-
-* **Simpler Architecture:** One model instead of many modules.
-
-**Cons:**
-
-* **Black Box:** If it crashes, you don't know why. You can't just "fix the code"; you have to retrain the brain.
-
-* **Data Hungry:** Requires massive amounts of high-quality driving data.
-
-* **Safety Validation:** Harder to prove the system is safe in all scenarios.
-
-#### The Future: Hybrid World Models
-
-The cutting edge (papers like **UniAD** and **VAD** from CVPR 2024) is trying to merge these approaches.
-
-They use deep learning to build a "World Model"—a neural simulation of the future—and then run a planner inside that learned hallucination.
-
-**The Promise:**
-
-* **Neural Intuition:** The world model captures complex, hard-to-code behaviors.
-
-* **Planner Safety:** The planner ensures hard constraints (don't hit things, follow rules).
-
-It is the best of both worlds: the intuition of a neural network with the safety constraints of a planner.
+*   *How:* One giant Neural Network. Pixels in → Steering out.
+*   *Pros:* Feels very human. Can handle weird scenarios (like a man in a chicken suit) that programmers didn't write rules for.
+*   *Cons:* "Black Box." If it fails, you can't "patch" it; you have to find more training data.
 
 ---
 
-### Summary: The Planning Challenge
+### Act IV: 2025 Trends — LLMs & World Models
 
-Planning in autonomous vehicles requires:
+#### 1. Chain-of-Thought Planning
+Modern planners are using **Large Language Models (LLMs)** to "think out loud" before acting. 
+*   *Example:* "I see a ball roll into the street. A ball implies a child. I will slow down now even though I don't see the child yet." 
 
-1. **Cost Function Design:** Balancing safety, comfort, progress, and legality.
-
-2. **Game Theoretic Reasoning:** Understanding how other agents will react to your actions.
-
-3. **Architectural Choice:** Modular (explainable) vs. End-to-End (natural) vs. Hybrid (best of both).
-
-**The Path Forward:**
-
-* **Better Interaction Models:** Predicting how agents react to ego vehicle actions.
-
-* **Hybrid Architectures:** Combining neural world models with classical planners.
-
-* **Safety Guarantees:** Formal verification methods for end-to-end systems.
+#### 2. Differentiable World Models
+Companies like **Wayve** and **Tesla** are building "simulators inside the car's brain." The planner "hallucinates" 1,000 possible futures and picks the one where it doesn't crash.
 
 ---
 
-### Graduate Assignment: The Cost Function Tuning Problem
+### Act V: System Design & Interview Scenarios
+
+#### Scenario 1: The "Frozen Robot" Problem
+*   **Question:** "Your car is at a 4-way stop. It's your turn, but an aggressive human driver keeps inching forward. Your car is stuck. How do you fix this?"
+*   **Answer:** Mention **Nudging & Intent Signaling**. The planner shouldn't just wait; it should slowly "creep" forward to signal its intention to take the right-of-way. This is a "Game Theory" problem.
+
+#### Scenario 2: Ethics vs. Safety (The Trolley Problem)
+*   **Question:** "The car must choose between hitting a dog or swerving into a parked car. What do you do?"
+*   **Answer:** **Avoid the "Ethics Trap."** In real engineering, we use **Hierarchical Costs**. Collision with a moving object (dog) is high cost, but "unpredictable swerving" into a fixed object is also high risk. We prioritize **Predictability**. The safest move is usually to brake hard in your own lane.
+
+#### Scenario 3: Validation
+*   **Question:** "How do you prove an End-to-End planner is safe for public roads?"
+*   **Answer:** Discuss **Shadow Mode** (running the model in the background without it controlling the car) and **Formal Verification** (checking if the neural network's outputs ever violate hard safety "guardrails" written in C++).
+
+---
+
+### Graduate Assignment: The Merging Challenge
 
 **Task:**
+You are merging onto a 65mph highway from an on-ramp. 
+1.  **The Interaction:** If you speed up to match a gap, the car in that gap might speed up too (the "Gap Closer"). How do you model this **Interaction** in your cost function?
+2.  **The Logic:** Draw a state machine for "Merging." Include states for "Gap Selection," "Alignment," and "Abort."
+3.  **The Edge Case:** What if the on-ramp is too short to reach 65mph? How do you balance the "Comfort" cost vs. the "Safety" cost of merging slowly?
 
-Design a simple 1D planner for a car approaching a stop sign.
-
-1. **Scenario:** A car is 50m from a stop sign, traveling at 15 m/s.
-
-2. **Cost Function:** $J = w_1 \cdot (\text{distance to stop line})^2 + w_2 \cdot (\text{deceleration})^2 + w_3 \cdot (\text{time to destination})$
-
-3. **Experiment:**
-   * Set $w_1 = 1, w_2 = 0.1, w_3 = 0.01$ (safety-focused). What happens?
-   * Set $w_1 = 0.1, w_2 = 1, w_3 = 0.01$ (comfort-focused). What happens?
-   * Set $w_1 = 0.1, w_2 = 0.1, w_3 = 1$ (progress-focused). What happens?
-
-4. **Analysis:** Which combination feels most "human"? Why?
+---
 
 **Further Reading:**
+*   *Optimal Trajectory Generation for Dynamic Street Scenarios (ICRA 2010)*
+*   *Model Predictive Control: Theory and Practice (Tutorial)*
+*   *Learning to Drive in a Day (Wayve, 2018)*
+*   *Tesla AI Day 2022: Motion Planning*
 
-* *UniAD: Planning-oriented Autonomous Driving (CVPR 2024)*
-* *VAD: Vectorized Scene Representation for End-to-End Autonomous Driving (CVPR 2024)*
-* *Waymo Open Dataset: Interaction Prediction Challenge*
+---
 
-**Next Up:** [Module 9 — The Unified Brain (Foundation Models)](/posts/robotics/autonomous-stack-module-9-foundation-models)
+**Previous:** [Module 7 — Prediction](/posts/robotics/autonomous-stack-module-7-prediction)
 
+**Next:** [Module 9 — Foundation Models](/posts/robotics/autonomous-stack-module-9-foundation-models)
