@@ -1,0 +1,138 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fontawesome5}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{xcolor}
+
+% Define colors
+\definecolor{darkblue}{RGB}{0,0,139}
+\definecolor{graytext}{RGB}{80,80,80}
+
+% Custom section formatting
+\titleformat{\section}{\Large\bfseries\uppercase}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{14pt}{7pt}
+
+% Custom itemize formatting
+\setlist[itemize]{leftmargin=1.5em, nosep, topsep=3pt, itemsep=3pt}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    filecolor=darkblue,
+    urlcolor=darkblue,
+}
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	HEADER
+%----------------------------------------------------------------------------------------
+\begin{center}
+    {\Huge \textbf{Gopi Krishna Tummala}} \\ [6pt]
+    \large
+    \faMapMarker* Fremont, CA \quad | \quad
+    \faPhone* +1-614-620-7960 \quad | \quad
+    \faEnvelope \href{mailto:tummalag.cseosu@gmail.com}{tummalag.cseosu@gmail.com} \\ [4pt]
+    \small
+    \faLinkedin \href{https://www.linkedin.com/in/gopi-krishna-tummala-00294415/}{ linkedin.com/in/gopi-krishna-tummala} \quad | \quad
+    \faGlobe \href{https://gopikrishnatummala.com/}{ gopikrishnatummala.com} \quad | \quad
+    \faGraduationCap \href{https://scholar.google.com/citations?user=SaKqqO8AAAAJ&hl=en}{ Google Scholar} \\ [4pt]
+    \textbf{Visa Status:} Green Card
+\end{center}
+
+%----------------------------------------------------------------------------------------
+%	SUMMARY
+%----------------------------------------------------------------------------------------
+\section{Professional Summary}
+Technically hands-on Machine Learning Engineering Leader with \textbf{12+ years of experience} architecting scalable ML infrastructure for \textbf{Generative AI} and \textbf{Autonomous Driving} (L3-L5). Proven track record of transitioning complex research into robust production systems while leading, mentoring, and scaling engineering teams. Deep expertise in distributed training infrastructure, high-throughput data pipelines, and MLOps. Passionate about driving technical vision, fostering engineering excellence, and empowering teams to deliver high-impact AI platforms.
+
+%----------------------------------------------------------------------------------------
+%	CORE COMPETENCIES & TECHNICAL SKILLS
+%----------------------------------------------------------------------------------------
+\section{Core Competencies \& Technical Skills}
+\begin{itemize}
+    \item \textbf{Engineering Leadership:} Technical Strategy \& Roadmap, Cross-Functional Team Leadership, Mentorship, Agile Project Execution, Research-to-Production Lifecycle.
+    \item \textbf{ML Infrastructure:} Distributed Training (FSDP, DeepSpeed), AWS (S3, DynamoDB, EC2), Docker, Kubernetes, Ray, Apache Arrow/Parquet.
+    \item \textbf{Machine Learning \& GenAI:} PyTorch, JAX, Transformers, Diffusion Models (DiT/VAE), Vision-Language Models (VLMs), vLLM.
+    \item \textbf{Languages:} Python (Expert), C++, CUDA, SQL, Bash, TypeScript, Java.
+\end{itemize}
+
+%----------------------------------------------------------------------------------------
+%	PROFESSIONAL EXPERIENCE
+%----------------------------------------------------------------------------------------
+\section{Professional Experience}
+
+\textbf{Adobe} \hfill San Jose, CA \\
+\textit{Senior Machine Learning Engineer \& Tech Lead} \hfill Sep 2024 -- Present
+\begin{itemize}
+    \item \textbf{Team Leadership \& Architecture:} Lead a team of 3 engineers in architecting a high-performance Data Marketplace (internal Hugging Face equivalent) to centralize and scale data access for the \textbf{Adobe Firefly} GenAI organization.
+    \item \textbf{Infrastructure Scaling:} Directed the design and deployment of a global training feature store utilizing a distributed \textbf{DynamoDB cluster (~20B items)}, ensuring ultra-low latency and high availability for distributed training workloads.
+    \item \textbf{Performance Optimization:} Spearheaded the development of a high-throughput production dataloader handling \textbf{$>$1M calls/month}. Engineered advanced data streaming and caching mechanisms that significantly reduced training bottlenecks.
+    \item \textbf{MLOps Excellence:} Established CI/CD automation and runtime profiling suites for inference systems, driving engineering best practices that accelerated deployment velocity and optimized compute resource utilization.
+\end{itemize}
+
+\textbf{Zoox} \hfill Foster City, CA \\
+\textit{Software Engineer (Prediction) \& Tech Lead} \hfill Apr 2022 -- Aug 2024
+\begin{itemize}
+    \item \textbf{Modeling:} Delivered vehicular and VRU (pedestrian/cyclist) prediction improvements; transitioned legacy CNN/MLP architectures to transformer-based models, outperforming mature baselines.
+    \item \textbf{Framework Migration (Led):} Spearheaded the organization-wide migration from TensorFlow to PyTorch Lightning. Architected config-driven module registry and integrated experiment tracking (wandb/CometML), achieving near-parity for mission-critical models.
+    \item \textbf{Data \& Evaluation Infra (Led):} Directed development of scalable PyTorch dataloaders (TF Records → NPZ) and large-scale evaluation framework (\textbf{~40,000 scenarios per batch}).
+    \item \textbf{Cross-Functional Tooling:} Championed the development of a prediction visualization plugin for the Argus viewer (TypeScript/React, Python, C++), enabling cross-stack debugging of probabilistic trajectories.
+\end{itemize}
+
+\textbf{Qualcomm Research} \hfill San Diego, CA \\
+\textit{Systems Engineer} \hfill Jan 2019 -- Feb 2022
+\begin{itemize}
+    \item \textbf{Mentorship \& Execution:} Managed and mentored 1 L4 engineer. Led the end-to-end development of a rule-based prediction replacement using an XGBoost multi-class classifier, managing the data pipeline, training, and deployment phases.
+    \item \textbf{Production Inference:} Architected and hand-wrote a zero-dependency C++ inference engine for the Snapdragon Ride platform, successfully bridging Python-based research with constrained on-device environments.
+    \item \textbf{System Integration:} Built automated validation pipelines for ROS bag analysis, extracting key metrics and generating reports that drove the weekly perception/planning integration cycle.
+\end{itemize}
+
+\textbf{Standard Chartered Scope International} \hfill Chennai, India \\
+\textit{Software Analyst} \hfill Jun 2012 -- Jul 2013
+\begin{itemize}
+    \item Developed financial software systems and data analysis tools for global banking operations.
+\end{itemize}
+
+%----------------------------------------------------------------------------------------
+%	EDUCATION
+%----------------------------------------------------------------------------------------
+\section{Education}
+\textbf{The Ohio State University} \hfill Columbus, OH \\
+\textit{Ph.D. in Computer Science \& Engineering} \hfill 2013 -- 2018 \\
+\textit{M.S. in Computer Science \& Engineering} \hfill 2013 -- 2017
+
+\textbf{IIT Madras} \hfill Chennai, India \\
+\textit{B.Tech in Electrical Engineering (Minor in Mathematics)} \hfill 2008 -- 2012
+
+%----------------------------------------------------------------------------------------
+%	SELECTED PUBLICATIONS & THOUGHT LEADERSHIP
+%----------------------------------------------------------------------------------------
+\section{Selected Publications \& Thought Leadership}
+\begin{itemize}
+    \item \textbf{Technical Blog:} Author of \href{https://gopikrishnatummala.com/}{gopikrishnatummala.com}, publishing in-depth technical deep dives on generative AI and model scaling, advanced MLOps, production-grade infrastructure, and autonomous systems.
+    \item \textbf{AutoCalib: Automatic calibration of traffic cameras at scale.} \\
+    \textit{ACM Transactions on Sensor Networking (TOSN) 2018} \& \textit{ACM BuildSys 2017}. \textbf{Awards:} Best Paper \& Best Demo.
+    \item \textbf{SmartDashCam: Automatic Live Calibration for DashCams.} \textit{ACM IPSN 2019}.
+    \item \textbf{Service \& Honors:} Associate Editor for \textit{IEEE RA-L}; Reviewer for \textit{ACM TECS}, \textit{IEEE TMC}; All India Rank 274 (Top 0.1\%) in IIT-JEE; Best Paper (IEEE INFOCOM 2018 MiSeNet).
+\end{itemize}
+
+%----------------------------------------------------------------------------------------
+%	PATENTS
+%----------------------------------------------------------------------------------------
+\section{Patents}
+\textit{10+ patents granted/pending spanning ML infrastructure, AV prediction, and system calibration.}
+\begin{itemize}
+    \item \textbf{US Patent 10,580,164:} Automatic Camera Calibration (Microsoft).
+    \item \textbf{US Patent 10,032,370:} Methods for enabling Mobile communication device based Secure Interaction (Honda).
+    \item \textbf{US Patent 12,542,054:} Managing vehicle behavior based on predicted behavior of other vehicles (Qualcomm).
+    \item \textbf{US Patent App 17/352,886:} Tree based behavior predictor (Qualcomm).
+\end{itemize}
+
+\end{document}
