@@ -138,39 +138,46 @@ In production stacks (Waymo, Tesla, Zoox), the "gold standard" has shifted from 
 
 **The Perception Pipeline (Mature Architecture):**
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         INPUT LAYER                              │
-├─────────────────┬─────────────────┬─────────────────────────────┤
-│ Multi-View Cams │ LiDAR Points    │ Radar Tensors               │
-└────────┬────────┴────────┬────────┴─────────────┬───────────────┘
-         │                 │                      │
-         ▼                 ▼                      ▼
-┌─────────────────┬─────────────────┬─────────────────────────────┐
-│ CNN/ViT Backbone│ PointNet/Voxel  │ RadarNet Encoder            │
-│ (Image Features)│ (Point Features)│ (Velocity Features)         │
-└────────┬────────┴────────┬────────┴─────────────┬───────────────┘
-         │                 │                      │
-         └─────────────────┼──────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    BEV TRANSFORMER NECK                          │
-├─────────────────────────────────────────────────────────────────┤
-│  BEV Queries (Learnable Grid)                                    │
-│       │                                                          │
-│       ▼                                                          │
-│  Self-Attention (Temporal + Spatial Consistency)                 │
-│       │                                                          │
-│       ▼                                                          │
-│  Cross-Attention (Project 2D → BEV using camera geometry)        │
-└────────┬────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────┬─────────────────┬─────────────────────────────┐
-│ 3D Detection    │ Occupancy Grid  │ Vector Flow (Velocity)      │
-│ Head            │ Head            │ Head                        │
-└─────────────────┴─────────────────┴─────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Input["📥 Input Layer"]
+        CAM[Multi-View Cameras]
+        LID[LiDAR Point Cloud]
+        RAD[Radar Tensors]
+    end
+
+    subgraph Encoders["🔧 Feature Extraction"]
+        C_ENC[CNN/ViT Backbone<br/>Image Features]
+        L_ENC[PointNet/Voxel<br/>Point Features]
+        R_ENC[RadarNet<br/>Velocity Features]
+    end
+
+    subgraph BEV["🧠 BEV Transformer Neck"]
+        QUERIES[BEV Queries<br/>Learnable Grid]
+        SELF[Self-Attention<br/>Temporal + Spatial]
+        CROSS[Cross-Attention<br/>2D → BEV Projection]
+    end
+
+    subgraph Heads["📤 Output Heads"]
+        DET[3D Detection]
+        OCC[Occupancy Grid]
+        FLOW[Vector Flow<br/>Velocity]
+    end
+
+    CAM --> C_ENC
+    LID --> L_ENC
+    RAD --> R_ENC
+
+    C_ENC --> CROSS
+    L_ENC --> QUERIES
+    R_ENC --> QUERIES
+
+    QUERIES --> SELF
+    SELF --> CROSS
+
+    CROSS --> DET
+    CROSS --> OCC
+    CROSS --> FLOW
 ```
 
 ##### 1. Cross-Attention: The Projection Key
@@ -199,12 +206,31 @@ At each frame, you have:
 
 #### SORT: The Baseline (2016)
 
-1. **Predict:** Kalman Filter estimates where each track will be
-   - State: $(x, y, w, h, \dot{x}, \dot{y}, \dot{w}, \dot{h})$
-2. **Associate:** Hungarian algorithm minimizes total IoU cost
-   - $\text{Cost}(i,j) = 1 - \text{IoU}(\text{Track}_i, \text{Detection}_j)$
-3. **Update:** Matched tracks update their state
-4. **Create/Delete:** Unmatched detections → new tracks; stale tracks → deleted
+```mermaid
+graph LR
+    subgraph Frame["Frame t"]
+        DET[New Detections]
+        TRACKS[Existing Tracks]
+    end
+
+    subgraph Pipeline["SORT Pipeline"]
+        PRED[1. Predict<br/>Kalman Filter]
+        ASSOC[2. Associate<br/>Hungarian + IoU]
+        UPD[3. Update<br/>Matched Tracks]
+        MANAGE[4. Create/Delete<br/>New & Stale]
+    end
+
+    TRACKS --> PRED
+    PRED --> ASSOC
+    DET --> ASSOC
+    ASSOC --> UPD
+    UPD --> MANAGE
+    MANAGE --> OUTPUT[Tracked Objects<br/>with IDs]
+```
+
+**State Vector:** $(x, y, w, h, \dot{x}, \dot{y}, \dot{w}, \dot{h})$
+
+**Cost Function:** $\text{Cost}(i,j) = 1 - \text{IoU}(\text{Track}_i, \text{Detection}_j)$
 
 **Problem:** Pure SORT uses only position. Two crossing cars can swap IDs.
 

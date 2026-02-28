@@ -60,6 +60,37 @@ Human drivers only have eyes and ears. We are actually quite limited! Computers 
 
 The car's "Brain" takes all these different "senses" and mixes them together to get the **Truth**.
 
+```mermaid
+graph TB
+    subgraph Sensors["🔧 Sensor Suite"]
+        CAM[📷 Cameras<br/>8-12 per vehicle]
+        LID[🔦 LiDAR<br/>1-5 units]
+        RAD[📡 Radar<br/>4-6 units]
+        USS[🔊 Ultrasonics<br/>8-12 units]
+        MIC[🎤 Microphones<br/>4+ units]
+    end
+
+    subgraph Output["📊 Raw Data Streams"]
+        IMG[2D Images<br/>+ Semantics]
+        PC[3D Point Cloud<br/>+ Geometry]
+        VEL[Velocity Map<br/>+ Range]
+        PROX[Proximity<br/>0-5m]
+        AUDIO[Audio Events<br/>Sirens, Horns]
+    end
+
+    CAM --> IMG
+    LID --> PC
+    RAD --> VEL
+    USS --> PROX
+    MIC --> AUDIO
+
+    IMG --> FUSION[🧠 Perception<br/>Module 6]
+    PC --> FUSION
+    VEL --> FUSION
+    PROX --> FUSION
+    AUDIO --> FUSION
+```
+
 ---
 
 ### Act I: The Camera (The Semantic King)
@@ -134,6 +165,31 @@ Radar uses radio waves. Unlike lasers, radio waves go *through* rain and fog.
 ### Act V: Sensor Fusion (The Best of All Worlds)
 
 No sensor is perfect. The principle: **Complementary Failures**.
+
+```mermaid
+graph LR
+    subgraph Conditions["⚡ Operating Conditions"]
+        DARK[🌙 Darkness]
+        RAIN[🌧️ Heavy Rain]
+        STAT[🚗 Stationary Obj]
+        SPEED[💨 Velocity]
+        TEXT[📝 Semantics]
+    end
+
+    subgraph Winners["✅ Best Sensor"]
+        W1[LiDAR + Radar]
+        W2[Radar]
+        W3[Camera + LiDAR]
+        W4[Radar]
+        W5[Camera]
+    end
+
+    DARK --> W1
+    RAIN --> W2
+    STAT --> W3
+    SPEED --> W4
+    TEXT --> W5
+```
 
 | Condition | Camera | LiDAR | Radar |
 |-----------|--------|-------|-------|
