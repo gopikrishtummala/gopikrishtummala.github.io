@@ -33,6 +33,9 @@ estimated_read_time: 35
     <a href="/posts/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Architecture</a>
     <a href="/posts/autonomous-stack-module-2-sensors" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Module 2: Sensors</a>
     <a href="/posts/autonomous-stack-module-3-calibration" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 3: Calibration</a>
+    <a href="/posts/autonomous-stack-module-4-localization" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 4: Localization</a>
+    <a href="/posts/autonomous-stack-module-5-mapping" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 5: Mapping</a>
+    <a href="/posts/autonomous-stack-module-6-perception" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 6: Perception</a>
     <a href="/posts/autonomous-stack-module-7-prediction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 7: Prediction</a>
     <a href="/posts/autonomous-stack-module-8-planning" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 8: Planning</a>
     <a href="/posts/autonomous-stack-module-9-foundation-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 9: Foundation Models</a>
@@ -367,6 +370,8 @@ If you are interested in the code behind this, I recommend trying to implement a
 * **Module 1**: [The "Why" and The Architecture](/posts/autonomous-stack-module-1-architecture)
 * **Module 3**: [The Bedrock (Calibration & Transforms)](/posts/autonomous-stack-module-3-calibration)
 * **Module 4**: [Localization — The Art of Not Getting Lost](/posts/autonomous-stack-module-4-localization)
+* **Module 5**: [Mapping — The Memory of the Road](/posts/autonomous-stack-module-5-mapping)
+* **Module 6**: [Perception — Seeing the World](/posts/autonomous-stack-module-6-perception)
 * **Module 7**: [The Fortune Teller (Prediction)](/posts/autonomous-stack-module-7-prediction)
 * **Module 8**: [The Chess Master (Planning)](/posts/autonomous-stack-module-8-planning)
 * **Module 9**: [The Unified Brain (Foundation Models)](/posts/autonomous-stack-module-9-foundation-models)
