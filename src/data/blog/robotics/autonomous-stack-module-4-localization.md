@@ -214,8 +214,12 @@ This video visualizes "NDT Matching" in real-time—watch how the red dots (live
 
 ## Further Reading
 
+* **Module 1**: [The "Why" and The Architecture](/posts/autonomous-stack-module-1-architecture)
 * **Module 2**: [How Cars Learn to See (Sensors)](/posts/autonomous-stack-module-2-sensors)
 * **Module 3**: [The Bedrock (Calibration & Transforms)](/posts/autonomous-stack-module-3-calibration)
+* **Module 5**: [Mapping — The Memory of the Road](/posts/autonomous-stack-module-5-mapping)
+* **Module 6**: [Perception — Seeing the World](/posts/autonomous-stack-module-6-perception)
 * **Module 7**: [The Fortune Teller (Prediction)](/posts/autonomous-stack-module-7-prediction)
 * **Module 8**: [The Chess Master (Planning)](/posts/autonomous-stack-module-8-planning)
+* **Module 9**: [The Unified Brain (Foundation Models)](/posts/autonomous-stack-module-9-foundation-models)
 
