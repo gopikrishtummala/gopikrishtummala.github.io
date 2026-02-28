@@ -33,9 +33,9 @@ estimated_read_time: 35
     <a href="/posts/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Architecture</a>
     <a href="/posts/autonomous-stack-module-2-sensors" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Module 2: Sensors</a>
     <a href="/posts/autonomous-stack-module-3-calibration" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 3: Calibration</a>
-    <a href="/posts/autonomous-stack-module-4-localization" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 4: Localization</a>
     <a href="/posts/autonomous-stack-module-7-prediction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 7: Prediction</a>
     <a href="/posts/autonomous-stack-module-8-planning" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 8: Planning</a>
+    <a href="/posts/autonomous-stack-module-9-foundation-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 9: Foundation Models</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Module 2: How Cars Learn to See</strong> — Act I: The Body and The Senses</div>
 </div>
@@ -290,13 +290,47 @@ Modern systems (like Waymo's) don't just average the answers. They use a voting 
 
 ## 8. The Pinnacle: How Waymo Sees the World
 
-To understand how far this can go, look at the **Waymo Driver**. It is widely considered the most advanced perception stack on earth. It doesn't just use "a camera and a radar."
+To understand how far this can go, look at the **Waymo Driver**. It is widely considered the most advanced perception stack on earth.
 
-* **The Eyes:** 29 Cameras. They can spot a traffic light changing from 500 meters away.
+### The 6th-Generation Sensor Suite (2026)
 
-* **The Truth:** 5 LiDARs. One on top (long range, 300m+) and four around the perimeter (wide angle) to eliminate blind spots.
+Waymo's latest hardware represents a philosophy shift: **fewer sensors, smarter silicon**.
 
-* **The Ears:** 6 Radars. They see speed and cut through weather.
+* **Cameras:** Fewer than previous generations, but with custom-designed silicon that's more capable per unit. High-resolution for long-range (traffic lights at 500m), wide-angle for near-field, and near-infrared for low-light conditions.
+
+* **LiDAR:** Multiple units with deliberate overlap—long-range (300m+) for highway-speed detection, short-range units around the perimeter to eliminate blind spots. The short-range lidars explicitly back up cameras in near-field scenarios.
+
+* **Imaging Radar:** Advanced radar that provides not just velocity but spatial structure. Radar punches through fog, rain, and snow where lidar struggles.
+
+* **External Audio Receivers (EARs):** Yes, the car listens. Microphones detect sirens from emergency vehicles before they're visible, with acoustic modeling to filter wind noise.
+
+**The Design Principle:** Redundancy by physics. Each modality fails in different conditions:
+* Cameras fail in darkness and glare
+* Lidar fails in heavy precipitation
+* Radar fails on stationary objects
+
+By overlapping their coverage, the system maintains perception even when individual sensors degrade.
+
+### The Fusion Architecture: Mid-Level Integration
+
+Waymo's **Sensor Fusion Encoder** doesn't just average sensor outputs. It performs **mid-level fusion**—merging features after modality-specific encoding but before final detection.
+
+**How it works:**
+
+1. Each sensor stream gets its own encoder (CNNs for cameras, point-cloud networks for lidar, etc.)
+2. Features are projected into a shared geometric space (typically Bird's Eye View)
+3. Cross-modal attention fuses the aligned features
+4. Unified output: tracked objects + rich vector embeddings
+
+**Why mid-level fusion wins:**
+
+| Approach | Synergy | Traceability | Production Use |
+|----------|---------|--------------|----------------|
+| **Late Fusion** (merge detections) | Low | Easy to debug | Validation/fallback |
+| **Mid Fusion** (merge features) | High | Requires tooling | Primary path |
+| **Early Fusion** (merge raw data) | Highest | Very hard | Avoided |
+
+The trade-off: mid-fusion entangles sensor contributions. When something goes wrong, tracing the error back to a specific sensor requires XAI tooling (attention maps, gradient attribution). But the performance gains are worth the debugging complexity.
 
 **The Result: Semantic Understanding at Range**
 
@@ -307,6 +341,8 @@ Most cars struggle to see 100 meters ahead. Waymo's fusion stack can:
 2.  **Classify** it as a "Construction Cone" vs "A Person" (thanks to high-res Cameras).
 
 3.  **Predict** if it is moving or stationary (thanks to Radar).
+
+4.  **Reason** about context: "School bus with flashing lights + children nearby = stop" (thanks to the Driving VLM—see [Module 9](/posts/autonomous-stack-module-9-foundation-models)).
 
 It builds a persistent 3D world that remembers objects even when they are briefly blocked by a passing truck. It doesn't just "react"; it *models* the world.
 
@@ -333,4 +369,5 @@ If you are interested in the code behind this, I recommend trying to implement a
 * **Module 4**: [Localization — The Art of Not Getting Lost](/posts/autonomous-stack-module-4-localization)
 * **Module 7**: [The Fortune Teller (Prediction)](/posts/autonomous-stack-module-7-prediction)
 * **Module 8**: [The Chess Master (Planning)](/posts/autonomous-stack-module-8-planning)
+* **Module 9**: [The Unified Brain (Foundation Models)](/posts/autonomous-stack-module-9-foundation-models)
 

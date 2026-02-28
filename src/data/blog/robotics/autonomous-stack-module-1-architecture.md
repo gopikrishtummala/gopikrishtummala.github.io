@@ -31,6 +31,8 @@ estimated_read_time: 25
     <a href="/posts/autonomous-stack-module-2-sensors" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 2: Sensors</a>
     <a href="/posts/autonomous-stack-module-3-calibration" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 3: Calibration</a>
     <a href="/posts/autonomous-stack-module-7-prediction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 7: Prediction</a>
+    <a href="/posts/autonomous-stack-module-8-planning" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 8: Planning</a>
+    <a href="/posts/autonomous-stack-module-9-foundation-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 9: Foundation Models</a>
   </div>
   <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Module 1: The "Why" and The Architecture</strong> — Act I: The Body and The Senses</div>
 </div>
@@ -298,6 +300,8 @@ This series will walk through each component of the stack, from sensors to plann
 
 * **Module 2**: [Eyes and Ears (Sensors)](/posts/autonomous-stack-module-2-sensors)
 * **Module 7**: [The Fortune Teller (Prediction)](/posts/autonomous-stack-module-7-prediction)
+* **Module 8**: [The Chess Master (Planning)](/posts/autonomous-stack-module-8-planning)
+* **Module 9**: [The Unified Brain (Foundation Models)](/posts/autonomous-stack-module-9-foundation-models)
 
 ---
 
