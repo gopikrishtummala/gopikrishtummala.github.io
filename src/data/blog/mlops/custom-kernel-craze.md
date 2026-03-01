@@ -1,8 +1,8 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-11-11T00:00:00Z
-modDatetime: 2025-11-11T00:00:00Z
-title: The Custom Kernel Craze — Why Developers Are Taking the Wheel on GPU Optimization
+modDatetime: 2025-02-28T00:00:00Z
+title: The Custom Kernel Craze — Handcrafting GPU Performance
 slug: custom-kernel-craze
 featured: true
 draft: false
@@ -11,174 +11,139 @@ tags:
   - deep-learning
   - systems
   - performance
-description: Why modern AI teams are handcrafting GPU kernels—from FlashAttention to TPU Pallas code—and how smarter tooling is making silicon-level tuning accessible.
+  - triton
+  - cuda
+description: Why modern AI teams are handcrafting GPU kernels—from FlashAttention to Triton code—and how silicon-level tuning is the new frontier of MLOps.
 track: MLOps & Production
 difficulty: Advanced
 interview_relevance:
   - System Design
   - ML-Infra
-estimated_read_time: 25
+  - Theory
+estimated_read_time: 40
 ---
 
-Modern AI looks like software, but its limits are set by physics. Today’s breakthrough models are powered by GPUs and TPUs whose behavior is as finicky as a particle accelerator. This chapter explains, in plain language, why an ever-growing group of developers is abandoning “perfectly good” library kernels and diving headfirst into handcrafted GPU code.
-
----
-
-## 1. The Problem of the Too-Good Tool
-
-Frameworks like PyTorch and TensorFlow are like Michelin-star cookbooks. When you call `torch.matmul`, the runtime fetches a battle-tested recipe from NVIDIA’s cuBLAS library. For years that was enough—matrix multiply kernels were faster than anything we could write by hand.
-
-The trouble began when models became exotic. Sparse mixtures of experts, colossal sequence lengths, and quirky activation patterns meant our requests no longer matched the cookbook’s assumptions. We still called the master chef, but the results were under-seasoned or painfully slow.
-
-The **custom kernel craze** is developers saying, “I want to stand at the stove myself.” Instead of trusting generic kernels, we handcraft instructions that fit the data layout, memory budget, and hardware topology of the exact model we are training.
+*By Gopi Krishna Tummala*
 
 ---
 
-## 2. The Memory Wall: When Math Isn’t the Bottleneck
-
-Think of a GPU as a giant warehouse full of eager workers (CUDA cores or tensor cores). They compute at trillions of operations per second. What slows them down is the delivery truck: moving data from off-chip global memory into the on-chip scratchpads.
-
-This gap between computation speed and memory bandwidth is the **Memory Wall**. Many classical kernels are optimized for arithmetic throughput, assuming data is waiting on the loading dock. In reality, workers idle while the truck hunts for the next pallet of activations.
-
-Custom kernels flip the script. They focus on **data orchestration**—tiling, caching, fusing—to reduce the number of times data crosses slow interconnects. The math becomes almost secondary; the victory comes from rearranging loads and stores so nothing waits.
-
----
-
-## 3. A Tale of Custom Silicon: Google TPUs and Pallas
-
-Google’s Tensor Processing Units (TPUs) illustrate why hand tuning resurged. TPUs house monstrous Matrix Multiply Units (MXUs) that deliver staggering throughput, but only if fed in very specific shapes and strides.
-
-- **XLA** handles high-level graph compilation, deciding how operations should be grouped.
-- **Pallas** (built on JAX) lets engineers write low-level kernels that explicitly program how tiles are loaded, scheduled, and accumulated inside the MXU.
-
-Automatic tools get you 90% utilization. The last 10%—the difference between a good and great TPU workload—comes from a custom Pallas kernel that hand-places data in SRAM, pipelines the loads, and issues MXU instructions in just the right cadence.
+<div class="series-nav" style="background: linear-gradient(135deg, #059669 0%, #0d9488 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Infrastructure-First MLOps — Building the Engine of AI</div>
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+    <a href="/posts/mlops/parquet-arrow-quest-for-analytic-speed" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Data DNA</a>
+    <a href="/posts/mlops/datasets-and-dataloaders" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 2: Dataloaders</a>
+    <a href="/posts/mlops/hidden-engine-of-ai" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 3: Training</a>
+    <a href="/posts/mlops/modern-post-training-peft-2026" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 4: Post-Training</a>
+    <a href="/posts/mlops/vllm-trilogy-of-modern-llm-scaling" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 5: Serving</a>
+    <a href="/posts/mlops/custom-kernel-craze" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Module 6: Kernels</a>
+    <a href="/posts/mlops/beyond-inference-agentic-mlops-mcp" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 7: Agentic AI</a>
+  </div>
+  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Module 6: Custom Kernels</strong> — Handcrafting GPU Speed</div>
+</div>
 
 ---
 
-## 4. The LLM Revolution Forced Everyone’s Hand
+### Act 0: Custom Kernels in Plain English
 
-Large language models exploded the size of the attention matrix and tossed the Memory Wall into sharp relief. Two pivotal examples show why bespoke kernels became mandatory.
+Imagine you are a master carpenter (The GPU). You have a standard toolbox (PyTorch) with a hammer, a saw, and a screwdriver. For 90% of jobs, these tools are perfect.
 
-### 4.1 FlashAttention: When Loop Tiling Saves the Day
+But one day, you are asked to build a spiral staircase made of solid diamond. Your standard saw breaks. Your hammer is too clumsy. To finish the job, you have to go into your forge and **hand-grind a custom diamond-tipped blade** designed specifically for this one task.
 
-Attention requires multiplying $QK^T$, applying a softmax, then multiplying by $V$. Naively, this materializes an $n \times n$ matrix in global memory—catastrophic when $n$ is in the thousands.
+**A GPU Kernel** is a single "math recipe" that runs on the GPU.
+**A Custom Kernel** is a hand-written recipe that bypasses the standard tools to do something faster, smarter, or more memory-efficient.
 
-**FlashAttention** reorganizes the kernel so that:
-
-1. Queries, keys, and values are loaded block by block.
-2. Partial products live entirely in fast on-chip SRAM.
-3. Softmax normalization is fused into the same tile loop.
-4. Results are written back only once.
-
-By keeping data on-chip and tiling the loops, FlashAttention slashes memory traffic and eliminates the global-memory-sized attention matrix. This single kernel made training GPT-class models viable on commodity clusters.
-
-The story keeps evolving. **FlashAttention-3** (Tri Dao et al., 2024) rethinks the kernel for NVIDIA Hopper (H100) GPUs by:
-
-- Streaming tiles with the **Tensor Memory Accelerator (TMA)** so global-to-shared transfers overlap with compute.
-- Using **warp specialization** and `cp.async` to stage asynchronous shared-memory loads.
-- Pushing attention throughput to roughly **70–72% of the H100’s FP16 peak**, roughly 20 percentage points higher than FlashAttention-2 on the same hardware.
-
-It’s still hand-shaped code, but it feels like a compiler wrote it—proof that the standard for “optimized” keeps rising.
-
-### 4.2 Expert Parallelism and Custom Reduction Kernels
-
-Mixture-of-Experts LLMs route tokens to a subset of experts every layer. Off-the-shelf kernels couldn’t balance the routing cost with compute. Teams resorted to custom all-to-all communication kernels, fused activation packing, and specialized reductions that exploit NVLink topology. Again, the savings came from managing bandwidth, not inventing new math.
+The "Craze" is because modern AI models (like Transformers) are doing math that standard tools weren't built for. **If you want to win the AI race, you have to build your own tools.**
 
 ---
 
-## 5. Smarter Tools: Triton, Mojo, and AI-Aided Kernel Design
+### Act I: The Memory Wall (The Silent Killer)
 
-Handwritten CUDA C++ is notoriously brittle. The new wave of DSLs lowers the barrier.
+In AI, math is cheap, but **moving data is expensive**.
 
-- **Triton** (OpenAI) lets you write kernels in a Pythonic syntax while still controlling tiling and memory hierarchy. The compiler auto-generates warp-level code and vectorized loads.
-- **Mojo** (Modular) aims to blend Python ergonomics with zero-cost abstractions, letting you author kernels that compile down to MLIR and LLVM.
-- **AI copilots** are entering the loop. Researchers already prototype custom kernels by prompting a large language model with constraints (“tile 128×128, favor shared memory, target AMD ROCm”). The LLM emits candidate code, which is then verified and auto-tuned.
+A modern H100 GPU can do 1,000 trillion math operations per second (FLOPS). But it can only move data from its "Main Memory" (VRAM) to its "Calculation Cores" at a much slower rate.
 
-These tools don’t replace human insight; they amplify it. Developers specify *what* should be tiled or fused, and the compiler handles *how* the warp shuffles, predicate masks, and synchronizations are emitted.
+*   **The Problem:** Most AI models spend 90% of their time just waiting for data to arrive. This is the **Memory Wall**.
+*   **The Solution:** **Kernel Fusion.** Instead of reading data, doing Step A, writing it back, then reading it again for Step B... we do Step A and Step B in one single "Kernel." We never let the data leave the fast on-chip memory (SRAM).
 
-#### 5.1 Triton 3.0: Autotuning Out of the Box
+---
 
-The October 2025 release of **Triton 3.0** pushes the DSL even closer to a “Python for kernels” experience:
+#### Act I.V: Mature Architecture — The Kernel Fusion Stack
 
-- A built-in autotuner that combines Bayesian optimization with learned cost models to sweep tile shapes automatically.
-- MLIR-based fusion that spans kernel boundaries, so patterns like `matmul → layernorm → gelu` can live in a single launch.
-- A rapidly maturing **ROCm backend**; large tiles run within 80–85% of CUDA throughput on AMD’s MI300X.
+The "Gold Standard" has shifted from writing complex C++ (CUDA) to using **OpenAI Triton**, a Python-based language that compiles to high-performance GPU code.
 
-```python
-import triton
-import triton.language as tl
+**The Custom Kernel Pipeline (Mature Architecture):**
 
-@triton.jit
-def matmul_kernel(A, B, C, M, N, K, BLOCK_M: tl.constexpr,
-                  BLOCK_N: tl.constexpr, BLOCK_K: tl.constexpr):
-    pid = tl.program_id(0)
-    # Triton 3.0 fuses loads/stores across blocks and plugs into the autotuner.
-    ...
+```mermaid
+graph TD
+    subgraph "High-Level (Python)"
+        Mod[Model Architecture: e.g., MoE]
+        Tri[Triton DSL: Pythonic Kernel Code]
+    end
+
+    subgraph "The Compiler (MLIR)"
+        T_Comp[Triton Compiler]
+        Opt[Autotuner: Finding Optimal Tile Sizes]
+    end
+
+    subgraph "The Hardware (GPU Silicon)"
+        SRAM[Fast On-Chip SRAM: Shared Memory]
+        HBM[Main VRAM: High Bandwidth Memory]
+        TC[Tensor Cores: Math Units]
+    end
+
+    Tri --> T_Comp
+    T_Comp --> Opt
+    Opt --> SRAM
+    
+    HBM -->|Load Tile| SRAM
+    SRAM -->|Compute| TC
+    TC -->|Accumulate| SRAM
+    SRAM -->|Store Tile| HBM
 ```
 
-Callers can wrap the kernel with `triton.autotune` and let the runtime test 64×64, 128×128, or asymmetric tiles, picking the winner per workload.
+##### 1. Tiling: The Key to Speed
+We don't process a 10,000 x 10,000 matrix all at once. We break it into "Tiles" (e.g., 128x128). We load one tile into the tiny but lightning-fast **SRAM**, do all the math there, and then write the result back to the slow **HBM**.
 
-#### 5.2 AI-Assisted Kernel Drafting
-
-Prompt-based kernel authoring is no longer science fiction. Engineers regularly feed a large language model instructions like:
-
-> “Write a Triton kernel for softmax(Q @ Kᵀ) @ V with sequence length 8192, head dim 128, on H100. Use 128×128 tiles, shared memory for K/V blocks, fuse softmax stats, avoid materializing QKᵀ, and use Tensor Memory Accelerator if available.”
-
-The first draft often lands within 85–90% of FlashAttention-3’s performance. From there, `triton.autotune` or Pallas’ auto-scheduler can close the remaining gap, leaving humans to polish edge cases and numerical stability.
+##### 2. Trade-offs & Reasoning
+*   **CUDA C++ vs. Triton:** Writing CUDA is like writing assembly—you have to manage every thread and synchronization perfectly. *Trade-off:* CUDA is 5% faster but takes 10x longer to write. Triton handles the "plumbing" (thread synchronization) automatically, letting engineers focus on the **Data Flow**.
+*   **FlashAttention:** The most famous custom kernel. It "fused" the entire Attention calculation into one pass, reducing memory traffic by 10x.
+*   **Citations:** *Triton: An Intermediate Language and Compiler for GPU Computing (MAPL 2019)* and *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness (NeurIPS 2022)*.
 
 ---
 
-## 6. Looking Ahead: Physics-Aware Software Engineering
+### Act II: System Design & Interview Scenarios
 
-The custom kernel movement is a reminder that the laws of the chip outweigh the abstractions of software. As models push into multimodal reasoning, long-context memories, and low-latency agents, we should expect:
+#### Scenario 1: Bandwidth vs. Compute Bound
+*   **Question:** "Your GPU utilization is 100%, but training is slow. Your Roofline Analysis shows you are 'Bandwidth Bound.' What does that mean?"
+*   **Answer:** It means your Tensor Cores are mostly idle because the memory bus can't feed them fast enough. **The Fix:** Implement **Kernel Fusion** (e.g., fusing Activation + LayerNorm) to reduce the number of times you read from and write to VRAM.
 
-- **More domain-specific kernels** for attention, routing, quantization, and decompression.
-- **Cross-vendor portability layers** that let the same kernel target CUDA, ROCm, and custom ASICs.
-- **Autotuners driven by reinforcement learning** that search kernel schedules the way AlphaZero searched for Go strategies.
-- **Human-in-the-loop design** where developers sketch the dataflow and let synthesis tools generate optimized code.
-- **LLM compilers** that emit Triton, Pallas, or Mojo kernels directly from high-level graphs, possibly co-simulated against hardware tools like NVIDIA’s Atlantis.
-- **Curated kernel “zoos”** per model family (Llama, Gemma, DeepSeek) where the community standardizes the best schedules and shares roofline plots.
+#### Scenario 2: The Triton Autotuner
+*   **Question:** "You wrote a Triton kernel that is fast on an A100 but slow on an H100. Why?"
+*   **Answer:** Hardware has different SRAM sizes and thread counts. The "Tile Size" (e.g., 64x64) that worked on the A100 might be too small for the H100. **The Fix:** Use the **Triton Autotuner** to automatically sweep through 100 different configurations and pick the fastest one for each specific GPU.
 
-In short, performance is becoming a co-design problem. Algorithms, compilers, and hardware architects now collaborate at the granularity of cache lines and tensor tiles.
+#### Scenario 3: Mixture of Experts (MoE) Routing
+*   **Question:** "In an MoE model, tokens are scattered to 8 different 'Experts' (GPUs). This 'All-to-All' communication is killing performance. How do you optimize this?"
+*   **Answer:** Discuss **Custom Communication Kernels**. Standard libraries like NCCL are generic. A custom MoE kernel can perform "Overlapping"—starting the communication for the next layer while the current layer is still calculating math.
 
 ---
 
-## 7. Try It Yourself
+### Graduate Assignment: The Roofline Challenge
 
-Want to feel this for yourself? Start small:
+**Task:**
+You are writing a kernel for a simple vector addition: $C = A + B$.
+1.  **The Math:** If $A$ and $B$ are $10^9$ elements (FP16, 2 bytes each), how many math operations are performed?
+2.  **The Memory:** How many bytes must be moved across the memory bus (Read A, Read B, Write C)?
+3.  **The Ratio:** Calculate the **Arithmetic Intensity** (Math / Memory). On an H100 (3TB/s bandwidth), is this kernel bound by math speed or memory speed? 
 
-1. Rewrite a `torch.matmul` using Triton, tiling the operands into $64 \times 64$ blocks. Measure the bandwidth savings when you keep tiles in shared memory.
-2. Explore Google’s open-source Pallas tutorials. Replace a simple `jax.numpy.dot` with a custom Pallas kernel that prefetches tiles into SRAM.
-3. Prompt your favorite code assistant: “Generate a Triton kernel for scaled dot-product attention that avoids materializing QKᵀ.” Analyze the emitted code, then benchmark it.
-4. Take the Triton 3.0 autotuner for a spin:
+---
 
-```python
-import torch
-import triton
-import triton.language as tl
+**Further Reading:**
+*   *Triton Documentation: Python for GPU programming.*
+*   *FlashAttention-3: Re-thinking attention for NVIDIA Hopper GPUs.*
+*   *CUDA Mode: The community Discord for kernel hackers.*
 
-@triton.jit
-def silly_fast_matmul(a_ptr, b_ptr, c_ptr, M, N, K,
-                      BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr, BLOCK_K: tl.constexpr):
-    pid = tl.program_id(axis=0)
-    # Tile, load into shared memory, accumulate, and write back—left as an exercise.
-    ...
+---
 
-autotuned_matmul = triton.autotune(
-    configs=[
-        triton.Config({'BLOCK_M': BM, 'BLOCK_N': BN, 'BLOCK_K': BK})
-        for BM in [64, 128]
-        for BN in [64, 128]
-        for BK in [32, 64]
-    ],
-    key=['M', 'N', 'K']
-)(silly_fast_matmul)
-```
+**Previous:** [Module 5 — LLM Serving (vLLM)](/posts/mlops/vllm-trilogy-of-modern-llm-scaling)
 
-Benchmark against `torch.matmul` on A100 or H100; you’ll often see 1.4–1.8× speed-ups just from tiling and fusion.
-
-The lesson is simple: *to truly know what your GPU is doing, write the kernel yourself.* The physics of data movement is unforgiving, but when you align your code with the chip’s rhythms, the performance gains feel like discovering a new law of nature.
-
-— Gopi Krishna Tummala, curious engineer exploring how machines learn to think (and how the silicon underneath keeps up)
-
-
+**Next:** [Module 7 — Agentic MLOps: Beyond Inference](/posts/mlops/beyond-inference-agentic-mlops-mcp)
