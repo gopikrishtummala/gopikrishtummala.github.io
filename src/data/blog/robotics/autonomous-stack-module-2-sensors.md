@@ -218,6 +218,20 @@ graph LR
 *   In the **Dark**: Trust the LiDAR (it brings its own light).
 *   For **Signs**: Trust the Camera (radar can't read).
 
+---
+
+### Act V.VII: The Scorecard — Sensor Metrics
+
+Before we fuse data, we must understand the quality of each "Sense." Engineers evaluate sensors using these physical KPIs:
+
+#### 1. The Metrics (Hardware Benchmarks)
+*   **Range Accuracy (cm):** How close is the measured distance to the real distance? LiDAR is typically **< 3cm**, while Radar is **~10-20cm**.
+*   **Angular Resolution (deg):** The ability to distinguish two objects close together. A camera has high resolution (**< 0.1°**), while traditional Radar is low (**~5°**).
+*   **Dynamic Range (dB):** Crucial for cameras. Can the sensor see a person in a dark tunnel while the exit is blindingly bright?
+*   **Latency (ms):** The time from the "photon hitting the lens" to the "data hitting the computer." Every millisecond counts toward the 100ms safety budget.
+
+---
+
 > **Deep Dive:** How these raw streams are fused into detections and tracks is covered in [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception).
 
 ---

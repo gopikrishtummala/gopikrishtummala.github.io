@@ -195,6 +195,22 @@ How do you know which pixel in a camera image corresponds to a point $(x, y)$ on
 
 ---
 
+### Act II.VII: The Scorecard — Perception Metrics & Losses
+
+In the production loop, we don't just "look" at detections; we quantify their mathematical quality using benchmarks like **NuScenes** and **Waymo Open Dataset**.
+
+#### 1. The Metrics (How we measure success)
+*   **mAP (Mean Average Precision):** The gold standard. It measures the area under the Precision-Recall curve. In 3D, we usually calculate mAP at different distance thresholds (0.5m, 1m, 2m).
+*   **NDS (NuScenes Detection Score):** A "metametric" that combines mAP with five other errors: translation, scale, orientation, velocity, and attribute. It gives a holistic view of how well the car "understands" the object's physical state.
+*   **IoU (Intersection over Union):** Measures the overlap between the predicted box and the ground truth. For 3D detection, we require a high 3D IoU (e.g., >0.7) to consider a detection "correct."
+
+#### 2. The Loss Functions (How we train the brain)
+*   **Focal Loss:** Essential for perception because 99% of the pixels in an image are "Background" (asphalt, sky). Focal loss down-weights easy examples and forces the model to focus on "Hard" examples (like a dark car at night).
+*   **L1 / Smooth L1 Loss:** Used for bounding box regression ($x, y, z, w, l, h$). It is more robust to outliers than MSE.
+*   **GIoU / DIoU Loss:** Instead of just calculating distance, these losses optimize the overlap between 3D boxes directly, ensuring the predicted box "shrinks" or "stretches" to fit the ground truth perfectly.
+
+---
+
 ### Act III: Multi-Object Tracking (Consistency)
 
 Detection is a snapshot. Tracking is a movie. We need to maintain **identity** across frames.

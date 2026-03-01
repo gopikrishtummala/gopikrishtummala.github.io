@@ -151,6 +151,23 @@ graph TD
 
 ---
 
+### Act IV.V: The Scorecard — Mapping Metrics & Losses
+
+Building a map is a task of extreme precision. We measure success by how well the car's "Memory" matches the actual pavement.
+
+#### 1. The Metrics (How we measure the Memory)
+*   **mAP (Mean Average Precision):** Used for vectorized map elements (lanes, crosswalks). We evaluate the precision-recall curve for each map element class at different distance thresholds (e.g., 0.5m, 1.0m, 2.0m).
+*   **Chamfer Distance:** The primary metric for geometric accuracy. It measures the average distance between each point in the predicted map and its nearest neighbor in the ground truth map. 
+*   **Connectivity Accuracy:** Measures if the **Lane Graph** is logically correct. Does the model know that Lane A connects to Lane B? A single "broken edge" in the graph can cause the car to think it's stuck.
+
+#### 2. The Loss Functions (Teaching the car to draw)
+*   **Polyline Regression Loss:** Since lanes are vectors (ordered sets of points), we use a specialized loss to match the predicted curve to the real one. This often involves **Hungarian Matching** to pair predicted polylines with the ground truth.
+*   **Point-to-Plane Loss:** Used during SLAM and LiDAR registration. It minimizes the distance between a point and the local surface (plane) of the map, which is much more stable than point-to-point matching.
+*   **Chamfer Loss:** In MapTR and other SOTA models, we minimize the symmetric distance between the predicted set of map points and the ground truth set.
+    $$\mathcal{L}_{chamfer} = \sum_{x \in \hat{P}} \min_{y \in P} \|x - y\|^2 + \sum_{y \in P} \min_{x \in \hat{P}} \|x - y\|^2$$
+
+---
+
 ### Act V: The Map Freshness Problem
 
 The world changes. Roads get repaved. New construction appears. 

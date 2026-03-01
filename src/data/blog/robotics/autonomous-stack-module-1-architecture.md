@@ -166,6 +166,18 @@ graph TD
 
 ---
 
+### Act V.VI: The System Scorecard — Top-Level AV Metrics
+
+At the architectural level, we don't just measure pixels or meters; we measure the **Reliability of the entire system**.
+
+#### 1. The Metrics (The CEO's KPI)
+*   **MPI (Miles per Intervention):** Also known as the "Disengagement Rate." It measures how many miles the car drives on average before a human has to take over. Leading companies (Waymo/Cruise) target **tens of thousands of miles** between interventions.
+*   **Safety Critical Events:** The number of "Near Misses" per 100,000 miles. This is a better predictor of future accidents than actual collisions.
+*   **ODD Completion Rate:** If you deploy a fleet in San Francisco, what percentage of requested trips can the car actually complete without getting stuck or refusing the route?
+*   **System Latency (P99):** The "Reaction Time" of the entire stack. We measure the 99th percentile to ensure the car never "stutters" at high speeds.
+
+---
+
 ### Act VI: System Design & Interview Scenarios
 
 #### Scenario 1: Scaling to a New City

@@ -519,6 +519,22 @@ Instead of treating calibration as a one-time setup, we treat the $x, y, z$ and 
 
 ---
 
+### Act V.VII: The Scorecard — Calibration Metrics & Optimization
+
+Calibration is a game of sub-millimeter precision. We measure the "Health" of our sensors by looking at how well their data overlaps.
+
+#### 1. The Metrics (The Precision KPI)
+*   **Reprojection Error (px):** The most common camera metric. We project a 3D LiDAR point onto the 2D image. The distance (in pixels) between that projection and the actual object in the image is the reprojection error. A healthy system has an error of **< 1.5 pixels**.
+*   **Mean Translation/Rotation Error:** Measures the absolute distance ($cm$) and angle ($deg$) between where we *think* the sensor is and where it *actually* is. 
+*   **Consistency Score:** In multi-sensor setups, we check if Sensor A $\to$ B $\to$ C $\to$ A results in a perfect loop. Any "closure error" indicates a calibration problem in the tree.
+
+#### 2. The Loss Functions (The Solver's Goal)
+*   **Reprojection Loss (Huber):** We minimize the pixel distance between projected 3D points and 2D features. We use **Huber Loss** instead of MSE because it is robust to "outliers" (noisy points).
+*   **Point-to-Plane Residual:** Used for LiDAR-to-LiDAR or LiDAR-to-Vehicle calibration. We minimize the distance between a laser point and the surface it hit (like a wall or the floor).
+*   **Joint Graph Residual:** In the 2026 Factor Graph, the total loss is the sum of all sensor inconsistencies. The solver (G2O or GTSAM) finds the set of extrinsic matrices that minimizes this total "Global Tension."
+
+---
+
 <a id="time-synchronization"></a>
 ## Time Synchronization: PTP and Timestamps
 

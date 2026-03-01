@@ -170,6 +170,23 @@ A **Factor Graph** remembers a "Sliding Window" of past states.
 
 ---
 
+### Act III.VII: The Scorecard — Localization Metrics & Optimization
+
+In localization, "close enough" isn't good enough. We measure success by the stability of the pose estimate over time.
+
+#### 1. The Metrics (The Centimeter Chase)
+*   **ATE (Absolute Trajectory Error):** The global consistency of the estimated path. We compare the entire history of the car's estimated positions against a "Ground Truth" (usually high-end RTK-GPS).
+*   **RPE (Relative Pose Error):** The local drift. How much error do we accumulate every 10 meters? This is critical for smooth planning.
+*   **RMSE (Root Mean Square Error):** The standard statistical measure of distance between predicted and actual coordinates.
+
+#### 2. The Loss Functions (Optimizing the Graph)
+*   **Pose Error Loss:** We minimize the distance between the estimated pose $T_{est}$ and the sensor observations in **SE(3)** space using the geodesic distance (log-map).
+*   **Residual Error:** In Factor Graphs, the "Loss" is the total energy in the springs (residuals). We use **Levenberg-Marquardt** optimization to minimize:
+    $$\mathcal{L} = \sum \| f(\mathbf{x}_i, \mathbf{x}_j) - \mathbf{z}_{ij} \|^2_{\Sigma}$$
+*   **Mahalanobis Distance:** Used as a "Switching Loss." If a new sensor reading (like a spoofed GPS) has a Mahalanobis distance that is too high, the loss function effectively "ignores" that factor to protect the system.
+
+---
+
 ## Act IV: The "Blue Line"
 
 When you look at the dashboard of a Tesla or Waymo, you see a stable, glowing path stretching out in front of the car.

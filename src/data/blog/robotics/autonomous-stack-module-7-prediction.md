@@ -109,17 +109,60 @@ graph TD
         Futures --> Scorer[MLP Probability Head]
         Scorer --> Final[K-Most Likely Modes]
     end
-```
-
 #### Why This Works
 1.  **Self-Attention (Social):** Every agent "looks" at every other agent. If Car A speeds up, the model "attends" to that and predicts Car B will brake. This is **Joint Prediction**.
 2.  **Cross-Attention (Geometric):** Agents attend to map polylines. The car "queries" the map: *"Which lane can I actually reach from here?"* This snaps predictions to valid roads.
 3.  **Diffusion Transformers (DiT):** Instead of one single line, the model generates 100 possible futures and iteratively refines them from noise. This captures the messy, multi-modal nature of human driving (e.g., at a yellow light, will they stop or go?).
 
 #### Trade-offs & Reasoning
-*   **Diffusion vs. Gaussian Mixture Models (GMMs):** Earlier models (like Multipath) output a GMM. *Trade-off:* GMMs are fast but suffer from "mode averaging"—if an agent could go left or right, a GMM might average the two and predict "straight" (into a wall). Diffusion is computationally heavier (requires multiple denoising steps) but generates physically plausible, diverse paths without averaging out safe options.
-*   **Vector Queries vs. Raster Images:** Rasterizing the scene into an image is simple. *Trade-off:* It wastes massive computation on empty space (asphalt) and is not translation-invariant. Vectorizing elements as Queries is much more efficient and allows the model to generalize to new cities instantly.
+*   **Diffusion vs. Gaussian Mixture Models (GMMs):** Earlier models (like Multipath) output a GMM. *Trade-off:* GMMs are fast but suffer from "mode averaging"—if an agent could go left or right, a GMM might average the two and predict "straight" (into a wall). Diffusion is computationally heavier but generates physically plausible, diverse paths without averaging.
+*   **Vector Queries vs. Raster Images:** Rasterizing the scene into an image is simple but wastes computation on empty space. *Trade-off:* Vectorizing elements as Queries is much more efficient and allows the model to generalize to new cities instantly.
 *   **Citations:** *Diffusion Planner: Unified Prediction and Planning (ICLR 2025)* and *QCNet: Query-Centric Network for Trajectory Prediction (CVPR 2023)*.
+
+---
+
+### Act III.VII: The Scorecard — Metrics & Evaluation
+
+How do we know if a prediction is "good"? Accuracy is measured across three dimensions: **Displacement**, **Diversity**, and **Social Realism**.
+
+The industry benchmarks (Waymo Open Dataset & Argoverse 2) use specific metrics:
+
+#### 1. The Distance Metrics
+*   **minADE (Minimum Average Displacement Error):** The average L2 distance between the ground truth and the **best** (closest) of your $K$ predicted trajectories. 
+*   **minFDE (Minimum Final Displacement Error):** Only looks at the last point. How far is the car from where we thought it would be at $t=8s$? 
+*   **avgBrierMinFDE:** Used by Argoverse 2. It penalizes the displacement error *plus* a probability penalty $(1 - p)^2$, where $p$ is the confidence score you gave to your best trajectory.
+
+#### 2. The Robustness Metrics
+*   **Miss Rate (MR):** The percentage of cases where even your best prediction was more than $2.0$ meters away from the truth. 
+*   **Overlap Rate:** Critical for joint prediction. How often do your predicted trajectories for Car A and Car B physically overlap (collide)?
+
+#### 3. The 2026 Standards: Soft-mAP & Sim Realism
+*   **Soft mAP (Mean Average Precision):** The primary metric for **Waymo's Interaction Challenge**. It evaluates the joint future positions of interacting agents.
+*   **Sim Agents Score (Waymax):** Evaluates if the generated trajectories are **kinematically feasible** and **socially realistic** (e.g., yielding to pedestrians).
+
+---
+
+### Act III.VIII: The Optimizer's Guide — Loss Functions
+
+Training a "Fortune Teller" requires balancing diversity with accuracy.
+
+#### 1. The Variety Loss (The "Best-of-K" Loss)
+To prevent "mode averaging," we use the **Variety Loss**:
+$$\mathcal{L}_{variety} = \min_{k \in \{1...K\}} \| \mathbf{Y}_{gt} - \hat{\mathbf{Y}}_k \|^2$$
+Only the **best** trajectory gets a gradient update. This encourages different model heads to specialize in different maneuvers.
+
+#### 2. Negative Log-Likelihood (NLL)
+Used when the model outputs a **Gaussian Mixture Model (GMM)**. We minimize the probability that the real trajectory *couldn't* have come from our distribution.
+$$\mathcal{L}_{NLL} = -\log \sum_k \pi_k \mathcal{N}(\mathbf{Y}_{gt} | \mu_k, \Sigma_k)$$
+
+#### 3. Classification Loss
+We train a separate head to predict which of the $K$ modes is actually the most likely using **Cross-Entropy Loss**.
+$$\mathcal{L}_{cls} = -\sum_k \mathbb{1}(k = \text{closest}) \log(\hat{\pi}_k)$$
+
+#### 4. Kinematic & Smoothness Constraints
+We add "penalty terms" to the loss if the predicted trajectory involves impossible physics:
+*   **Curvature Loss:** Penalize high centripetal acceleration.
+*   **Jerk Loss:** Penalize sudden changes in acceleration.
 
 ---
 

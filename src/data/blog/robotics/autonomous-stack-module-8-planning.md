@@ -153,6 +153,25 @@ Unlike old-school planners where we hand-tuned weights, mature architectures use
 
 ---
 
+### Act II.VII: The Scorecard — Planning Metrics & Costs
+
+In planning, we don't just care about getting to the destination; we care about **how** we get there. We measure performance using a mix of distance metrics and safety/comfort violations.
+
+#### 1. The Metrics (The Planner's KPI)
+*   **Progress (m):** How many meters did the car successfully travel toward its goal?
+*   **SR (Success Rate):** The percentage of scenarios completed without any collisions or hard safety interventions.
+*   **CR (Collision Rate):** The number of collisions per 1,000 miles driven. In 2026, the industry goal is "Better than Human" (approx. 1 fatality per 100 million miles).
+*   **Comfort (Jerk & Accel):** Measured in $m/s^3$. We track the "Maximum Jerk" to ensure the car doesn't make passengers motion sick.
+
+#### 2. The Loss Functions (How the Planner Learns)
+*   **Imitation Loss (MSE):** Used in "Behavioral Cloning." We minimize the L2 distance between the AI's proposed path and a human expert's actual path.
+    $$\mathcal{L}_{BC} = \| \mathbf{T}_{ai} - \mathbf{T}_{human} \|^2$$
+*   **Collision Penalty:** A non-differentiable "Hard Cost." If a proposed trajectory hits an object in the World Model, that path is given an infinite cost and discarded.
+*   **RL Reward Design:** In Reinforcement Learning, the loss is the inverse of the **Reward ($R$)**. A typical 2026 reward function looks like:
+    $$R = w_1(\text{Progress}) - w_2(\text{Collision}) - w_3(\text{Jerk}) - w_4(\text{Rule Violation})$$
+
+---
+
 ### Act III: The Great Divergence (Modular vs. End-to-End)
 
 There is a philosophical war in AV right now.
