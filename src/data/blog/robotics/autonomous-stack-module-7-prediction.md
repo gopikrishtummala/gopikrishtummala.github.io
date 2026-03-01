@@ -109,6 +109,8 @@ graph TD
         Futures --> Scorer[MLP Probability Head]
         Scorer --> Final[K-Most Likely Modes]
     end
+```
+
 #### Why This Works
 1.  **Self-Attention (Social):** Every agent "looks" at every other agent. If Car A speeds up, the model "attends" to that and predicts Car B will brake. This is **Joint Prediction**.
 2.  **Cross-Attention (Geometric):** Agents attend to map polylines. The car "queries" the map: *"Which lane can I actually reach from here?"* This snaps predictions to valid roads.
