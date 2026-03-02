@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-01-25T00:00:00Z
+modDatetime: 2025-02-28T00:00:00Z
 title: 'Diffusion for Action: Trajectories and Policy'
 slug: diffusion-for-action-trajectories-policy
 featured: true
@@ -20,7 +20,7 @@ interview_relevance:
   - Theory
   - System Design
   - ML-Infra
-estimated_read_time: 20
+estimated_read_time: 40
 ---
 
 *By Gopi Krishna Tummala*
@@ -28,368 +28,139 @@ estimated_read_time: 20
 ---
 
 <div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series</div>
+  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series — The Generative Engine</div>
   <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
     <a href="/posts/generative-ai/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
-    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Image Diffusion</a>
+    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Architectures</a>
     <a href="/posts/generative-ai/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
-    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Fundamentals</a>
-    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Pre-Training & Post-Training</a>
-    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 6: Diffusion for Action</a>
-    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: Modern Models & Motion</a>
+    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Models</a>
+    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Training Lifecycle</a>
+    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 6: Diffusion for Policy</a>
+    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: The Frontier</a>
+    <a href="/posts/generative-ai/physics-aware-video-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 8: Physics-Aware AI</a>
   </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 6: Diffusion for Action</strong> — Trajectories and policy</div>
+  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 6: Diffusion for Action</strong> — Trajectories and Policy</div>
 </div>
 
 ---
 
-<div id="article-toc" class="article-toc">
-  <div class="toc-header">
-    <h3>Table of Contents</h3>
-    <button id="toc-toggle" class="toc-toggle" aria-label="Toggle table of contents"><span>▼</span></button>
-  </div>
-  <div class="toc-search-wrapper">
-    <input type="text" id="toc-search" class="toc-search" placeholder="Search sections..." autocomplete="off">
-  </div>
-  <nav class="toc-nav" id="toc-nav">
-    <ul>
-      <li><a href="#from-pixels-to-actions">From Pixels to Actions: The Bridge</a></li>
-      <li><a href="#diffusion-policy">Diffusion Policy: Predicting Action Sequences</a></li>
-      <li><a href="#world-models">World Models: Generating Future States</a></li>
-      <li><a href="#planning">Diffusion for Planning and Prediction</a></li>
-      <li><a href="#robotics-applications">Robotics Applications</a></li>
-      <li><a href="#autonomous-vehicles">Autonomous Vehicles and L4/L5 Systems</a></li>
-    </ul>
-  </nav>
-</div>
+### Act 0: Diffusion Policy in Plain English
+
+Imagine you are teaching a robot to pour a glass of water.
+
+1.  **Old Way (Deterministic):** You tell the robot exactly where each joint should be at every millisecond. If the glass is 1 inch to the left, the robot pours water on the table. It's too rigid.
+2.  **New Way (Diffusion Policy):** You show the robot 100 videos of humans pouring water. The robot learns that "Pouring" is a smooth sequence of actions. It starts with a "Noisy" guess of what the arm should do, and then iteratively refines it until it has a perfect, smooth path to the glass.
+
+**Diffusion Policy** treats a robot's movement like an image. Instead of denoising pixels to see a cat, it denoises **motor commands** to see a successful task.
 
 ---
 
-<a id="from-pixels-to-actions"></a>
-## From Pixels to Actions: The Bridge
+### Act I: From Pixels to Policies
 
-So far, we've seen diffusion models generate **images** and **videos** — visual content. But what if we want to generate **actions** — sequences of motor commands for a robot or autonomous vehicle?
+The key insight of **Diffusion Policy** (Chi et al. 2023) is that robot actions are just another form of sequential data.
+*   **The Input:** Visual observations (Camera feeds) + Proprioception (Joint angles).
+*   **The Output:** A **Horizon** of future actions $\tau = [a_{t+1}, a_{t+2}, \ldots, a_{t+H}]$.
 
-This is where diffusion models connect to **robotics, autonomous systems, and embodied AI**.
-
-**The Key Insight:**
-
-Instead of generating pixels $x \in \mathbb{R}^{H \times W \times 3}$, we generate **action trajectories**:
-
-$$
-\tau = [a_1, a_2, \ldots, a_T]
-$$
-
-Where each $a_t$ is an action (e.g., joint angles, velocities, steering commands).
-
-The same diffusion process that learns to reverse noise into images can learn to reverse noise into **plausible action sequences**.
+#### Why it works better than MLP:
+Standard neural networks output a single average action. If there are two ways to avoid an obstacle (Left or Right), an MLP will average them and drive **straight into the obstacle**. Diffusion preserves the "Multi-modality"—it can generate either a "Left" path or a "Right" path, but never a broken middle one.
 
 ---
 
-<a id="diffusion-policy"></a>
-## Diffusion Policy: Predicting Action Sequences
+#### Act I.V: Mature Architecture — The Diffusion Policy Stack
 
-**Diffusion Policy** (Chi et al., 2023) applies diffusion models to robot control:
+In production robotics, the architecture uses a "Visuomotor" backbone that fuses high-res vision with low-latency control.
 
-### The Problem
+**The Action Generation Pipeline:**
 
-Traditional robot policies output a single action $a_t$ given the current state $s_t$. But many tasks require **multi-step reasoning** — the robot must plan a sequence of actions.
+```mermaid
+graph TD
+    subgraph "Observation Space"
+        RGB[RGB Video Stream]
+        State[Robot State: q, v]
+    end
 
-**Example:** A robot arm picking up a cup needs to:
-1. Move toward the cup
-2. Open gripper
-3. Position around cup
-4. Close gripper
-5. Lift
+    subgraph "The Vision Encoder"
+        ViT[Vision Transformer / ResNet]
+        Embed[Visual Embeddings]
+    end
 
-A single-action policy struggles with this; it needs to see the full sequence.
+    subgraph "The Diffusion Action Head"
+        Noise[Initial Action Noise: a_horizon]
+        UNet[1D U-Net / Transformer]
+        Cond[Conditioning: FiLM / Cross-Attn]
+    end
 
-### The Solution: Diffusion over Action Sequences
+    subgraph "The Execution Loop"
+        MPC[Receding Horizon Control]
+        Action[Motor Torques / Velocities]
+    end
 
-Diffusion Policy generates **action sequences** (trajectories) instead of single actions:
+    RGB --> ViT
+    ViT --> Embed
+    Embed --> Cond
+    State --> Cond
+    Noise --> UNet
+    Cond --> UNet
+    UNet -->|Iterative Denoising| MPC
+    MPC --> Action
+```
 
-$$
-\tau = [a_{t+1}, a_{t+2}, \ldots, a_{t+H}]
-$$
+##### 1. Receding Horizon Control
+The model predicts 16 steps into the future, but the robot only executes the **first 8 steps**. Then it throws the rest away and calculates a new 16-step plan. This "closed-loop" behavior allows the robot to react to a moving glass or a slippery floor in real-time.
 
-Where $H$ is the **horizon** (e.g., 16 steps into the future).
-
-**The Diffusion Process:**
-
-1. **Forward**: Add noise to a demonstration trajectory until it becomes random actions
-2. **Reverse**: Learn to denoise random actions back into a valid trajectory
-3. **Conditioning**: Condition on the current observation (camera image, sensor data)
-
-**Mathematical Formulation:**
-
-The model learns:
-
-$$
-p(\tau | o_t) = \text{DiffusionModel}(\tau, o_t)
-$$
-
-Where:
-* $\tau$ is the action trajectory
-* $o_t$ is the current observation (image, state)
-
-**Key Advantage:** Diffusion naturally handles **multi-modal action distributions**. If there are multiple valid ways to complete a task, diffusion can generate diverse trajectories, unlike deterministic policies.
-
-### Why Diffusion Works for Actions
-
-**1. Multi-Modality:**
-* There are often multiple valid action sequences for a task
-* Diffusion models excel at capturing multi-modal distributions
-* Unlike deterministic policies, they can explore diverse solutions
-
-**2. Smoothness:**
-* Actions should change smoothly over time (no sudden jerky movements)
-* Diffusion's iterative denoising naturally produces smooth trajectories
-* The noise schedule enforces temporal smoothness
-
-**3. Constraint Satisfaction:**
-* Robot actions must satisfy physical constraints (joint limits, collision avoidance)
-* Diffusion can be guided to satisfy constraints through conditioning
+##### 2. Trade-offs & Reasoning
+*   **1D U-Net vs. Transformer:** 1D U-Nets are faster for short sequences ($H=16$). Transformers are better for long-term reasoning ($H=100$) but have higher latency.
+*   **Training Data:** Unlike image models, these require **Demonstrations**. You need a human to "Teleoperate" the robot to provide the ground-truth trajectories.
+*   **Citations:** *Diffusion Policy: Visuomotor Policy Learning via Action Diffusion (Chi et al. 2023)* and *Consistency Policy: Made for Real-Time Control (2024)*.
 
 ---
 
-<a id="world-models"></a>
-## World Models: Generating Future States
+### Act II: The Scorecard — Metrics & Training
 
-**World Models** use diffusion to predict **future states** of the environment, not just actions.
+#### 1. The Metrics (The Robot's KPI)
+*   **Success Rate (SR):** The % of trials where the robot completed the task (e.g., "The cup is full").
+*   **Multi-modal Coverage:** If there are 3 ways to do a task, does the model find all 3 or just 1? (Measured by **KL Divergence** to the human data).
+*   **Smoothness (Jerk):** Higher derivative of acceleration. Lower jerk = more human-like and less wear on the motors.
 
-### The Concept
-
-Instead of generating pixels or actions, generate **future observations**:
-
-$$
-p(o_{t+1}, o_{t+2}, \ldots, o_{t+H} | o_t, a_t)
-$$
-
-Where:
-* $o_t$ is the current observation (camera image, LiDAR, etc.)
-* $a_t$ is the action taken
-* $o_{t+1:H}$ are predicted future observations
-
-### Application: Training Planning Agents
-
-**Use Case:** Train a planning agent for autonomous driving:
-
-1. **Collect data**: Record driving videos with actions (steering, acceleration)
-2. **Train world model**: Use a small video diffusion model to predict the next 5 seconds of driving
-3. **Train planner**: Use the world model to simulate future scenarios, train a planner that avoids collisions
-
-**Why This Works:**
-
-* The world model learns the **dynamics** of the environment
-* The planner can "imagine" consequences of actions without real-world trial-and-error
-* This is **model-based reinforcement learning** with learned dynamics
-
-### Mathematical Formulation
-
-The world model learns:
-
-$$
-p(o_{t+1:H} | o_t, a_{t:H}) = \text{VideoDiffusion}(o_{t+1:H}, o_t, a_{t:H})
-$$
-
-This is essentially a **conditional video diffusion model** where:
-* The condition is the current observation $o_t$ and actions $a_{t:H}$
-* The output is future observations $o_{t+1:H}$
-
-**Key Insight:** Video diffusion models implicitly learn physics. By training on real driving data, the model learns how scenes evolve — cars move, pedestrians cross, lights change. This learned physics can be used for planning.
+#### 2. The Loss Function (Trajectory Score Matching)
+We minimize the error between the added noise and the predicted noise in the **Action sequence**.
+$$ \mathcal{L}_{action} = \mathbb{E}_{\tau, \epsilon, k} [ \| \epsilon - \epsilon_\theta(\tau_k, k, O) \|^2 ] $$
+Where $O$ is the visual observation.
 
 ---
 
-<a id="planning"></a>
-## Diffusion for Planning and Prediction
+### Act III: System Design & Interview Scenarios
 
-### Trajectory Prediction
+#### Scenario 1: The "Jittery" Robot
+*   **Question:** "Your robot successfully reaches the goal, but its arm is shaking violently. How do you fix it?"
+*   **Answer:** Discuss **Action Chunking** and **Temporal Ensembling**. Instead of taking just the first action, average the overlapping predictions from the last 3 time steps. Also, add a **Smoothness Penalty** to the loss function.
 
-In autonomous vehicles, predicting other agents' trajectories is critical:
+#### Scenario 2: Handling Latency
+*   **Question:** "Diffusion takes 100ms per inference, but your motor controller needs 500Hz (2ms). What's the bridge?"
+*   **Answer:** Use an **Async Architecture**. The "High-Level" Diffusion Policy runs at 10Hz and outputs a 16-step spline. A "Low-Level" PD Controller (running at 500Hz) follows that spline. This decouples the "Thinking" from the "Reflexes."
 
-**Problem:** Given the current scene, predict where other vehicles/pedestrians will be in the next 5 seconds.
-
-**Solution:** Use diffusion to generate **multiple plausible trajectories**:
-
-$$
-p(\tau_{\text{other}} | o_t) = \text{DiffusionModel}(\tau_{\text{other}}, o_t)
-$$
-
-Where $\tau_{\text{other}}$ is the future trajectory of another agent.
-
-**Why Diffusion:**
-* Multiple plausible futures (agent could turn left, right, or go straight)
-* Diffusion captures this multi-modality naturally
-* Can generate diverse, realistic trajectories
-
-### Motion Planning
-
-For the ego vehicle, diffusion can generate **candidate trajectories**:
-
-1. Generate $N$ diverse trajectories using diffusion
-2. Score each trajectory (safety, comfort, goal progress)
-3. Select the best trajectory
-4. Execute the first action, replan
-
-**Advantage over traditional planners:**
-* Naturally handles multi-modal scenarios
-* Learns from data (doesn't require hand-coded rules)
-* Can adapt to complex, real-world situations
+#### Scenario 3: Generalization to New Environments
+*   **Question:** "Your robot was trained in a bright lab but fails in a dark warehouse. What do you do?"
+*   **Answer:** Discuss **Visual Foundation Model Distillation**. Replace the vision encoder with a frozen **DINOv2** or **CLIP** model. These models have seen "The Entire Internet" and are much more robust to lighting changes than a model trained only on lab data.
 
 ---
 
-<a id="robotics-applications"></a>
-## Robotics Applications
+### Graduate Assignment: The World Model
 
-### Manipulation Tasks
-
-**Diffusion Policy** has shown strong performance on:
-* **Pick and place**: Grasping objects and moving them
-* **Assembly**: Putting parts together
-* **Kitchen tasks**: Opening drawers, using tools
-
-**Why it works:**
-* Manipulation requires multi-step sequences
-* Diffusion naturally handles the sequential nature
-* Can learn from diverse demonstration data
-
-### Mobile Robotics
-
-**Navigation and path planning:**
-* Generate diverse paths to a goal
-* Avoid obstacles while maintaining smooth motion
-* Handle uncertainty in the environment
-
-### Human-Robot Interaction
-
-**Predicting human intent:**
-* Use diffusion to predict where a human will move
-* Plan robot actions that avoid collisions
-* Generate natural, human-like robot motions
+**Task:**
+1.  **Counterfactual Dreaming:** Explain how a robot can use a **Video Diffusion Model** to "dream" about what will happen if it turns left vs. right before it actually moves.
+2.  **Constraint Guidance:** Derive how to add a "Collision Constraint" to the diffusion process using **Log-Barrier Gradients**.
+3.  **Cross-Embodiment:** How can data from a **Humanoid robot** be used to improve the policy of a **4-wheeled delivery bot**?
 
 ---
 
-<a id="autonomous-vehicles"></a>
-## Autonomous Vehicles and L4/L5 Systems
-
-### Behavior Prediction
-
-**Critical for L4/L5 autonomy:** Predicting other agents' behavior.
-
-**Diffusion-based prediction:**
-* Generate multiple plausible futures for each agent
-* Each trajectory has an associated probability
-* Planner uses these predictions to make safe decisions
-
-**Mathematical Formulation:**
-
-For each agent $i$:
-
-$$
-p(\tau_i | o_t) = \text{DiffusionModel}(\tau_i, o_t, \text{context})
-$$
-
-Where context includes:
-* Agent type (car, pedestrian, cyclist)
-* Road structure
-* Traffic rules
-* Historical behavior
-
-### Scene Prediction
-
-**Predict future scenes** (not just agent trajectories):
-
-* Use video diffusion to predict the next 5-10 seconds of the scene
-* Includes all agents, road structure, lighting changes
-* Planner can "simulate" consequences of actions
-
-**Connection to World Models:**
-* The scene prediction model is a **world model** for driving
-* It learns the dynamics of traffic scenes
-* Can be used for planning and safety validation
-
-### Closed-Loop Planning
-
-**The Complete Pipeline:**
-
-1. **Perception**: Process sensor data (cameras, LiDAR) → current state $s_t$
-2. **Prediction**: Use diffusion to predict other agents' trajectories
-3. **Planning**: Generate candidate ego trajectories using diffusion
-4. **Selection**: Score and select best trajectory
-5. **Control**: Execute first action, repeat
-
-**Why Diffusion Fits:**
-* Handles multi-modal scenarios (multiple valid plans)
-* Learns from data (doesn't require hand-coded rules)
-* Naturally produces smooth, realistic trajectories
+**Further Reading:**
+*   *Diffusion Policy (Chi et al. 2023)*
+*   *UniPi: Universal Visual Affordances (2023)*
+*   *Pi0: Generalist Robot Learning (Physical Intelligence 2025)*
 
 ---
 
-## The Connection to Reinforcement Learning
+**Previous:** [Part 5 — Training Lifecycle: Pre-Training & Post-Training](/posts/generative-ai/pre-training-post-training-video-diffusion)
 
-Diffusion models and RL are complementary:
-
-**Traditional RL:**
-* Learns policies through trial-and-error
-* Requires many interactions with the environment
-* Can be sample-inefficient
-
-**Diffusion + RL:**
-* **Diffusion Policy**: Learns from demonstrations (imitation learning)
-* **World Models**: Learns environment dynamics, enables model-based RL
-* **Planning**: Uses diffusion to generate candidate actions
-
-**Hybrid Approach:**
-1. Pre-train diffusion policy on demonstrations
-2. Fine-tune with RL for specific tasks
-3. Use world models for efficient exploration
-
-This combines the **data efficiency** of imitation learning with the **adaptability** of RL.
-
----
-
-## Summary: Diffusion Beyond Visual Generation
-
-Diffusion models aren't just for images and video — they're a powerful framework for:
-
-* **Action Generation**: Diffusion Policy for robot control
-* **State Prediction**: World models for planning
-* **Trajectory Prediction**: Multi-modal future prediction
-* **Planning**: Generating diverse, realistic action sequences
-
-**The Common Thread:**
-
-All these applications use the same core idea: **learn to reverse a noise process to generate structured sequences** — whether those sequences are pixels, actions, or states.
-
-**Interview Relevance:**
-
-* **Robotics**: How do you plan multi-step actions? → Diffusion Policy
-* **Autonomous Vehicles**: How do you predict other agents? → Diffusion-based trajectory prediction
-* **System Design**: How do you handle multi-modal scenarios? → Diffusion captures diversity naturally
-
----
-
-## References
-
-**Diffusion Policy**
-* Chi, C., et al. (2023). *Diffusion Policy: Visuomotor Policy Learning via Action Diffusion*. RSS. [arXiv](https://arxiv.org/abs/2303.04137)
-
-**World Models**
-* Ha, D., & Schmidhuber, J. (2018). *World Models*. NeurIPS. [arXiv](https://arxiv.org/abs/1803.10122)
-* Recent work applying video diffusion to world models for robotics
-
-**Trajectory Prediction**
-* Recent research on diffusion-based trajectory prediction for autonomous vehicles (2024-2025)
-
----
-
-## Further Reading
-
-* **Part 5**: [Pre-Training & Post-Training](/posts/generative-ai/pre-training-post-training-video-diffusion)
-* **Part 7**: [Modern Models & Motion](/posts/generative-ai/modern-video-models-sora-veo-opensora)
-* **Behavior Prediction**: [Behavior Prediction for Closed-Loop Driving](/posts/robotics/behavior-prediction-closed-loop-driving)
-
----
-
-*This is Part 6 of the Diffusion Models Series. Part 5 covered pre-training and post-training. Part 7 will explore modern models like Sora, Veo, and Open-Sora.*
-
+**Next:** [Part 7 — The Frontier: Sora, Veo, and Beyond](/posts/generative-ai/modern-video-models-sora-veo-opensora)
