@@ -135,7 +135,7 @@ const timeline = [
           
           <div class="flex flex-wrap gap-4 pt-4">
             <LinkButton href="/about" class="btn-tech">About My Work</LinkButton>
-            <LinkButton href="/posts" class="group flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border bg-background/50 hover:bg-background transition-all">
+            <LinkButton href="/posts" class="group flex items-center gap-2 px-6 py-2.5 rounded-xl border border-accent/40 bg-accent/5 text-accent font-semibold hover:bg-accent hover:text-white transition-all duration-200">
               Browse All Posts
               <IconArrowRight class="transition-transform group-hover:translate-x-1" />
             </LinkButton>
@@ -227,20 +227,20 @@ const timeline = [
         <div class="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-border/50 hidden sm:block" />
         
         {timeline.map((item, index) => (
-          <div class={`relative flex flex-col sm:flex-row items-center gap-8 ${index % 2 === 0 ? 'sm:flex-row' : 'sm:flex-row-reverse text-center sm:text-right'}`}>
+          <div class={`relative flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 ${index % 2 === 0 ? 'sm:flex-row' : 'sm:flex-row-reverse'}`}>
             <div class="flex-1 w-full sm:w-auto">
-              <div class="glass-card p-6 rounded-3xl hover:border-accent/30 transition-all">
+              <div class={`glass-card p-6 rounded-3xl hover:border-accent/30 transition-all ${index % 2 !== 0 ? 'sm:text-right' : ''}`}>
                 <span class="text-xs font-bold text-accent uppercase tracking-widest">{item.meta}</span>
                 <h3 class="text-xl font-bold text-foreground mt-2">{item.title}</h3>
-                <p class="text-sm font-medium text-secondary-foreground mb-4">{item.subtitle}</p>
+                <p class="text-sm font-medium text-secondary-foreground mb-3">{item.subtitle}</p>
                 <p class="text-sm text-secondary-foreground/80 leading-relaxed italic">{item.description}</p>
               </div>
             </div>
-            
-            <div class="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-background border-2 border-accent shadow-xl">
-              <OrgIcon name={item.icon} size={32} />
+
+            <div class="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-background border-2 border-accent/60 shadow-xl ring-4 ring-accent/10">
+              <OrgIcon name={item.icon} size={28} />
             </div>
-            
+
             <div class="flex-1 hidden sm:block" />
           </div>
         ))}
@@ -251,12 +251,30 @@ const timeline = [
 
     {featuredPosts.length > 0 && (
       <section id="featured" class="reveal">
-        <div class="flex items-end justify-between mb-12">
-          <h2 class="text-3xl font-bold text-foreground">Featured Writing</h2>
-          <LinkButton href="/posts" class="text-accent font-bold hover:underline">See all &rarr;</LinkButton>
+        <div class="flex items-end justify-between mb-10">
+          <div>
+            <h2 class="text-3xl font-bold text-foreground">Featured Writing</h2>
+            <p class="mt-1 text-sm text-secondary-foreground/70">Hand-picked deep dives worth your time.</p>
+          </div>
+          <LinkButton href="/posts" class="text-accent font-semibold text-sm hover:underline underline-offset-4">See all &rarr;</LinkButton>
         </div>
         <ul class="grid gap-8 md:grid-cols-2">
           {featuredPosts.map(data => <Card variant="h3" {...data} />)}
+        </ul>
+      </section>
+    )}
+
+    {recentPosts.length > 0 && (
+      <section id="recent" class="mt-20 reveal">
+        <div class="flex items-end justify-between mb-10">
+          <div>
+            <h2 class="text-3xl font-bold text-foreground">Recent Posts</h2>
+            <p class="mt-1 text-sm text-secondary-foreground/70">Latest additions from the knowledge base.</p>
+          </div>
+          <LinkButton href="/posts" class="text-accent font-semibold text-sm hover:underline underline-offset-4">All posts &rarr;</LinkButton>
+        </div>
+        <ul class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {recentPosts.slice(0, 6).map(data => <Card variant="h3" {...data} />)}
         </ul>
       </section>
     )}
@@ -321,7 +339,7 @@ const timeline = [
         localStorage.setItem("tiles-view", isGrid ? "grid" : "scroll");
       };
 
-      const savedView = localStorage.getItem("tiles-view") || "scroll";
+      const savedView = localStorage.getItem("tiles-view") || "grid";
       updateView(savedView === "grid");
 
       viewScrollBtn.addEventListener("click", () => updateView(false));

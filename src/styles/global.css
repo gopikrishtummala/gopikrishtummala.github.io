@@ -218,18 +218,26 @@ html[data-theme="academic"] {
 
   /* Enhanced Mermaid Styling */
   .mermaid {
-    @apply my-10 p-6 rounded-2xl bg-element border border-border shadow-sm overflow-hidden flex justify-center items-center;
-    transition: transform 0.3s ease, border-color 0.3s ease;
+    @apply my-10 p-6 rounded-2xl bg-element border border-border shadow-sm overflow-x-auto flex justify-center items-center;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
-  
+
   .mermaid:hover {
-    @apply border-accent/30;
-    transform: scale(1.01);
+    @apply border-accent/40;
+    box-shadow: 0 8px 32px -8px var(--accent-soft);
   }
 
   .mermaid svg {
-    @apply max-w-full h-auto;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.05));
+    @apply h-auto;
+    max-width: 100%;
+    min-width: min(100%, 300px);
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.06));
+  }
+
+  /* Subgraph label styling */
+  .mermaid .cluster-label, .mermaid .nodeLabel {
+    font-family: var(--display-font) !important;
+    font-size: 13px !important;
   }
   
   /* Shiki/Astro code block refinements */
@@ -261,7 +269,11 @@ html[data-theme="academic"] {
 /* Fix for Mermaid responsiveness */
 @media (max-width: 640px) {
   .mermaid {
-    @apply p-2;
-    font-size: 12px;
+    @apply p-3 rounded-xl;
+    font-size: 11px;
+  }
+
+  .mermaid svg {
+    min-width: unset;
   }
 }

@@ -123,18 +123,18 @@ const info = trackInfo[track];
         </div>
       )}
 
-      <div class="rounded-3xl border border-white/30 bg-white/70 p-6 shadow-sm dark:border-slate-700/40 dark:bg-slate-900/70">
-        <h2 class="mb-4 text-lg font-semibold text-foreground">Learning Path</h2>
-        <ul class="space-y-3 text-sm text-secondary-foreground">
-          {info.syllabus.map((item: string) => (
-            <li class="flex items-start gap-3">
-              <span class="mt-1.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-xs font-semibold text-accent">
-                &rarr;
+      <div class="rounded-3xl border border-accent/20 bg-accent/5 p-6 shadow-sm backdrop-blur-sm">
+        <h2 class="mb-5 text-sm font-bold uppercase tracking-widest text-accent">Suggested Learning Path</h2>
+        <ol class="space-y-3 text-sm text-secondary-foreground">
+          {info.syllabus.map((item: string, i: number) => (
+            <li class="flex items-start gap-4">
+              <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white shadow-sm">
+                {i + 1}
               </span>
-              <span set:html={item} />
+              <span set:html={item} class="leading-relaxed" />
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
     </section>
 

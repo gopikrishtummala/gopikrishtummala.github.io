@@ -136,26 +136,42 @@ html[data-theme="cyber"] {
    ENHANCED SERIES NAVIGATION
    ============================================ */
 .series-nav {
-  @apply rounded-3xl border-2 border-accent/20 bg-gradient-to-br from-background/80 to-accent/5 backdrop-blur-2xl p-8 my-12 relative overflow-hidden;
+  @apply rounded-3xl border-2 border-accent/30 bg-gradient-to-br from-accent/10 to-accent/5 backdrop-blur-xl p-6 my-10 relative overflow-hidden;
+  box-shadow: 0 4px 24px -8px var(--accent-soft);
 }
 
 .series-nav::before {
   content: '';
-  @apply absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none;
+  @apply absolute -top-16 -right-16 w-40 h-40 bg-accent/15 rounded-full blur-3xl pointer-events-none;
+}
+
+/* Series label (the "Series Name — Subtitle" line) */
+.series-nav > div:first-child {
+  @apply text-xs font-bold uppercase tracking-widest text-accent/80 mb-3;
+}
+
+/* Links container */
+.series-nav > div:nth-child(2) {
+  @apply flex flex-wrap gap-2;
 }
 
 .series-nav a {
-  @apply relative transition-all duration-300 px-4 py-2 rounded-xl border border-transparent;
+  @apply relative transition-all duration-200 px-3 py-1.5 rounded-lg border border-accent/20 bg-background/50 text-sm text-secondary-foreground font-medium no-underline;
 }
 
 .series-nav a:hover {
-  @apply border-accent/30 bg-accent/10 -translate-y-0.5 scale-105;
-  box-shadow: 0 10px 20px -10px var(--accent-soft);
+  @apply border-accent/50 bg-accent/10 text-accent -translate-y-0.5;
+  box-shadow: 0 6px 16px -6px var(--accent-soft);
 }
 
 .series-nav a.active {
-  @apply border-accent bg-accent text-white font-bold shadow-lg;
-  box-shadow: 0 0 20px var(--accent-soft);
+  @apply border-accent bg-accent text-white font-bold shadow-md;
+  box-shadow: 0 4px 14px -4px var(--accent-soft);
+}
+
+/* "You are reading" footer line */
+.series-nav > div:last-child {
+  @apply mt-3 text-xs text-secondary-foreground/70;
 }
 
 /* ============================================

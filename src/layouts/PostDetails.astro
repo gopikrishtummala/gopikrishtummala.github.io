@@ -33,6 +33,9 @@ const {
   timezone,
   tags,
   hideEditPost,
+  track,
+  difficulty,
+  estimated_read_time,
 } = post.data;
 
 const { Content } = await render(post);
@@ -101,6 +104,27 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
       class="relative overflow-hidden rounded-3xl border border-white/40 bg-white/80 px-6 py-10 shadow-[var(--shadow-xl-soft)] backdrop-blur-xl sm:px-10 sm:py-14 dark:border-slate-700/40 dark:bg-slate-900/70"
     >
       <div class="absolute inset-0 -z-10 bg-gradient-to-br from-accent/18 via-transparent to-transparent opacity-90" />
+      {(track || difficulty || estimated_read_time) && (
+        <div class="mb-5 flex flex-wrap items-center gap-2">
+          {difficulty && (
+            <span class={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+              difficulty === 'Beginner' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+              difficulty === 'Intermediate' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+              'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+            }`}>{difficulty}</span>
+          )}
+          {track && (
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent/5 text-accent border border-accent/10">
+              {track}
+            </span>
+          )}
+          {estimated_read_time && (
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary text-secondary-foreground/60 border border-border/50">
+              {estimated_read_time} min read
+            </span>
+          )}
+        </div>
+      )}
       <h1
         transition:name={slugifyStr(title)}
         class="text-3xl font-semibold leading-tight text-foreground sm:text-4xl"
@@ -377,84 +401,84 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
         return;
       }
 
-      // Configure Mermaid theme based on current color scheme
-      const isDark = document.documentElement.classList.contains("dark") || 
-                     document.documentElement.getAttribute("data-theme") === "dark";
-      
+      // Configure Mermaid theme based on current site theme
+      const siteTheme = document.documentElement.getAttribute("data-theme") || "light";
+      const isDark = siteTheme === "dark" || siteTheme === "cyber";
+
+      // Theme-aware color palettes matching the site's CSS variables
+      const themeColors = {
+        light:   { accent: "#10b981", accentDim: "#059669", bg: "#fafafa", elBg: "#ffffff", fg: "#1a1a1a", fg2: "#4a4a4a", muted: "#f3f4f6", border: "#e5e7eb" },
+        dark:    { accent: "#f59e0b", accentDim: "#d97706", bg: "#0a0a0a", elBg: "#171717", fg: "#f3f4f6", fg2: "#9ca3af", muted: "#262626", border: "#262626" },
+        cyber:   { accent: "#a855f7", accentDim: "#9333ea", bg: "#020617", elBg: "#0f172a", fg: "#f8fafc", fg2: "#94a3b8", muted: "#1e293b", border: "#1e293b" },
+        academic:{ accent: "#0d9488", accentDim: "#0f766e", bg: "#fdfdfc", elBg: "#ffffff", fg: "#1c1c1c", fg2: "#525252", muted: "#f3f3f2", border: "#e5e5e5" },
+      };
+      const c = themeColors[siteTheme] || themeColors.light;
+
       window.mermaid.initialize({
         startOnLoad: false,
-        theme: isDark ? "dark" : "default",
+        theme: "base",
         flowchart: {
           useMaxWidth: true,
           htmlLabels: true,
           curve: "basis",
-          padding: 25,
-          nodeSpacing: 50,
-          rankSpacing: 50,
+          padding: 20,
+          nodeSpacing: 45,
+          rankSpacing: 55,
           wrap: true,
-          // Force text wrapping
-          wrapPadding: 8
+          wrapPadding: 10,
         },
         sequence: {
           wrap: true,
-          wrapPadding: 8,
-          diagramMarginX: 50,
+          wrapPadding: 10,
+          diagramMarginX: 40,
           diagramMarginY: 10,
           actorMargin: 50,
-          width: 150,
+          width: 160,
           height: 65,
           boxMargin: 10,
           boxTextMargin: 5,
           noteMargin: 10,
-          messageMargin: 35
+          messageMargin: 35,
         },
-        er: {
-          wrap: true,
-          wrapPadding: 8
-        },
-        gantt: {
-          wrap: true
-        },
-        gitgraph: {
-          wrap: true
-        },
+        er: { wrap: true, wrapPadding: 10 },
+        gantt: { wrap: true },
+        gitgraph: { wrap: true },
         themeVariables: {
-          fontFamily: "inherit",
-          fontSize: "14px",
+          fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+          fontSize: "13px",
           lineHeight: "1.5",
-          // critical: prevents text from overflowing shape
-          // Lower width = more aggressive wrapping = less clipping
-          textWrapWidth: 80,
-          textWrapPadding: 8,
-          nodePadding: "14px",
-          width: "auto",
-          padding: 25,
-          // Additional spacing for better text display
-          primaryBorderRadius: "8px",
-          secondaryBorderRadius: "8px",
-          tertiaryBorderRadius: "8px",
-          // Theme colors
-          primaryColor: isDark ? "#ff6b01" : "#006cac",
-          primaryTextColor: isDark ? "#eaedf3" : "#282728",
-          primaryBorderColor: isDark ? "#ab4b08" : "#006cac",
-          lineColor: isDark ? "#eaedf3" : "#282728",
-          secondaryColor: isDark ? "#343f60" : "#e6e6e6",
-          tertiaryColor: isDark ? "#212737" : "#fdfdfd",
-          noteBkgColor: isDark ? "#343f60" : "#e6e6e6",
-          noteTextColor: isDark ? "#eaedf3" : "#282728",
-          noteBorderColor: isDark ? "#ab4b08" : "#006cac",
-          textColor: isDark ? "#eaedf3" : "#282728",
-          mainBkgColor: isDark ? "#212737" : "#fdfdfd",
-          secondBkgColor: isDark ? "#343f60" : "#e6e6e6",
-          edgeLabelBackground: isDark ? "#212737" : "#fdfdfd",
-          clusterBkgColor: isDark ? "#343f60" : "#e6e6e6",
-          clusterBorder: isDark ? "#ab4b08" : "#006cac",
-          defaultLinkColor: isDark ? "#ff6b01" : "#006cac",
-          titleColor: isDark ? "#ff6b01" : "#006cac",
-          // Node styling
-          cScale0: isDark ? "#ff6b01" : "#006cac",
-          cScale1: isDark ? "#343f60" : "#e6e6e6",
-          cScale2: isDark ? "#ab4b08" : "#006cac",
+          // Node colors
+          primaryColor: c.accent,
+          primaryTextColor: isDark ? c.fg : "#ffffff",
+          primaryBorderColor: c.accentDim,
+          // Secondary nodes
+          secondaryColor: c.muted,
+          secondaryTextColor: c.fg,
+          secondaryBorderColor: c.border,
+          // Tertiary nodes
+          tertiaryColor: c.elBg,
+          tertiaryTextColor: c.fg,
+          tertiaryBorderColor: c.border,
+          // Lines & edges
+          lineColor: c.fg2,
+          edgeLabelBackground: c.elBg,
+          // Backgrounds
+          background: c.bg,
+          mainBkgColor: c.elBg,
+          // Clusters / subgraphs
+          clusterBkg: isDark ? c.muted : "#f0fdf4",
+          clusterBorder: c.accent,
+          titleColor: c.accent,
+          // Notes
+          noteBkgColor: isDark ? c.muted : "#fefce8",
+          noteTextColor: c.fg,
+          noteBorderColor: c.accentDim,
+          // Text
+          textColor: c.fg,
+          // Link labels
+          defaultLinkColor: c.accent,
+          // Rounded corners
+          nodeBorder: c.accentDim,
         },
         securityLevel: "loose",
       });

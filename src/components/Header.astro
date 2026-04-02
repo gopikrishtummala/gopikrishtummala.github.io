@@ -111,21 +111,15 @@ const isActive = (path: string) => {
         </li>
         {
           SITE.showArchives && (
-            <li class="col-span-2 flex items-center justify-center sm:col-span-1 sm:justify-start">
-              <LinkButton
+            <li class="col-span-2 sm:col-span-1">
+              <a
                 href="/archives"
                 class:list={[
-                  "flex !px-3 !py-2 text-sm transition hover:-translate-y-0.5",
-                  {
-                    "bg-accent-soft text-accent shadow-sm": isActive("/archives"),
-                  },
+                  { "bg-accent-soft text-accent shadow-sm": isActive("/archives") },
                 ]}
-                ariaLabel="archives"
-                title="Archives"
               >
-                <IconArchive class="size-4" />
-                <span class="sm:sr-only">Archives</span>
-              </LinkButton>
+                Archives
+              </a>
             </li>
           )
         }
