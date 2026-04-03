@@ -13,3 +13,4 @@ resume/*.fls
 resume/*.log
 resume/*.out
 resume/*.synctex.gz
+docs/
