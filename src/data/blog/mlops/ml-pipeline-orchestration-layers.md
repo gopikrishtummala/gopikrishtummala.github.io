@@ -1,8 +1,8 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-04-02T00:00:00Z
-modDatetime: 2026-04-02T00:00:00Z
-title: "ML Pipeline Orchestration: Why Airflow Is Not Pipedream and Kubeflow Is Not Airflow"
+modDatetime: 2026-04-03T00:00:00Z
+title: "ML Pipeline Orchestration: Temporal, Airflow, Kubeflow, Ray — Which Layer Does What"
 slug: ml-pipeline-orchestration-layers
 featured: true
 draft: false
@@ -14,13 +14,13 @@ tags:
   - ray
   - systems-design
   - interview-prep
-description: "A precise mental model for ML pipeline orchestration—distinguishing event-driven glue (Pipedream), durable backend workflows (Temporal), data schedulers (Airflow), and production ML systems (Kubeflow/TFX/Ray). Built for engineers who need to answer 'design an ML pipeline' in interviews. Includes 2025-2026 tool updates: Airflow 3, KFP v2, Ray 2.x, MLflow 3."
+description: "A precise mental model for ML pipeline orchestration—mapping durable backend workflows (Temporal), data schedulers (Airflow, Prefect, Dagster), ML-native pipeline frameworks (Kubeflow, Metaflow, ZenML), and distributed compute engines (Ray). Built for engineers who need to answer 'design an ML pipeline' in interviews. Includes 2025-2026 updates: Airflow 3, KFP v2, Ray 2.x, MLflow 3."
 track: MLOps & Production
 difficulty: Intermediate
 interview_relevance:
   - System Design
   - ML-Infra
-estimated_read_time: 25
+estimated_read_time: 30
 ---
 
 *By Gopi Krishna Tummala*
@@ -46,7 +46,6 @@ estimated_read_time: 25
 
 ## TL;DR
 
-- **Pipedream / Zapier / n8n** = event-driven glue for APIs. Not ML tools.
 - **Temporal** = durable backend orchestration with exactly-once workflow semantics. Good for long-running ML coordination.
 - **Airflow 3** (April 2025) = DAG scheduler for data pipelines with full DAG versioning. The industry standard for ETL. Not designed for distributed compute.
 - **Prefect 3** = Python-native Airflow alternative with dynamic workflows and hybrid execution.
@@ -66,11 +65,9 @@ estimated_read_time: 25
 
 Here is a question that trips up a surprising number of ML engineers:
 
-> "Is Pipedream similar to Airflow or Kubeflow? They all string steps together, right?"
+> "Airflow, Kubeflow, Ray, Temporal — they all orchestrate steps. Aren't they basically the same thing?"
 
-The answer is: not really. They sit at completely different layers of the stack and solve different problems. Confusing them in a system design interview signals shallow infrastructure intuition.
-
-The confusion is understandable. All of these tools draw boxes and connect them with arrows. But so does Figma, and nobody thinks Figma runs GPU training jobs.
+No. They sit at completely different layers of the stack and solve different problems. Confusing them in a system design interview signals shallow infrastructure intuition.
 
 The way to cut through this is to ask three questions for any orchestration tool:
 1. **What triggers execution?** (Events, cron, upstream task completion, manual)
@@ -81,38 +78,7 @@ Let's map every major tool against these axes.
 
 ---
 
-### Act I: Layer 1 — Event-Driven Glue
-
-These tools connect APIs. They are explicitly not designed for ML workloads.
-
-```mermaid
-flowchart LR
-    A[Stripe webhook] --> B[Pipedream workflow]
-    B --> C[Transform data\nPython step]
-    C --> D[Slack notification]
-    C --> E[Update Airtable]
-
-    style A fill:#f59e0b,stroke:#d97706,color:#fff
-    style B fill:#6366f1,stroke:#4f46e5,color:#fff
-    style C fill:#6366f1,stroke:#4f46e5,color:#fff
-    style D fill:#10b981,stroke:#059669,color:#fff
-    style E fill:#10b981,stroke:#059669,color:#fff
-```
-
-**Pipedream** is best described as "Zapier for engineers." It handles:
-- API webhooks → transform → send
-- Cron-triggered integrations
-- SaaS-to-SaaS glue (Stripe → Salesforce, GitHub → Slack)
-
-The unit of work is a small serverless function. The compute target is a single managed server. There is no concept of distributed execution, data locality, GPU scheduling, or checkpoint-resume for multi-hour jobs.
-
-**Other tools in this category:** Zapier, Make (Integromat), n8n
-
-**When you'd actually use these in an ML context:** sending a Slack alert when a training run finishes, or triggering a data pull from an API when a webhook fires. Not for the training run itself.
-
----
-
-### Act II: Layer 2 — Durable Backend Orchestration
+### Act I: Layer 1 — Durable Backend Orchestration
 
 **Temporal** is a step up in seriousness. It is code-first workflow orchestration designed for backend services where correctness and crash-recovery matter more than schedule management.
 
@@ -144,7 +110,7 @@ Temporal is not a data pipeline tool—it has no native operator ecosystem, no b
 
 ---
 
-### Act III: Layer 3 — Data Pipeline Schedulers
+### Act II: Layer 2 — Data Pipeline Schedulers
 
 This is where **Airflow** lives, and it is the most widely deployed orchestration tool in the data industry.
 
@@ -248,7 +214,7 @@ def production_predictions(trained_model, raw_features):
 
 ---
 
-### Act IV: Layer 4 — ML-Native Pipeline Frameworks
+### Act III: Layer 3 — ML-Native Pipeline Frameworks
 
 This is where the tools were actually designed with ML workflows in mind.
 
@@ -411,9 +377,69 @@ Change one line in your stack configuration to switch from local execution to Ku
 
 ---
 
-### Act V: Layer 5 — Distributed Compute Engines
+### Act IV: Layer 4 — Distributed Compute Engines
 
 The tools above orchestrate *which* steps to run and *when*. This layer is about *how* to execute a single step across many machines.
+
+#### The Foundation: MapReduce
+
+Before Spark, Ray, and Kubeflow existed, Google published the MapReduce paper (2004) and it shaped how the entire industry thinks about distributed data processing. Understanding it is not optional for ML infra interviews—it is the conceptual substrate beneath almost everything else in this layer.
+
+The core insight: break a large computation into two phases that can run across arbitrary numbers of machines.
+
+```mermaid
+flowchart LR
+    subgraph Input["Input Splits"]
+        S1[Shard 1\n10M rows]
+        S2[Shard 2\n10M rows]
+        S3[Shard 3\n10M rows]
+    end
+
+    subgraph Map["Map Phase\nRun in parallel on each shard"]
+        M1[Map worker 1\nemit key-value pairs]
+        M2[Map worker 2\nemit key-value pairs]
+        M3[Map worker 3\nemit key-value pairs]
+    end
+
+    subgraph Shuffle["Shuffle + Sort\nGroup by key across all workers"]
+        SH[All values for key K\nsent to same reducer]
+    end
+
+    subgraph Reduce["Reduce Phase\nAggregate per key"]
+        R1[Reducer 1\nkey range A-M]
+        R2[Reducer 2\nkey range N-Z]
+    end
+
+    S1 --> M1
+    S2 --> M2
+    S3 --> M3
+    M1 --> SH
+    M2 --> SH
+    M3 --> SH
+    SH --> R1
+    SH --> R2
+
+    style Map fill:#1e1b4b,stroke:#6366f1,color:#a5b4fc
+    style Shuffle fill:#7c2d12,stroke:#ea580c,color:#fed7aa
+    style Reduce fill:#14532d,stroke:#16a34a,color:#bbf7d0
+```
+
+**The shuffle is the bottleneck.** Every mapper writes its output to local disk. The framework then sorts and transfers the right keys to the right reducers across the network. At scale (thousands of nodes, terabytes of intermediate data), the shuffle phase can dominate total job time. This is why Spark's in-memory model was a step change over Hadoop MapReduce—Spark avoids writing intermediate results to disk when memory permits.
+
+**How this maps to ML workloads:**
+
+| ML task | Map | Reduce |
+|---|---|---|
+| Feature aggregation | Per-user event → (user_id, feature_vector) | Aggregate features per user |
+| Word count (classic) | sentence → (word, 1) | Sum counts per word |
+| Gradient computation | Per-batch loss → (layer, gradient) | Average gradients across workers (AllReduce) |
+| Dataset statistics | Per-shard → (feature, stats) | Merge statistics globally |
+
+**AllReduce is distributed gradient aggregation reframed as MapReduce.** Each GPU computes gradients on its local batch (map). The AllReduce collective sums/averages gradients across all workers (reduce). The difference: AllReduce is ring-based (no central reducer), making it much more bandwidth-efficient than classic MapReduce at the gradient scale.
+
+**Spark** is the modern implementation of the MapReduce pattern with in-memory execution, a richer API (DataFrames, SQL, MLlib), and support for iterative algorithms—which Hadoop MapReduce handled poorly because each iteration wrote to disk. For ML preprocessing at terabyte scale, Spark is the standard choice.
+
+**Ray** extends the model further: instead of just map and reduce, Ray supports arbitrary directed task graphs with stateful actors. A Ray training job is essentially a generalized MapReduce where the "map" is distributed forward/backward passes and the "reduce" is gradient AllReduce—but with the flexibility to express any computation pattern.
 
 ```mermaid
 flowchart LR
@@ -471,7 +497,7 @@ result = trainer.fit()
 
 ---
 
-### Act VI: Vertex AI Pipelines — The Managed Path
+### Act V: Vertex AI Pipelines — The Managed Path
 
 Vertex AI Pipelines is Google's managed Kubeflow service. It uses the same KFP SDK v2 IR YAML format as self-hosted Kubeflow—pipeline code is portable between the two.
 
@@ -492,7 +518,7 @@ Vertex AI Pipelines is Google's managed Kubeflow service. It uses the same KFP S
 
 ---
 
-### Act VII: The Full Production Stack
+### Act VI: The Full Production Stack
 
 Real ML systems at companies like Google, Meta, and Waymo are not using a single tool. They layer these systems:
 
@@ -542,12 +568,11 @@ flowchart TD
 
 ---
 
-### Act VIII: Tool Selection Decision Tree
+### Act VII: Tool Selection Decision Tree
 
 ```mermaid
 flowchart TD
-    A{What are you building?} --> B[Connecting SaaS APIs\nWebhooks / cron integrations]
-    A --> C[Long-running stateful coordination\nSurvives crashes, approval gates]
+    A{What are you building?} --> C[Long-running stateful coordination\nSurvives crashes, approval gates]
     A --> D[Scheduled data ETL\nSQL transforms / reporting]
     A --> E[Python-first workflows\nDynamic / conditional graphs]
     A --> F[Data product management\nAsset freshness / lineage]
@@ -556,7 +581,6 @@ flowchart TD
     A --> I[Distributed training or\nlarge-scale preprocessing]
     A --> J[Orchestrator-agnostic ML\nMulti-cloud / vendor flexibility]
 
-    B --> B1[Pipedream / n8n / Zapier]
     C --> C1[Temporal]
     D --> D1[Airflow 3 / dbt]
     E --> E1[Prefect 3]
@@ -567,7 +591,6 @@ flowchart TD
     J --> J1[ZenML]
 
     style A fill:#6366f1,stroke:#4f46e5,color:#fff
-    style B1 fill:#374151,stroke:#6b7280,color:#f9fafb
     style C1 fill:#374151,stroke:#6b7280,color:#f9fafb
     style D1 fill:#374151,stroke:#6b7280,color:#f9fafb
     style E1 fill:#10b981,stroke:#059669,color:#fff
@@ -580,11 +603,10 @@ flowchart TD
 
 ---
 
-### Act IX: The Comparison Table
+### Act VIII: The Comparison Table
 
 | Tool | Trigger | Unit of Work | Compute Target | ML-Native? | 2025-26 Status |
 |---|---|---|---|---|---|
-| Pipedream | Webhook / cron | Serverless function | Single server | No | Stable |
 | Temporal | Code-defined | Activity (any process) | Worker fleet | No | Active, growing |
 | Airflow | Cron / upstream | Operator | Any (via operators) | No | v3.0 April 2025 |
 | Prefect | Any | Task (Python function) | Hybrid workers | No | v3.0 Sept 2024 |
@@ -602,7 +624,7 @@ flowchart TD
 
 ---
 
-### Act X: What to Say in Interviews
+### Act IX: What to Say in Interviews
 
 **Q: "Design an ML pipeline that retrains a recommendation model daily."**
 
@@ -611,10 +633,6 @@ The wrong answer: "I'd use Airflow." (Too vague—Airflow is just the scheduler,
 The right answer:
 
 > "I'd layer this. Airflow 3 handles the daily schedule and dependency checks—it uses Data Assets to verify yesterday's interaction logs have landed before triggering the pipeline. The pipeline definition itself would be in Kubeflow Pipelines v2 if we need strict containerization and artifact lineage, or Metaflow if the team is data-scientist-heavy and AWS-native. Each pipeline step runs as a Kubernetes pod so we can right-size compute per step—feature computation on Spark, distributed training on a Ray cluster using FSDP for the two-tower model. Artifacts and lineage go into MLMD or an artifact registry. The final step compares new model metrics to production baseline using shadow traffic—if it passes thresholds, it promotes. If not, it pages on-call and logs the failure with the artifact lineage so we can diff what changed."
-
-**Q: "Is Pipedream similar to Airflow?"**
-
-> "They both string steps together, but they sit at completely different layers. Pipedream is event-driven integration glue—connecting APIs and SaaS services, great for webhooks and lightweight automation. Airflow 3 is a DAG scheduler designed for data pipelines at scale—with full DAG versioning, backfill, dependency tracking, and operators for Spark, Kubernetes, BigQuery. For ML workloads specifically, you'd use Airflow for scheduling but hand off the actual ML steps to Kubeflow or Metaflow pipelines, which understand ML artifacts, experiment tracking, and model evaluation natively."
 
 **Q: "When would you use Ray vs Kubeflow?"**
 
@@ -630,7 +648,7 @@ The right answer:
 
 ---
 
-### Act XI: Your Context (AV / Zoox Background)
+### Act X: Your Context (AV / Zoox Background)
 
 If you've worked on autonomous vehicle ML infrastructure, you're already close to the serious end of this stack. AV companies typically run:
 
@@ -639,7 +657,7 @@ If you've worked on autonomous vehicle ML infrastructure, you're already close t
 - **Large-scale distributed training** with PyTorch FSDP across hundreds of GPUs for perception models—this is exactly the Ray use case
 - **Metaflow or similar** for research experiments, with promotion paths to production pipelines
 
-In interviews, anchor your answers to this scale: "at Zoox, retraining a perception model meant coordinating 512 GPUs, validating against thousands of sensor-annotated scenarios across scenario categories—fog, night, construction zones—before any deployment. A tool like Pipedream isn't even in the conversation for that. You're looking at Kubernetes, distributed training via Ray Train or DDP, and a pipeline system with artifact contracts that prevents you from accidentally deploying a model trained on stale annotation data."
+In interviews, anchor your answers to this scale: "at Zoox, retraining a perception model meant coordinating 512 GPUs, validating against thousands of sensor-annotated scenarios across scenario categories—fog, night, construction zones—before any deployment. You're looking at Kubernetes, distributed training via Ray Train or DDP, and a pipeline system with artifact contracts that prevents you from accidentally deploying a model trained on stale annotation data."
 
 That specificity signals you understand production ML infrastructure, not just the tooling vocabulary.
 
@@ -649,7 +667,6 @@ That specificity signals you understand production ML infrastructure, not just t
 
 | Tool | One-Line Mental Model |
 |---|---|
-| **Pipedream** | Zapier for engineers |
 | **Temporal** | Crash-proof backend workflows with exactly-once semantics |
 | **Airflow 3** | Cron + DAGs + DAG versioning for data pipelines at scale |
 | **Prefect 3** | Airflow ergonomics, Python-native, dynamic workflows |
