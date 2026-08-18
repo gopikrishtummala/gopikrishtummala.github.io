@@ -1,6 +1,6 @@
 ---
 export interface Props {
-  name: "adobe" | "microsoft" | "qualcomm" | "osu" | "iit-madras" | "zoox" | "standard-chartered" | "tata-elxsi";
+  name: "latitude" | "adobe" | "microsoft" | "qualcomm" | "osu" | "iit-madras" | "zoox" | "standard-chartered" | "tata-elxsi";
   size?: number;
   class?: string;
 }
@@ -8,6 +8,7 @@ export interface Props {
 const { name, size = 24, class: className = "" } = Astro.props;
 
 const iconMap: Record<string, string> = {
+  latitude: "/icons/organizations/latitude.svg",
   adobe: "/icons/organizations/adobe.jpg",
   microsoft: "/icons/organizations/microsoft.svg",
   qualcomm: "/icons/organizations/qualcomm.jpg",

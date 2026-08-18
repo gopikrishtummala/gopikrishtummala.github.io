@@ -3,7 +3,7 @@ layout: ../layouts/AboutLayout.astro
 title: "About"
 ---
 
-Hi, I'm Gopi Krishna Tummala, a Senior Machine Learning Engineer with a passion for algorithm design and AI innovation.
+Hi, I'm Gopi Krishna Tummala, a Staff Machine Learning Engineer with a passion for algorithm design and AI innovation.
 
 
 Born and raised in southern India, I pursued my undergraduate studies at IIT Madras and later earned my Ph.D. in Computer Science from The Ohio State University.
@@ -13,12 +13,11 @@ Born and raised in southern India, I pursued my undergraduate studies at IIT Mad
 With 10+ years of experience in designing machine learning algorithms and models, I've developed expertise in algorithm development, machine learning, and metrics. I enjoy designing ML models, updating models for better performance, automation, and creating visualizations to understand models.
 
 ### Current Role
-**Senior Machine Learning Engineer @ Adobe** (Sep 2024 - Present)
-- Building large-scale data frameworks for GenAI training
-- Managing high-performance dataloaders serving millions of requests monthly
-- Implementing runtime profiling and telemetry for performance tuning
+**Staff Machine Learning Engineer @ Latitude AI** (Jun 2026 - Present)
+- Focused on training infrastructure for autonomous driving ML systems
 
 ### Previous Roles
+- **Senior Machine Learning Engineer @ Adobe** (Sep 2024 - Jun 2026): Built large-scale data frameworks for GenAI training, managed high-performance dataloaders serving millions of requests monthly, and implemented runtime profiling and telemetry for performance tuning
 - **Software Engineer, Prediction @ Zoox** (2022 - 2024): Designed prediction models for autonomous vehicle systems
 - **Senior Systems Engineer @ Qualcomm Research** (2020 - 2022): Developed ML algorithms for behavior prediction
 - **Senior Systems Engineer @ Qualcomm** (2018 - 2020): Built testing and automation pipelines
@@ -38,6 +37,14 @@ My research spans camera calibration, autonomous vehicle prediction, computer vi
 - **Google Scholar**: 185+ citations, h-index: 7
 
 Key publications include work on automatic camera calibration, behavior prediction for autonomous vehicles, and collaborative vehicular systems.
+
+### Patents
+
+- **US 12,668,281**: Database generation including predicted scenarios (Zoox)
+- **US 12,654,739**: Tree based behavior predictor (Qualcomm)
+- **US 12,542,054**: Managing vehicle behavior based on predicted behavior of other vehicles (Qualcomm)
+- **US 10,580,164**: Automatic Camera Calibration (Microsoft)
+- **US 10,032,370**: Methods for enabling mobile communication device based secure interaction (Honda)
 
 ## Skills
 

@@ -2,7 +2,7 @@ export const SITE = {
   website: "https://gopikrishtummala.github.io/", // replace this with your deployed domain
   author: "Gopi Krishna Tummala",
   profile: "https://gopikrishtummala.github.io/",
-  desc: "Senior Machine Learning Engineer @ Adobe | PhD | Ex-Qualcomm | Ex-Zoox | IIT-Madras",
+  desc: "Staff Machine Learning Engineer @ Latitude AI | PhD | Ex-Adobe | Ex-Qualcomm | Ex-Zoox | IIT-Madras",
   title: "Gopi Krishna Tummala",
   ogImage: "astropaper-og.jpg",
   lightAndDarkMode: true,
