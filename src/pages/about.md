@@ -14,7 +14,7 @@ With 10+ years of experience in designing machine learning algorithms and models
 
 ### Current Role
 **Staff Machine Learning Engineer @ Latitude AI** (Jun 2026 - Present)
-- Focused on training infrastructure for autonomous driving ML systems
+- Responsible for the training ecosystem powering Ford's vision and behavioral prediction models
 
 ### Previous Roles
 - **Senior Machine Learning Engineer @ Adobe** (Sep 2024 - Jun 2026): Built large-scale data frameworks for GenAI training, managed high-performance dataloaders serving millions of requests monthly, and implemented runtime profiling and telemetry for performance tuning
