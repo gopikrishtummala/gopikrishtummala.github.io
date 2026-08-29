@@ -17,7 +17,7 @@ With 10+ years of experience in designing machine learning algorithms and models
 - Responsible for the training ecosystem powering Ford's vision and behavioral prediction models
 
 ### Previous Roles
-- **Senior Machine Learning Engineer @ Adobe** (Sep 2024 - Jun 2026): Built large-scale data frameworks for GenAI training, managed high-performance dataloaders serving millions of requests monthly, and implemented runtime profiling and telemetry for performance tuning
+- **Senior Machine Learning Engineer - P50 @ Adobe** (Sep 2024 - Jun 2026): Built large-scale data frameworks for GenAI training, managed high-performance dataloaders serving millions of requests monthly, and implemented runtime profiling and telemetry for performance tuning
 - **Software Engineer, Prediction @ Zoox** (2022 - 2024): Designed prediction models for autonomous vehicle systems
 - **Senior Systems Engineer @ Qualcomm Research** (2020 - 2022): Developed ML algorithms for behavior prediction
 - **Senior Systems Engineer @ Qualcomm** (2018 - 2020): Built testing and automation pipelines
