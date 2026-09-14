@@ -1,9 +1,12 @@
 ---
 import Main from "@/layouts/Main.astro";
 import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
 ---
 
 <Layout title="CV | Resume">
+  <Header />
   <Main pageTitle="Curriculum Vitae" pageDesc="Download my resume or view it online">
     <div class="flex flex-col items-center gap-6">
       <div class="w-full max-w-3xl rounded-2xl border border-white/40 bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-900/50 sm:p-8">
@@ -78,4 +81,5 @@ import Layout from "@/layouts/Layout.astro";
       </div>
     </div>
   </Main>
+  <Footer />
 </Layout>
