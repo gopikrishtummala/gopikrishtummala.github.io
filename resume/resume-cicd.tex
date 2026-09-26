@@ -1,0 +1,176 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fontawesome5}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{xcolor}
+
+% Define colors
+\definecolor{darkblue}{RGB}{0,0,139}
+\definecolor{graytext}{RGB}{80,80,80}
+
+% Custom section formatting
+\titleformat{\section}{\Large\bfseries\uppercase}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{14pt}{7pt}
+
+% Custom itemize formatting
+\setlist[itemize]{leftmargin=1.5em, nosep, topsep=3pt, itemsep=3pt}
+
+% Disable paragraph indentation (otherwise every entry after the first
+% in a section gets an unwanted first-line indent)
+\setlength{\parindent}{0pt}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=darkblue,
+    filecolor=darkblue,
+    urlcolor=darkblue,
+}
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	HEADER
+%----------------------------------------------------------------------------------------
+\begin{center}
+    {\Huge \textbf{Gopi Krishna Tummala}} \\ [6pt]
+    \large
+    \faMapMarker* Fremont, CA \quad | \quad
+    \faPhone* +1-614-620-7960 \quad | \quad
+    \faEnvelope* \href{mailto:tummalag.cseosu@gmail.com}{tummalag.cseosu@gmail.com} \\ [4pt]
+    \small
+    \faLinkedin \href{https://www.linkedin.com/in/gopi-krishna-tummala-00294415/}{ linkedin.com/in/gopi-krishna-tummala} \quad | \quad
+    \faGlobe \href{https://gopikrishnatummala.com/}{ gopikrishnatummala.com} \quad | \quad
+    \faGraduationCap \href{https://scholar.google.com/citations?user=SaKqqO8AAAAJ&hl=en}{ Google Scholar} \\ [4pt]
+    \textbf{Visa Status:} Green Card
+\end{center}
+
+%----------------------------------------------------------------------------------------
+%	SUMMARY
+%----------------------------------------------------------------------------------------
+\section{Summary}
+Machine Learning Engineer with \textbf{12+ years of experience} owning \textbf{MLOps platforms and CI/CD pipelines} for Generative AI and Autonomous Driving (L3-L5) systems. Code and framework owner across every role — training frameworks, dataloaders, and inference pipelines — with end-to-end responsibility for the CI/CD pipelines, automated testing, and \textbf{GitOps}-based deployment workflows that ship them to production. Proven track record of bridging research and production, with a Ph.D. in Computer Science, 10+ patents, and award-winning publications. Currently responsible for the training ecosystem at \textbf{Latitude AI}, powering Ford's vision and behavioral prediction models.
+
+%----------------------------------------------------------------------------------------
+%	SKILLS
+%----------------------------------------------------------------------------------------
+\section{Technical Skills}
+\begin{itemize}
+    \item \textbf{CI/CD \& MLOps:} Jenkins, GitHub Actions, GitLab CI, GitOps (ArgoCD/Flux-style workflows), Docker, Kubernetes, Terraform, automated regression gating, canary/staged rollouts, model/artifact registries.
+    \item \textbf{Languages:} Python (Expert), C++, CUDA, SQL, Bash, TypeScript, Java, HTML/CSS.
+    \item \textbf{ML \& GenAI:} PyTorch, TensorFlow, JAX, Transformers, Diffusion Models (DiT/VAE), Vision-Language Models (VLMs), RAG, LangChain, FlashAttention, vLLM.
+    \item \textbf{Infrastructure:} Distributed Training (FSDP, DeepSpeed), AWS (S3, DynamoDB, EC2), Ray, Apache Arrow/Parquet.
+    \item \textbf{Domain Expertise:} Autonomous Vehicles (Prediction/Planning), Computer Vision, Sensor Fusion, Framework \& Platform Ownership.
+\end{itemize}
+
+%----------------------------------------------------------------------------------------
+%	PROFESSIONAL EXPERIENCE
+%----------------------------------------------------------------------------------------
+\section{Professional Experience}
+
+\textbf{Latitude AI} \hfill Palo Alto, CA \\
+\textit{Staff Machine Learning Engineer} \hfill Jun 2026 -- Present
+\begin{itemize}
+    \item \textbf{Code \& Framework Owner} for the training ecosystem powering \textbf{Ford} vision and behavioral prediction models — responsible for the training framework codebase, its \textbf{CI/CD pipelines}, and \textbf{MLOps} tooling gating every change before it reaches production training clusters.
+\end{itemize}
+
+\textbf{Adobe} \hfill San Jose, CA \\
+\textit{Staff Machine Learning Engineer} \hfill Sep 2024 -- Jun 2026
+\begin{itemize}
+    \item \textbf{GenAI Data Marketplace:} Architecting a high-performance Data Marketplace (internal Hugging Face) to support \textbf{Adobe Firefly}, serving distinct data needs across research and product teams.
+    \item \textbf{Production Dataloader:} Developed/Maintained a high-throughput dataloader for production training, handling \textbf{$>$1M calls/month} with optimized data streaming and caching.
+    \item \textbf{Scalable Storage:} Managed a global training feature store on a \textbf{DynamoDB cluster (~20B items)}, ensuring high availability and low-latency access for distributed training jobs.
+    \item \textbf{MLOps \& CI/CD Ownership:} \textbf{Code and framework owner} for the dataloader and training-infrastructure repos — built and maintained the \textbf{CI/CD pipelines} (GitHub Actions, Jenkins) and \textbf{GitOps}-based deployment workflows gating every merge with automated tests, runtime profiling, and canary rollouts, accelerating deployment velocity while cutting regressions.
+\end{itemize}
+
+\textbf{Zoox} \hfill Foster City, CA \\
+\textit{Software Engineer - Prediction} \hfill Apr 2022 -- Aug 2024
+\begin{itemize}
+    \item Built prediction visualization plugin for Argus (ROS/RViz-like viewer) using TypeScript/React, Python, C++ to debug probabilistic multi-trajectory outputs across the AV stack.
+    \item Modernized vehicular prediction: designed stable ground-truth labeling algorithm using agent direction + road target/waypoint orientation (TNT-inspired target-driven approach); replaced flickery closest-distance heuristic → delivered 2--3 production releases with major gains in intent/target and trajectory accuracy.
+    \item Overhauled VRU (pedestrian/cyclist/motorcycle) prediction: migrated legacy CNN/top-down + MLP to transformer-based multi-intent/trajectory architecture; solved intent generation for off-road/ambiguous agents → outperformed mature baseline; owned PyTorch → ONNX → custom C++ runtime deployment.
+    \item \textbf{Led} TensorFlow → PyTorch Lightning migration: built config-driven module registry (YAML/Proto) for MLPs, CNNs, LSTMs, GNNs, Transformers, UNet backbones; integrated wandb/CometML; achieved near-parity for key models.
+    \item \textbf{Code \& Framework Owner:} Owned the \textbf{CI/CD pipelines} (Jenkins, GitHub Actions) gating the PyTorch Lightning training framework and dataloader repositories, running the ~40,000-scenario evaluation suite and novel intent/trajectory metrics as automated regression gates before every merge to the AV prediction stack.
+\end{itemize}
+
+\textbf{Qualcomm Research} \hfill San Diego, CA \\
+\textit{Senior Systems Engineer} \hfill Jan 2019 -- Feb 2022
+\begin{itemize}
+    \item Replaced rule-based prediction with XGBoost multi-class classifier (lane keep, lane changes); built data pipeline parsing/annotating ROS bags → trained model beating baseline → hand-wrote C++ inference engine for Snapdragon Ride platform (zero external dependencies).
+    \item Led GRIP++ (RNN+CNN-based) trajectory prediction implementation: developed custom rasterization pipeline to convert raw ROS logs into training-ready visual renders; achieved state-of-the-art results by 2021.
+    \item \textbf{MLOps \& CI/CD:} Built automated CI pipelines (Jenkins) for the on-device C++ inference engine — automated build, ROS-bag regression testing, and staged rollout to the Snapdragon Ride platform, with weekly HTML validation reports feeding the release gate.
+    \item Filed 2--3 patents on Vehicle-to-Vehicle (V2V) communication and prediction corner cases for autonomous driving.
+\end{itemize}
+
+\textbf{Standard Chartered Scope International} \hfill Chennai, India \\
+\textit{Software Analyst} \hfill Jun 2012 -- Jul 2013
+\begin{itemize}
+    \item Developed financial software systems and data analysis tools for banking operations.
+\end{itemize}
+
+%----------------------------------------------------------------------------------------
+%	RESEARCH INTERNSHIPS
+%----------------------------------------------------------------------------------------
+\section{Internships}
+
+\textbf{Qualcomm Research} \hfill San Diego, CA \\
+\textit{Systems Integration \& Test Intern} \hfill Summer 2018
+\begin{itemize}
+    \item Developed prediction metrics framework: analyzed ROS bags using Python APIs, extracted performance metrics from rule-based prediction system, generated automated HTML reports for weekly reviews.
+\end{itemize}
+
+\textbf{Microsoft Research} \hfill Bangalore, India \\
+\textit{Research Intern} \hfill Summer 2016
+\begin{itemize}
+    \item \textbf{Project AutoCalib:} Designed software for automatic traffic camera calibration. Achieved speed estimation errors of $<10\%$ without manual intervention.
+    \item Published results in \textit{ACM BuildSys 2017} (Won Best Paper Award).
+\end{itemize}
+
+\textbf{Tata Elxsi} \hfill Chennai, India \\
+\textit{Project Intern} \hfill Summer 2011
+
+%----------------------------------------------------------------------------------------
+%	EDUCATION
+%----------------------------------------------------------------------------------------
+\section{Education}
+\textbf{The Ohio State University} \hfill Columbus, OH \\
+\textit{Ph.D. in Computer Science \& Engineering} \hfill 2013 -- 2018 \\
+\textit{M.S. in Computer Science \& Engineering} \hfill 2013 -- 2017
+
+\textbf{IIT Madras} \hfill Chennai, India \\
+\textit{B.Tech in Electrical Engineering (Minor in Mathematics)} \hfill 2008 -- 2012
+
+%----------------------------------------------------------------------------------------
+%	SELECTED PUBLICATIONS
+%----------------------------------------------------------------------------------------
+\section{Selected Publications}
+\begin{itemize}
+    \item \textbf{AutoCalib:} Automatic calibration of traffic cameras at scale. \textit{ACM TOSN 2018 \& ACM BuildSys 2017} (Best Paper \& Best Demo).
+    \item \textbf{SmartDashCam:} Automatic Live Calibration for DashCams. \textit{ACM IPSN 2019}.
+    \item \textbf{RoadView:} Live View of On-Road Vehicular Information. \textit{IEEE SECON 2017}.
+    \item \textbf{CaneScanner:} Obstacle Detection for People with Visual Disabilities. \textit{IEEE INFOCOM 2018}.
+\end{itemize}
+
+%----------------------------------------------------------------------------------------
+%	PATENTS (SELECTED)
+%----------------------------------------------------------------------------------------
+\section{Patents}
+\textit{10+ patents granted/pending in AV prediction, behavior trees, and calibration:} \textbf{US 12,668,281} (Database generation including predicted scenarios, Zoox); \textbf{US 12,654,739} (Tree based behavior predictor, Qualcomm); \textbf{US 12,542,054} (Managing vehicle behavior based on predicted behavior of other vehicles, Qualcomm); \textbf{US 10,580,164} (Automatic Camera Calibration, Microsoft); \textbf{US 10,032,370} (Mobile communication device based Secure Interaction, Honda).
+
+%----------------------------------------------------------------------------------------
+%	HONORS & SERVICE
+%----------------------------------------------------------------------------------------
+\section{Honors \& Service}
+\begin{itemize}
+    \item \textbf{Awards:} Best Paper \& Best Demo (ACM BuildSys 2017), Best Paper (IEEE INFOCOM 2018 MiSeNet), NSF Travel Awards (2017, 2018).
+    \item \textbf{Scholastic:} All India Rank 274 (Top 0.1\%) in IIT-JEE; Top 1\% in National Physics/Math Olympiads.
+    \item \textbf{Service:} Associate Editor for \textit{IEEE RA-L}; Reviewer for \textit{ACM TECS}, \textit{IEEE TMC}, \textit{ToSN}.
+    \item \textbf{Technical Blog:} Author of \href{https://gopikrishnatummala.com/}{gopikrishnatummala.com}, publishing in-depth technical deep dives on generative AI and model scaling, advanced MLOps and production-grade infrastructure, autonomous systems engineering, and agentic AI design and deployment.
+\end{itemize}
+
+\end{document}
