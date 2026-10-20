@@ -29,7 +29,7 @@ estimated_read_time: 60
 
 ---
 
-> **How to read this.** This is the map, not the territory. Each Act could be (and in a few cases already is) its own post on this site; I link to those deep dives as we go. The goal here is that after one sitting you can look at *any* multimodal model card or tech report and immediately place every paragraph of it into one mental picture.
+> **How to read this.** This is the map, not the territory. Each Act could be (and in a few cases already is) its own post on this site; I link to those deep dives as we go. The goal here is that after one sitting you can look at *any* multimodal model card or tech report and immediately place every paragraph of it into one mental picture. When you want to go deeper, the [Course Slides, Lectures & Tutorials](#course-slides-lectures--tutorials) section near the end lists the best free courses, slide decks and tutorials for each Act, with a suggested study path.
 
 ---
 
@@ -563,6 +563,46 @@ Web alt-text describes context, not content, so the model never learns to follow
 All-discrete autoregressive (Chameleon/Emu3), one transformer with next-token + diffusion losses (Transfusion), and decoupled tokenizers or experts sharing attention (Janus, BAGEL). The tension: understanding wants semantic tokens and generation wants reconstructive tokens, and forcing both through identical computation tends to let one objective dominate.
 
 </details>
+
+---
+
+## Course Slides, Lectures & Tutorials
+
+This post is the map. These are the best places I know to walk the territory, grouped by the Act they deepen. Everything below is free and from the original authors (slides and notes stay on their sites; I link rather than re-host).
+
+### Foundations of multimodal learning (Acts 0–I)
+
+| Resource | Format | Why it's worth your time |
+|---|---|---|
+| [CMU 11-777 Multimodal Machine Learning](https://multicomp.cs.cmu.edu/mmml-course/fall2023/) (Morency et al.) | University course | The vocabulary of the field: representation, alignment, reasoning, generation, transference, quantification. Pre-dates the LLM era but the framing still holds. |
+| [Stanford CS231n schedule](https://cs231n.stanford.edu/schedule.html) — lectures on *Vision and Language*, *Video Understanding*, *Self-Supervised Learning*, *Generative Models 1 & 2* | Lecture slides + videos | The cleanest classroom treatment of ViTs, contrastive learning, VAEs and diffusion in one place. |
+| Bordes et al., [An Introduction to Vision-Language Modeling](https://arxiv.org/abs/2405.17247) (Meta) | Long tutorial paper | Written as a primer: VLM families, how to train them, data, evaluation, and extension to video. The best single read after this post for Act III. |
+
+### MLLMs: architectures, training, post-training (Act III)
+
+| Resource | Format | Why it's worth your time |
+|---|---|---|
+| [CVPR 2025 Tutorial: Recent Advances in Vision Foundation Models](https://vlp-tutorial.github.io/) (Gan, Yang, Li, Yang et al.) | Slides (PDF per talk) | The longest-running tutorial series on VLMs (2020–2025 editions linked from the same site): multimodal understanding and generation, test-time scaling, multimodal agents. |
+| Li et al., [Multimodal Foundation Models: From Specialists to General-Purpose Assistants](https://arxiv.org/abs/2309.10020) | Survey "book" from the same tutorial team | Deep background on visual understanding, visual generation, and LLM-based assistants. |
+| Hugging Face, [Vision Language Models (Better, faster, stronger)](https://huggingface.co/blog/vlms-2025) | Blog | A practical 2025 tour: any-to-any models, reasoning VLMs, MoE decoders, video LMs, DPO for VLMs with TRL, new benchmarks. |
+| Raschka, [Understanding Multimodal LLMs](https://magazine.sebastianraschka.com/p/understanding-multimodal-llms) | Blog | The Method A vs Method B framing used in Act III, with walkthroughs of many open model papers. |
+| Lambert, [The RLHF Book](https://rlhfbook.com/) | Free online book | Instruction tuning, reward models, policy-gradient RL (PPO/GRPO), direct alignment (DPO), distillation, evaluation. The text-LLM foundations behind Act III's post-training section. |
+
+### Diffusion, flow matching, image and video generation (Acts IV–V)
+
+| Resource | Format | Why it's worth your time |
+|---|---|---|
+| [MIT 6.S184: Introduction to Flow Matching and Diffusion Models](https://diffusion.csail.mit.edu/2026/index.html) (Holderrieth & Erives) | Lecture notes, slides, labs | The best modern course on the math in Act IV: ODEs/SDEs, building the training target, and a lab where you build a latent diffusion model from scratch. Notes also on [arXiv](https://arxiv.org/abs/2506.02070). |
+| Lipman et al., [Flow Matching Guide and Code](https://arxiv.org/abs/2412.06264) (Meta) | Tutorial paper + PyTorch library | The authoritative reference for flow matching, with a reference implementation. |
+| [CVPR 2022 Tutorial: Denoising Diffusion-based Generative Modeling](https://cvpr2022-tutorial-diffusion-models.github.io/) (Kreis, Gao, Vahdat) | Slides + video | Still the best visual introduction to diffusion fundamentals: score functions, SDEs, guidance, applications. |
+| Weng, [What are Diffusion Models?](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/) and [Diffusion Models for Video Generation](https://lilianweng.github.io/posts/2024-04-12-diffusion-video/) | Blog | Dense, well-cited derivations. The video post is a great companion to Act V. |
+| [Hugging Face Diffusion Models Course](https://github.com/huggingface/diffusion-models-class) | Notebooks | Hands-on: train a diffusion model from scratch, fine-tune, guidance, and Stable Diffusion internals with `diffusers`. |
+
+### A suggested path
+
+- **One weekend:** this post → Bordes et al. (VLM primer) → Weng's video diffusion post.
+- **One week:** add MIT 6.S184 lectures + notes, the CVPR 2025 vision foundation model slides, and the RLHF Book chapters on reward models and policy gradients.
+- **One month:** do the 6.S184 labs and the Hugging Face diffusion notebooks, fine-tune a small open VLM with SFT then DPO, then read the Qwen3-VL, Movie Gen and Flow-GRPO papers in full and map each section back to the Act VII table.
 
 ---
 
