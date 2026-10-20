@@ -30,6 +30,10 @@ estimated_read_time: 40
 
 > **Companion to** [Module 2: Dataloaders](/posts/mlops/datasets-and-dataloaders), [Pipeline Orchestration](/posts/mlops/ml-pipeline-orchestration-layers) **and** [the vLLM Trilogy](/posts/mlops/vllm-trilogy-of-modern-llm-scaling). Those posts kept running into the same question: *who launches the processes, places them on GPUs, moves the data between them, and restarts them when a node dies?* In a large share of modern ML stacks, the answer is Ray. This post is the full map.
 
+**Quick jump:** [Why Ray?](#part-0-why-ray-and-when-you-dont-need-it) · [Core](#part-i-ray-core) · [Ray Data](#10-ray-data-streaming-batch-processing) · [Train](#11-ray-train-distributed-training-orchestration) · [Tune](#12-ray-tune-hyperparameter-search) · [Serve](#13-ray-serve-online-inference) · [Production](#part-iii-production) · [Cheat sheet](#19-cheat-sheet) · [Self-check](#20-check-yourself)
+
+## Table of contents
+
 ---
 
 ## TL;DR
@@ -509,7 +513,7 @@ for batch in shard.iter_torch_batches(batch_size=256, device="cuda",
 
 ### 11. Ray Train: Distributed Training Orchestration
 
-Ray Train does not replace DDP, FSDP or DeepSpeed. It launches and supervises the worker group, sets up the process group (`MASTER_ADDR`, ranks, NCCL), wires in data shards, collects metrics, manages checkpoints and restarts the group after failures. Your training loop stays standard PyTorch.
+Ray Train does not replace DDP, FSDP or DeepSpeed (for the memory math behind those, see [Training Frameworks: ZeRO, FSDP](/posts/mlops/hidden-engine-of-ai)). It launches and supervises the worker group, sets up the process group (`MASTER_ADDR`, ranks, NCCL), wires in data shards, collects metrics, manages checkpoints and restarts the group after failures. Your training loop stays standard PyTorch.
 
 ```python
 import tempfile, torch
@@ -667,7 +671,7 @@ Ray Serve LLM wraps vLLM (see [the vLLM Trilogy](/posts/mlops/vllm-trilogy-of-mo
 
 ### 14. RLlib, Briefly
 
-RLlib is Ray's reinforcement learning library. Its newer API stack is built from **EnvRunners** (actors that step environments and collect samples), **Learners** (GPU actors that compute updates, possibly with DDP) and **RLModules** (your PyTorch networks). Algorithms include PPO, SAC, DQN, IMPALA and APPO, plus multi-agent and offline RL.
+RLlib is Ray's reinforcement learning library (new to RL? start with [RL: From Intuition to Algorithms](/posts/fundamentals/reinforcement-learning-intuition-to-algorithms)). Its newer API stack is built from **EnvRunners** (actors that step environments and collect samples), **Learners** (GPU actors that compute updates, possibly with DDP) and **RLModules** (your PyTorch networks). Algorithms include PPO, SAC, DQN, IMPALA and APPO, plus multi-agent and offline RL.
 
 ```python
 from ray.rllib.algorithms.ppo import PPOConfig
@@ -975,3 +979,6 @@ RayCluster is a long-lived cluster. RayJob creates a cluster for one job and can
 - **Input pipelines:** [Module 2: Dataloaders](/posts/mlops/datasets-and-dataloaders) covers the single-node version of the problem Ray Data distributes.
 - **Orchestration:** [Pipeline Orchestration](/posts/mlops/ml-pipeline-orchestration-layers) sits above Ray: Airflow, Kubeflow or Flyte decide *when* to run; Ray decides *where and how* the compute runs.
 - **Serving:** [the vLLM Trilogy](/posts/mlops/vllm-trilogy-of-modern-llm-scaling) and [Life of a Tensor](/posts/mlops/life-of-a-tensor-production-inference) are what runs inside a Ray Serve LLM replica.
+- **Training and post-training:** [Training Frameworks: ZeRO, FSDP](/posts/mlops/hidden-engine-of-ai) is what runs inside each Ray Train worker; [the Post-Training Playbook](/posts/mlops/modern-post-training-peft-2026) covers the SFT, DPO and GRPO loops that RLHF systems on Ray orchestrate.
+- **Multimodal workloads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) describes the data curation, training and RL pipelines for vision-language, image and video models that Ray Data and Ray Train are most often used for.
+- **Agents and tooling:** [Agentic MLOps & MCP](/posts/mlops/beyond-inference-agentic-mlops-mcp) for where serving goes next; the full learning path is in [the Infrastructure-First MLOps Roadmap](/posts/mlops/infrastructure-first-mlops-roadmap).

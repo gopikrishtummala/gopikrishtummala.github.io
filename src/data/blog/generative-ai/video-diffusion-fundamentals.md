@@ -167,3 +167,8 @@ $$ \mathcal{L}_{total} = \mathcal{L}_{noise} + \lambda \cdot \| \text{Flow}(\hat
 **Previous:** [Part 3 — Sampling & Guidance: The Dialects of Noise](/posts/generative-ai/sampling-guidance-diffusion-models)
 
 **Next:** [Part 5 — Training Lifecycle: Pre-Training & Post-Training](/posts/generative-ai/pre-training-post-training-video-diffusion)
+
+
+---
+
+**The big picture:** [The Multimodal Atlas: The Filmmaker](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-v-the-filmmaker-text-to-video) covers video token arithmetic, 3D causal VAEs, Wan 2.2's noise-level experts and the full training curriculum.

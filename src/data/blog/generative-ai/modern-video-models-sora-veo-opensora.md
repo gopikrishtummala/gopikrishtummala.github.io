@@ -161,3 +161,8 @@ $$ \mathcal{L}_{video} = \sum_{t, x, y} \| \epsilon - \epsilon_\theta(z_{noisy},
 
 **Next:** [Part 8 — Physics-Aware Video Diffusion: From Pixels to Laws](/posts/generative-ai/physics-aware-video-diffusion-models)
 
+
+
+---
+
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-v-the-filmmaker-text-to-video) puts Sora, Veo, Movie Gen and Wan into one end-to-end picture, including RL post-training and [video evaluation](/posts/generative-ai/multimodal-foundation-models-end-to-end#63-video-generation-evaluation).

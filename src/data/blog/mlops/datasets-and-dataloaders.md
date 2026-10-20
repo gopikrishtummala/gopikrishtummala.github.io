@@ -364,3 +364,8 @@ For a batch of 64 × 3 × 224 × 224 float32 images (~38 MB), that's 4.7ms vs 1.
 **Previous:** [Module 1 — Data DNA: Parquet & Arrow](/posts/mlops/parquet-arrow-quest-for-analytic-speed)
 
 **Next:** [Module 3 — Training Frameworks: The Engine](/posts/mlops/hidden-engine-of-ai)
+
+
+---
+
+**Related deep dives:** [Ray Data vs. PyTorch DataLoader, stage by stage](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) shows what changes when decode moves off the trainer node · [Multimodal data curation and re-captioning](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-ii-data-the-real-moat) covers the data pipelines that feed image and video models.

@@ -184,3 +184,8 @@ In Stage 2 (Cross-Encoder), we feed the **Query AND Document** into the same mod
 ---
 
 *This concludes the Information Retrieval series. From pixels to parents, the goal is always the same: Find the needle in the digital haystack.*
+
+
+---
+
+**Related deep dives:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-iii-the-mllm-machine-pixels-in-text-out) explains the vision-language models behind multimodal RAG · [Ray Data batch inference](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) for computing embeddings over millions of documents.

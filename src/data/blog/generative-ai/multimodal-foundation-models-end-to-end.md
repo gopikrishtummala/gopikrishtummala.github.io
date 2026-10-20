@@ -31,6 +31,10 @@ estimated_read_time: 60
 
 > **How to read this.** This is the map, not the territory. Each Act could be (and in a few cases already is) its own post on this site; I link to those deep dives as we go. The goal here is that after one sitting you can look at *any* multimodal model card or tech report and immediately place every paragraph of it into one mental picture. When you want to go deeper, the [Course Slides, Lectures & Tutorials](#course-slides-lectures--tutorials) section near the end lists the best free courses, slide decks and tutorials for each Act, with a suggested study path.
 
+**Quick jump:** [Tokens](#act-i-the-shared-foundation-turning-pixels-into-tokens) · [Data](#act-ii-data-the-real-moat) · [MLLMs](#act-iii-the-mllm-machine-pixels-in-text-out) · [Text-to-Image](#act-iv-the-painter-text-to-image) · [Text-to-Video](#act-v-the-filmmaker-text-to-video) · [Evaluation](#act-vi-evaluation-the-hardest-part) · [End-to-end table](#act-vii-the-end-to-end-picture) · [Unified models](#act-viii-the-convergence-unified-models) · [Self-check](#check-yourself) · [Courses & slides](#course-slides-lectures--tutorials)
+
+## Table of contents
+
 ---
 
 ## TL;DR
@@ -81,7 +85,7 @@ That loop, especially the dotted arrow back to data, is the whole job.
 
 ## Act I: The Shared Foundation, Turning Pixels into Tokens
 
-Transformers eat sequences of vectors. Text is easy: a tokenizer chops it into ~100K possible pieces. Pixels are not: a single 1024×1024 RGB image is three million numbers. Every multimodal model starts by answering *"how do I turn this into a reasonable number of tokens?"* There are two very different answers.
+Transformers eat sequences of vectors (refresher: [The Transformer: How Machines Pay Attention](/posts/fundamentals/transformers-attention-mechanism)). Text is easy: a tokenizer chops it into ~100K possible pieces. Pixels are not: a single 1024×1024 RGB image is three million numbers. Every multimodal model starts by answering *"how do I turn this into a reasonable number of tokens?"* There are two very different answers.
 
 ### 1.1 Understanding tokens: the librarian's summary
 
@@ -101,7 +105,7 @@ A Vision Transformer chops the image into patches (say 14×14 or 16×16 pixels),
 
 ### 1.2 Generation tokens: the photocopier
 
-A **VAE (variational autoencoder)** is trained for a different job: compress the image and then *reconstruct it as faithfully as possible*. Its loss is reconstruction (L1/L2) plus perceptual (LPIPS) plus usually an adversarial term, plus a small KL term to keep the latent space well-behaved.
+A **VAE (variational autoencoder)** is trained for a different job: compress the image and then *reconstruct it as faithfully as possible*. Its loss is reconstruction (L1/L2) plus perceptual (LPIPS) plus usually an adversarial term, plus a small KL term to keep the latent space well-behaved. (The probabilistic story is in [Variational Autoencoders: From Compression to Creation](/posts/fundamentals/variational-autoencoders-from-compression-to-creation).)
 
 **The Feynman version:** the VAE is a photocopier that shrinks the picture onto a tiny card and can blow it back up nearly perfectly. The card doesn't *mean* anything to a human, but every detail is preserved. That's what a generator wants: it will *predict* cards, and the decoder will turn them back into pixels.
 
@@ -180,7 +184,7 @@ Most strong open VLMs of 2024 were trained heavily on synthetic data *from propr
 
 ### 3.1 The three-part anatomy
 
-Almost every production MLLM is:
+(For a gentler introduction to CLIP-style models and the first VLMs, start with [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained).) Almost every production MLLM is:
 
 ```mermaid
 flowchart LR
@@ -226,7 +230,7 @@ Why the stages?
 - **Always mix in text-only data.** Without it, the LLM's language and reasoning ability degrades (catastrophic forgetting). Good reports claim their VL model *matches or beats* its own text-only backbone on text tasks; that's the test of a healthy mix.
 - **Loss is next-token prediction on text tokens only.** Image tokens are inputs; you mask them out of the loss.
 
-> **Infra note.** MLLM pre-training has a load-balancing problem LLMs don't: some samples are 90% visual tokens (the ViT does most of the work), some are pure text (the ViT is idle). Packing variable-resolution images into fixed-length sequences, and balancing ViT vs LLM compute across pipeline stages and data-parallel ranks, is a big part of achieved MFU.
+> **Infra note.** MLLM pre-training has a load-balancing problem LLMs don't: some samples are 90% visual tokens (the ViT does most of the work), some are pure text (the ViT is idle). Packing variable-resolution images into fixed-length sequences, and balancing ViT vs LLM compute across pipeline stages and data-parallel ranks, is a big part of achieved MFU. The sharding and memory math (ZeRO, FSDP) is in [Training Frameworks](/posts/mlops/hidden-engine-of-ai), and launching and restarting these jobs is covered in [Ray Train](/posts/mlops/ray-field-guide-core-to-production#11-ray-train-distributed-training-orchestration).
 
 ### 3.4 Post-training an MLLM
 
@@ -234,7 +238,7 @@ Why the stages?
 
 **Preference tuning.** MLLMs have a signature failure: **hallucination**, confidently describing objects that aren't there, because the language prior is stronger than the visual evidence. DPO-style preference data where the "rejected" answer contains a hallucination (RLHF-V, and many follow-ups) directly targets this.
 
-**RL with verifiable rewards (the 2025–2026 wave).** After DeepSeek-R1 showed that RL on checkable answers creates long, self-correcting reasoning in text models, the same recipe moved to vision. The workhorse is **GRPO**: for each prompt, sample a *group* of $G$ answers, score them, and use the group itself as the baseline instead of a learned value model:
+**RL with verifiable rewards (the 2025–2026 wave).** After DeepSeek-R1 showed that RL on checkable answers creates long, self-correcting reasoning in text models, the same recipe moved to vision. The workhorse is **GRPO** (RL basics in [RL: From Intuition to Algorithms](/posts/fundamentals/reinforcement-learning-intuition-to-algorithms)): for each prompt, sample a *group* of $G$ answers, score them, and use the group itself as the baseline instead of a learned value model:
 
 $$
 \hat{A}_i = \frac{r_i - \operatorname{mean}(r_1,\dots,r_G)}{\operatorname{std}(r_1,\dots,r_G)}
@@ -610,7 +614,9 @@ This post is the map. These are the best places I know to walk the territory, gr
 
 - **Generation deep dives:** [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines) → [U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit) → [Sampling & Guidance](/posts/generative-ai/sampling-guidance-diffusion-models) → [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals) → [Video Training Lifecycle](/posts/generative-ai/pre-training-post-training-video-diffusion) → [The Frontier](/posts/generative-ai/modern-video-models-sora-veo-opensora).
 - **Post-training:** [Modern Post-Training & PEFT](/posts/mlops/modern-post-training-peft-2026).
-- **The infrastructure underneath:** [Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production), [Datasets & Dataloaders](/posts/mlops/datasets-and-dataloaders), [Lance & LanceDB](/posts/mlops/lance-lancedb-data-layer-for-ml), [vLLM Trilogy](/posts/mlops/vllm-trilogy-of-modern-llm-scaling).
+- **The infrastructure underneath:** [Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production), [Datasets & Dataloaders](/posts/mlops/datasets-and-dataloaders), [Lance & LanceDB](/posts/mlops/lance-lancedb-data-layer-for-ml), [vLLM Trilogy](/posts/mlops/vllm-trilogy-of-modern-llm-scaling), [Training Frameworks: ZeRO & FSDP](/posts/mlops/hidden-engine-of-ai), [Life of a Tensor](/posts/mlops/life-of-a-tensor-production-inference).
+- **Foundations:** [Transformers & Attention](/posts/fundamentals/transformers-attention-mechanism), [Variational Autoencoders](/posts/fundamentals/variational-autoencoders-from-compression-to-creation), [Reinforcement Learning](/posts/fundamentals/reinforcement-learning-intuition-to-algorithms), [When AI Sees and Speaks (VLM intro)](/posts/computer-vision/vision-language-models-explained).
+- **Applications:** [Multimodal RAG in production](/posts/generative-ai/building-production-rag-opensearch), [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models), [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy), [Foundation Models in Autonomous Driving](/posts/robotics/autonomous-stack-module-9-foundation-models), [Agentic AI Design Patterns](/posts/agentic-ai/agentic-ai-design-patterns).
 
 ---
 

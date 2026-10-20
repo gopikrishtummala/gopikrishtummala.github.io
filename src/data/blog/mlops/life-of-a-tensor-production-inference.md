@@ -240,3 +240,8 @@ You are serving a Stable Diffusion XL model.
 **Previous:** [Module 5 — LLM Serving (vLLM)](/posts/mlops/vllm-trilogy-of-modern-llm-scaling)
 
 **Next:** [Module 6 — Custom Kernels](/posts/mlops/custom-kernel-craze)
+
+
+---
+
+**Related deep dives:** [Ray Serve](/posts/mlops/ray-field-guide-core-to-production#13-ray-serve-online-inference) for composing multi-model inference graphs with batching and autoscaling · [Ray Data batch inference](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) for the offline counterpart.

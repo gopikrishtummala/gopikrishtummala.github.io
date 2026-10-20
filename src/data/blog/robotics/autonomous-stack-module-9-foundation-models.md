@@ -203,3 +203,8 @@ You are building a generalist VLA model for a fleet of delivery drones and sidew
 **Previous:** [Module 8 — Planning](/posts/robotics/autonomous-stack-module-8-planning)
 
 *This concludes "The Ghost in the Machine" series. We have moved from simple sensors to unified brains—the embodied intelligence revolution has only just begun.*
+
+
+---
+
+**Related deep dives:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) covers how the underlying vision-language and video foundation models are built, trained and evaluated · [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy).

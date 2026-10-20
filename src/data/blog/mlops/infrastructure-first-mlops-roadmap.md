@@ -169,3 +169,8 @@ Begin with **[Module 1: The DNA of Data](/posts/mlops/parquet-arrow-quest-for-an
 ---
 
 *Have questions? Reach out on [Twitter/X](https://twitter.com/gopikrishnat) or [LinkedIn](https://linkedin.com/in/gopikrishnat).*
+
+
+---
+
+**New in the series:** [The Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production) (distributed compute, from process pools to KubeRay) · [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) (how MLLMs, text-to-image and text-to-video models are built end to end) · [Beyond Parquet: Lance](/posts/mlops/lance-lancedb-data-layer-for-ml).

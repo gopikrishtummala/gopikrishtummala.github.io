@@ -241,3 +241,8 @@ Transformers changed NLP and are widely applied elsewhere. The main changes are:
 Transformers rely on attention: self-attention for context, cross-attention to bridge sequences.  
 Parallel processing of long sequences underpins modern language models and broader AI.
 
+
+
+---
+
+**Where this leads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#13-token-arithmetic-why-video-is-the-hard-one) shows why attention's quadratic cost shapes every image and video model, and how cross-attention connects vision to language in MLLMs.

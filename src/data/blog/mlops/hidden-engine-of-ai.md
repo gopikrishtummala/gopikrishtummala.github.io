@@ -475,3 +475,8 @@ for i, (x, y) in enumerate(loader):
 **Previous:** [Module 2 — Dataloaders](/posts/mlops/datasets-and-dataloaders)
 
 **Next:** [Module 4 — Post-Training (PEFT & Alignment)](/posts/mlops/modern-post-training-peft-2026)
+
+
+---
+
+**Related deep dives:** [Ray Train](/posts/mlops/ray-field-guide-core-to-production#11-ray-train-distributed-training-orchestration) shows how DDP/FSDP worker groups are launched, checkpointed and restarted, and [placement groups](/posts/mlops/ray-field-guide-core-to-production#7-resources-scheduling-and-placement-groups) explain gang scheduling · [Multimodal pre-training curricula](/posts/generative-ai/multimodal-foundation-models-end-to-end#33-pre-training-an-mllm-a-curriculum-not-a-single-run) apply this memory math to vision-language and video models.

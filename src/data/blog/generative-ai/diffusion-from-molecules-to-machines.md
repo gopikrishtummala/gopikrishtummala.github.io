@@ -181,3 +181,8 @@ We minimize the squared difference between the **real noise** we added and the *
 ---
 
 **Next:** [Part 2 — Image Diffusion: From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit)
+
+
+---
+
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) places diffusion inside the full lifecycle of image and video models: data, VAEs, flow matching, post-training with DPO and RL, and evaluation.

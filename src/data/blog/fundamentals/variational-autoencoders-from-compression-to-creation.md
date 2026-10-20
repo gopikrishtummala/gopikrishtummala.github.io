@@ -616,3 +616,8 @@ Contemporary approaches blend VAEs and diffusion for improved generation quality
 
 From compression to creation, VAEs show how adding probability to neural networks enables generation from learned structure. Their extensions—conditional and discrete variants—expand the framework's applicability to controlled generation and hierarchical modeling.
 
+
+
+---
+
+**Where this leads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#12-generation-tokens-the-photocopier) shows how VAEs (and VQ-VAEs) became the latent space of Stable Diffusion, FLUX and modern video models.

@@ -277,3 +277,8 @@ Need starter notebooks or code? Ping me.
 
 Reinforcement learning teaches agents to make decisions by trying actions and receiving rewards. Bellman equations define value functions as fixed points. Q-learning updates action values using a one-step lookahead (the temporal-difference error), and Deep Q-Networks scale that idea with neural networks, experience replay, and target networks. These tools power everything from game-playing agents to control systems.
 
+
+
+---
+
+**Where this leads:** [GRPO for vision-language models](/posts/generative-ai/multimodal-foundation-models-end-to-end#34-post-training-an-mllm) and [Flow-GRPO for image generators](/posts/generative-ai/multimodal-foundation-models-end-to-end#45-post-training-from-knows-everything-to-looks-great-and-listens) in The Multimodal Atlas · [RLlib and RLHF systems on Ray](/posts/mlops/ray-field-guide-core-to-production#14-rllib-briefly).

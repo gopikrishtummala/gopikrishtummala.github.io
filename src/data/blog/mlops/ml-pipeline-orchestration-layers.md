@@ -683,3 +683,8 @@ That specificity signals you understand production ML infrastructure, not just t
 ---
 
 *The orchestration layer is where ML systems show their seams. Getting the abstraction boundaries right—scheduler vs pipeline vs compute engine—is the difference between a system that scales and one that becomes a maintenance nightmare at 10× load. The right answer is almost never "pick one tool." It's "understand which layer each tool owns and compose them correctly."*
+
+
+---
+
+**Related deep dives:** [The Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production) goes deep on the compute layer: [why Ray, and when a process pool is enough](/posts/mlops/ray-field-guide-core-to-production#part-0-why-ray-and-when-you-dont-need-it), plus Data, Train, Tune, Serve and KubeRay.

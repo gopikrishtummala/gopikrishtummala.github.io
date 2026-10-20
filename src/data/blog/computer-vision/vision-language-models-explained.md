@@ -267,3 +267,8 @@ If you want illustration placeholders, drop a comment like `[TODO: diagram of CL
 
 — Gopi Krishna Tummala, curious engineer exploring how machines learn to think.
 
+
+
+---
+
+**Go deeper:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) continues this story: [how modern MLLMs are wired](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-iii-the-mllm-machine-pixels-in-text-out), how they're pre-trained and post-trained with RL, and how the same ideas power text-to-image and text-to-video models.

@@ -527,3 +527,8 @@ DPO eliminates the reward model and critic entirely. The reference model can be 
 **Previous:** [Module 3 — Training Frameworks](/posts/mlops/hidden-engine-of-ai)
 
 **Next:** [Module 5 — LLM Serving (vLLM)](/posts/mlops/vllm-trilogy-of-modern-llm-scaling)
+
+
+---
+
+**Related deep dives:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) applies these methods beyond text: [MLLM post-training with GRPO and verifiable rewards](/posts/generative-ai/multimodal-foundation-models-end-to-end#34-post-training-an-mllm) and [Flow-GRPO and Diffusion-DPO for image and video generators](/posts/generative-ai/multimodal-foundation-models-end-to-end#45-post-training-from-knows-everything-to-looks-great-and-listens) · [Ray actors and placement groups](/posts/mlops/ray-field-guide-core-to-production#14-rllib-briefly) are the substrate most open RLHF frameworks run on.

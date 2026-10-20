@@ -175,3 +175,8 @@ $$ \mathcal{L}_{v} = \| v_t - \hat{v}_\theta(x_t, t) \|^2 $$
 **Previous:** [Part 1 — Foundations: From Molecules to Machines](/posts/generative-ai/diffusion-from-molecules-to-machines)
 
 **Next:** [Part 3 — Sampling & Guidance: The Dialects of Noise](/posts/generative-ai/sampling-guidance-diffusion-models)
+
+
+---
+
+**The big picture:** [The Multimodal Atlas: The Painter](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-iv-the-painter-text-to-image) covers how DiT/MMDiT models are trained end to end, from re-captioned data to Flow-GRPO and distillation.

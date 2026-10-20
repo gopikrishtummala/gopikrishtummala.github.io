@@ -169,3 +169,8 @@ $$ \mathcal{L}_{ORO} = \| \text{Acceleration}(\hat{x}) - g \|^2 $$
 
 *This concludes the Diffusion Models Series. From pixels to physics, the journey of generative AI is just beginning.*
 
+
+
+---
+
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) covers the whole stack around these models, including [where video models still fail](/posts/generative-ai/multimodal-foundation-models-end-to-end#54-where-video-models-still-fail) and how VBench-2.0 measures physics and commonsense.

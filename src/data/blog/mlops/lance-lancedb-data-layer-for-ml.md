@@ -475,3 +475,8 @@ These are back-of-envelope exercises using the paper's hardware figures, not the
 ---
 
 **Companion reading:** [Module 1: Data DNA](/posts/mlops/parquet-arrow-quest-for-analytic-speed) · [Module 2: Dataloaders](/posts/mlops/datasets-and-dataloaders) · [Module 8: Orchestration](/posts/mlops/ml-pipeline-orchestration-layers) · [Multimodal RAG](/posts/generative-ai/building-production-rag-opensearch)
+
+
+---
+
+**Related deep dives:** [Ray Data](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) reads and writes Lance for streaming batch inference · [Multimodal data curation](/posts/generative-ai/multimodal-foundation-models-end-to-end#22-the-curation-funnel) is the add-a-column-again workload Lance is built for.

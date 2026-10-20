@@ -161,3 +161,8 @@ $$ \mathcal{L}_{weighted} = \min(\text{SNR}(t), 5) \cdot \| \epsilon - \epsilon_
 **Previous:** [Part 4 — Video Models: Video Diffusion Fundamentals](/posts/generative-ai/video-diffusion-fundamentals)
 
 **Next:** [Part 6 — Diffusion for Action: Trajectories and Policy](/posts/generative-ai/diffusion-for-action-trajectories-policy)
+
+
+---
+
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-vii-the-end-to-end-picture) compares this lifecycle side by side with MLLMs and text-to-image models · [Ray Data](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) is a common engine for the video curation pipelines described here.
