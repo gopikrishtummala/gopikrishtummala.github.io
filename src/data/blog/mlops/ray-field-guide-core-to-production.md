@@ -457,6 +457,54 @@ Inside Ray Train, each worker gets its own shard with `ray.train.get_dataset_sha
 
 > **Simpler alternative vs. what Ray buys you.** A `DataLoader` with `num_workers=16` is the right tool until the trainer node's CPUs can't decode fast enough. For CPU-only ETL, Spark or DuckDB are simpler and faster. Ray Data's niche is the **mixed pipeline**: CPU stages and GPU model stages in one streaming job, each autoscaled separately, with CPU work spread across nodes that have no GPUs at all. Batch inference over images, video or documents is where it beats the alternatives most clearly.
 
+#### Stage by stage: what Ray Data buys you over PyTorch `Dataset` + `DataLoader`
+
+The honest comparison is not "Ray Data is better." It's that PyTorch's data stack is a **single-node, single-consumer** design (one trainer process pulls from its own worker subprocesses), while Ray Data is a **cluster-wide streaming** design. Each stage of the pipeline feels that difference differently.
+
+| Stage | PyTorch `Dataset` / `DataLoader` | Ray Data | What Ray buys you |
+|---|---|---|---|
+| **Listing and reading** | You write `__getitem__` / `__iter__`; reading Parquet, S3 or WebDataset shards is your code (or a library like WebDataset, torchdata, Mosaic Streaming) | Built-in readers: `read_parquet`, `read_images`, `read_json`, `read_webdataset`, `read_binary_files`, Lance, Delta, SQL; file listing and partitioning handled for you | Less glue code; reads parallelized across the **whole cluster**, not one node's workers |
+| **Decode and preprocess** | `num_workers` subprocesses **on the trainer node**, sharing its CPUs | Tasks on **any node**, including CPU-only nodes with no GPUs | The headline: decode is no longer capped by the trainer node's CPU count. A GPU node with 8 GPUs and 96 cores can be fed by 500 cores elsewhere |
+| **Per-stage resources** | One worker type: every worker runs the whole `__getitem__` | Each `map_batches` stage declares its own `num_cpus` / `num_gpus` / `concurrency` | A GPU stage (embedding, captioning, a VLM filter) can sit **in the middle** of the pipeline. In PyTorch you'd run that as a separate offline job and write to disk |
+| **Stateful work** | `worker_init_fn` per worker; models in workers are awkward and duplicated per worker | Callable classes run as an **actor pool**; model loaded once per actor, pool autoscaled `(min, max)` | Clean "load once, call many" for model-based preprocessing |
+| **Memory and backpressure** | `prefetch_factor × num_workers` batches in flight; the rest is up to you | Streaming executor with per-operator object-store budgets; slow stages throttle fast ones; spills instead of OOM | Bounded memory on datasets far larger than RAM, without hand-tuning queue sizes per stage |
+| **Shuffling** | Map-style + `RandomSampler`: **perfect** per-epoch shuffle if random access is cheap; iterable-style: shard + buffer shuffle | `local_shuffle_buffer_size` (cheap, approximate), file-order shuffle, or `random_shuffle()` (global, expensive all-to-all) | Not much. For perfect shuffles over random-access storage, PyTorch's sampler is **simpler and cheaper**. Ray's global shuffle helps only when data isn't randomly accessible |
+| **Batching and collate** | `collate_fn`, `batch_size`, `pin_memory=True` | `iter_torch_batches(batch_size, collate_fn, device=...)` with prefetching | Roughly equivalent. Ray formats batches as numpy/Arrow first, which can be faster for columnar data |
+| **Host-to-GPU transfer** | `pin_memory` + `.to(device, non_blocking=True)` in your loop | `device="cuda"` in `iter_torch_batches` handles transfer with prefetch | Roughly equivalent; a convenience, not a capability |
+| **Sharding across DDP ranks** | `DistributedSampler` (map-style) or manual rank-based shard splitting (iterable) | `ray.train.get_dataset_shard("train")` gives each rank a streaming split, balanced dynamically | No manual rank math, and splits stay balanced when files have uneven sizes |
+| **Scaling the data side** | Change `num_workers`; bounded by one node | Add CPU nodes; the autoscaler can do it from pending demand | Data throughput scales **independently** of GPU count. You can right-size the expensive part (GPUs) and the cheap part (CPUs) separately |
+| **Failures** | A worker crash usually kills the `DataLoader` and the training step | Failed read/map tasks retried; lost blocks reconstructed through lineage | Long batch-inference jobs survive node loss instead of restarting from zero |
+| **Mid-epoch resume** | `StatefulDataLoader` (torchdata) can checkpoint the exact iterator position | More limited; resume is typically per-epoch or by tracking processed files yourself (check your version) | **PyTorch wins** for exact, deterministic resume in long pre-training runs |
+| **Writing outputs** | Your loop writes files | `write_parquet`, `write_images`, `write_lance`, etc., parallel and streaming | Batch inference is one expression from read to write |
+| **Observability** | Profile the trainer process; data stalls show up as low GPU util | Per-operator throughput, rows/s and backpressure in the dashboard and `ds.stats()` | You can see *which stage* is the bottleneck instead of guessing |
+
+**How to decide in practice:**
+
+- **Single node, decode keeps up, exact resume matters?** Stay with `Dataset` + `DataLoader` (+ `StatefulDataLoader`). It's simpler, deterministic and has nothing to operate.
+- **GPU utilization is low because the trainer node's CPUs can't decode fast enough** (video, large images, heavy augmentation)? That's the strongest case for Ray Data: move decode to CPU-only nodes and stream into training.
+- **Offline batch inference, embedding or data curation** over millions of files, with a model in the middle? Ray Data is the better tool by a wide margin.
+- **Pure tabular ETL with joins and group-bys?** Neither. Use Spark, DuckDB or Polars, then hand the output to whichever loader you train with.
+
+A minimal side-by-side of the same training input:
+
+```python
+# PyTorch: workers live on this node, share its CPUs
+loader = DataLoader(ImageDataset(files), batch_size=256, shuffle=True,
+                    num_workers=16, pin_memory=True, prefetch_factor=4)
+for x, y in loader:
+    x, y = x.cuda(non_blocking=True), y.cuda(non_blocking=True)
+    ...
+
+# Ray Data: decode runs anywhere in the cluster; the trainer only consumes
+ds = (ray.data.read_images("s3://bucket/train/", include_paths=True)
+        .map_batches(augment, batch_size=256, num_cpus=1))   # can run on CPU-only nodes
+# inside train_loop_per_worker:
+shard = ray.train.get_dataset_shard("train")
+for batch in shard.iter_torch_batches(batch_size=256, device="cuda",
+                                      local_shuffle_buffer_size=20_000):
+    ...
+```
+
 ---
 
 ### 11. Ray Train: Distributed Training Orchestration
