@@ -301,3 +301,8 @@ words.sort(key=lambda x: (-len(x), x))
 4.  **Naming:** `slow`/`fast` instead of `i`/`j` for pointers.
 
 Practice explaining the **"Why"** behind these hacks—that is what ultimately secures the offer. 🚀
+
+
+---
+
+**Related:** [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) covers how to practice with AI tools without losing these skills, and how to prepare for AI-enabled coding rounds.

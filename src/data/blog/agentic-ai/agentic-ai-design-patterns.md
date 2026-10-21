@@ -3133,3 +3133,8 @@ Read these five and you'll understand 95% of what's actually happening in agenti
 
 *This guide provides both the theoretical foundation and practical implementation patterns needed to build robust, production-ready agentic AI systems. The combination of design patterns and failure mode mitigation creates a comprehensive framework for modern AI engineering.*
 
+
+
+---
+
+**Related:** [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) looks at coding agents from the engineer's side: a conscious workflow, the mistakes to avoid, and AI-enabled interviews.

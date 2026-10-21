@@ -157,3 +157,8 @@ You are building an AI Data Scientist agent that can write and run Python code.
 **Previous:** [Module 6 — Custom Kernels](/posts/mlops/custom-kernel-craze)
 
 *This concludes the Infrastructure-First MLOps series. From Data DNA to Autonomous Agents, the goal is always the same: Build the engine that powers intelligence.*
+
+
+---
+
+**Related:** [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) covers how to work with coding agents day to day without losing the skills you need to review them.
