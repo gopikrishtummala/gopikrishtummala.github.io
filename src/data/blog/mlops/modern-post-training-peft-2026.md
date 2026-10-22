@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-01-15T00:00:00Z
-modDatetime: 2026-04-02T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "Post-Training Playbook: SFT, LoRA, DPO, and GRPO from First Principles"
 slug: modern-post-training-peft-2026
 featured: true
@@ -22,7 +22,7 @@ interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-estimated_read_time: 45
+estimated_read_time: 30
 ---
 
 *By Gopi Krishna Tummala*
@@ -49,11 +49,44 @@ estimated_read_time: 45
 ## TL;DR
 
 - **Post-training stack in 2026**: SFT (10k–100k examples) → LoRA/DoRA fine-tuning → DPO or GRPO alignment → model merging.
-- **LoRA rank r means**: you're approximating a $d \times k$ update matrix with two matrices of shapes $d \times r$ and $r \times k$. At r=16, a 4096×4096 layer goes from 16M trainable params to 2×4096×16 = 131k. That's 122× reduction.
+- **LoRA rank r means**: you're approximating a $d \times k$ update matrix with two matrices of shapes $d \times r$ and $r \times k$. At r=16, a 4096×4096 layer goes from 16.8M trainable params to 16×(4096+4096) = 131k. That's a 128× reduction.
 - **QLoRA**: 4-bit NF4 quantized base + BF16 LoRA adapters. A 70B model fits in ~35GB VRAM and fine-tuning needs ~48GB — one 80GB H100.
-- **DPO vs. RLHF**: DPO eliminates the reward model and the RL training loop. Convergence is stable, memory usage is 2× SFT (policy + reference model).
-- **GRPO** (used in DeepSeek-R1) replaces the critic with group-relative scoring — powerful for reasoning tasks with verifiable answers.
-- **Alignment tax**: aligned models often lose 10–20% on reasoning benchmarks. Replay buffers and careful data mixing are the mitigation.
+- **DPO vs. RLHF**: DPO eliminates the reward model and the RL training loop. Training is stable, and the only extra cost over SFT is the frozen reference model (whose log-probs you can even precompute).
+- **GRPO** (introduced in DeepSeekMath, popularized by DeepSeek-R1) replaces the critic with group-relative scoring — powerful for reasoning tasks with verifiable answers.
+- **Alignment tax**: narrow fine-tuning and heavy preference optimization can regress general capabilities (reasoning, coding, calibration). Replay data, conservative β and careful data mixing are the mitigation.
+
+---
+
+## Table of contents
+
+---
+
+## The Module in One Picture
+
+```mermaid
+mindmap
+  root((Post-training))
+    SFT
+      Prompt-masked loss
+      Chat template must match
+      Quality over quantity
+    PEFT
+      LoRA r times d plus k
+      QLoRA NF4 base
+      DoRA magnitude and direction
+    Preference
+      DPO no reward model
+      Beta is the KL leash
+      Reference log-probs
+    RL
+      PPO with critic
+      GRPO group baseline
+      Verifiable rewards
+    Keep capabilities
+      Replay data
+      Merge with base
+      TIES and DARE
+```
 
 ---
 
@@ -108,12 +141,12 @@ graph LR
 
 Supervised fine-tuning is simpler than it sounds: it's just next-token prediction on (prompt, completion) pairs, with loss masked on the prompt tokens. The magic is in the data.
 
-**The data quality trap**: 10,000 high-quality, diverse, correctly-formatted examples beats 1,000,000 mediocre ones. This was the central lesson from LIMA (2023) — 1,000 carefully curated examples matched GPT-4 on many benchmarks.
+**The data quality trap**: 10,000 high-quality, diverse, correctly-formatted examples beat 1,000,000 mediocre ones. This was the central lesson from LIMA (2023): a 65B model fine-tuned on just 1,000 carefully curated examples produced responses that human raters judged equivalent to or better than GPT-4's in 43% of comparisons.
 
 The format matters as much as the content. Every major model family has a chat template:
 
 ```
-# Llama-3 / ChatML format
+# Llama 3 chat format (ChatML-style models such as Qwen use <|im_start|> / <|im_end|> instead)
 <|begin_of_text|>
 <|start_header_id|>system<|end_header_id|>
 You are a helpful assistant.<|eot_id|>
@@ -123,7 +156,7 @@ What is the capital of France?<|eot_id|>
 Paris.<|eot_id|>
 ```
 
-Training with wrong chat template → the model learns to emit random special tokens mid-response. This is one of the most common production bugs in fine-tuning pipelines.
+Training with the wrong chat template → the model learns to emit stray special tokens mid-response, or never stops generating because it never learned the end-of-turn token. This is one of the most common production bugs in fine-tuning pipelines. Use the tokenizer's own `apply_chat_template` for training and serving.
 
 **SFT loss**: standard cross-entropy on the completion tokens only:
 $$\mathcal{L}_{SFT} = -\sum_{t \in \text{completion}} \log p_\theta(y_t \mid x, y_{<t})$$
@@ -209,16 +242,17 @@ config = LoraConfig(
 )
 model = get_peft_model(model, config)
 model.print_trainable_parameters()
-# trainable params: 41,943,040 || all params: 6,738,415,616 || 0.62%
+# Llama-2-7B, r=16 on all 7 linear layers:
+# trainable params: 39,976,960 || all params: 6,778,392,576 || trainable%: 0.59
 ```
 
 #### QLoRA: Fine-Tuning 70B on One GPU
 
 QLoRA (Dettmers et al., 2023) combines:
 1. **NF4 quantization**: Base model weights stored in 4-bit NormalFloat format (optimal for normally distributed weights). Each parameter uses 4 bits instead of 16 — a 4× compression.
-2. **Double quantization**: Quantize the quantization constants themselves (saves ~0.5 GB on a 70B model).
-3. **Paged optimizers**: Offload optimizer states to CPU RAM when VRAM is full, page them back when needed.
-4. **BF16 LoRA adapters**: The trainable A and B matrices stay in full BF16 precision.
+2. **Double quantization**: Quantize the quantization constants themselves (saves about 0.37 bits per parameter, roughly 3 GB on a 65B model).
+3. **Paged optimizers**: Use unified memory so optimizer states can be paged to CPU RAM during memory spikes (for example, a long sequence), then paged back, instead of crashing with OOM.
+4. **Higher-precision LoRA adapters**: The trainable A and B matrices stay in BF16 (or FP32), and the 4-bit base weights are dequantized to BF16 on the fly for each matmul.
 
 ```mermaid
 graph TD
@@ -237,7 +271,7 @@ graph TD
     end
 
     subgraph RAM["💾 CPU RAM (Paged)"]
-        Opt["Adam States\n~21 GB (paged)"]
+        Opt["Adam states for adapters\n~2 GB (paged out\nonly under memory pressure)"]
     end
 
     Q_W -->|"dequantize"| BF16_Cast
@@ -251,9 +285,9 @@ graph TD
     class RAM,Opt cpu
 ```
 
-*Figure 3: QLoRA memory layout for a 70B model on a single 80GB H100. The base model is quantized to ~35GB; LoRA adapters and active computation fit in remaining VRAM; optimizer states are paged to CPU RAM.*
+*Figure 3: QLoRA memory layout for a 70B model on a single 80GB H100. The base model is quantized to ~35GB; LoRA adapters (~200M params at r=16 on all linear layers), their optimizer states and active computation fit in the remaining VRAM; the paged optimizer spills to CPU RAM only during spikes.*
 
-**Total VRAM for QLoRA on 70B**: ~35 (4-bit base) + 0.5 (adapters) + 8 (activations) + 1 (gradients) = ~44.5 GB. Fits on an 80GB H100 with gradient checkpointing.
+**Total VRAM for QLoRA on 70B**: ~35 (4-bit base) + 0.5 (adapters) + ~2 (adapter Adam states) + ~1 (gradients) + ~8 (activations, with checkpointing) ≈ **46 GB**. Fits on an 80GB H100. (The QLoRA paper fine-tuned a 65B model on a single 48GB GPU.)
 
 #### DoRA: The 2024 Evolution
 
@@ -263,7 +297,7 @@ $$W = m \cdot \frac{V + \Delta V}{\|V + \Delta V\|_c}$$
 
 where $m$ is a learned magnitude vector, $V$ is the direction (frozen base), and $\Delta V$ is the LoRA direction update.
 
-Why it works better: LoRA updates tend to compress all learning into the magnitude of the update (easy to train). DoRA separates these concerns, letting the adapter learn more nuanced directional changes without blowing up norms. It closes ~90% of the gap between LoRA and full fine-tuning at the same parameter count.
+Why it works better: the DoRA authors found that LoRA tends to change a weight's magnitude and direction together, while full fine-tuning can make large directional changes with small magnitude changes. Learning the magnitude separately lets DoRA mimic full fine-tuning's learning pattern, and it consistently outperforms LoRA at the same rank with no extra inference cost once merged.
 
 ---
 
@@ -292,12 +326,12 @@ graph TD
         DPO_Data --> DPO_Loss --> DPO_Out
     end
 
-    subgraph GRPO["🧠 GRPO (DeepSeek-R1, 2025)"]
+    subgraph GRPO["🧠 GRPO (DeepSeekMath 2024, DeepSeek-R1 2025)"]
         direction TB
         GRPO_Q["Prompt batch"]
         GRPO_Rollout["Generate G responses\nper prompt"]
         GRPO_Score["Score with verifier\n(rule-based or LLM judge)"]
-        GRPO_Normalize["Normalize within group\n(advantage = score - group mean)"]
+        GRPO_Normalize["Normalize within group\n(advantage = (score - mean) / std)"]
         GRPO_Loss["Policy gradient loss\n(no critic model)"]
         GRPO_Out["Reasoning Model"]
         
@@ -324,17 +358,17 @@ In plain English: maximize the log-ratio difference between chosen and rejected 
 
 **Key insight**: DPO implicitly trains a reward model — the reward is recovered from the optimal policy ratios. You get RLHF's objective without RLHF's training instability.
 
-**Memory**: DPO requires keeping both the trained model and the reference model in VRAM simultaneously. For a 7B model: 2 × 14GB (BF16) + gradients + optimizer states ≈ 80GB. On 80GB H100, use LoRA for the policy (to reduce memory) and keep reference model frozen + quantized.
+**Memory**: DPO needs the trained policy plus a frozen reference model. Fully fine-tuning a 7B policy costs ~112GB of weights, gradients and optimizer state (16 bytes/param, see Module 3) plus 14GB for the BF16 reference, so it needs several GPUs with FSDP. On a single 80GB H100, use LoRA for the policy; with LoRA, the reference model is simply the base weights with the adapter disabled, so you don't need a second copy at all. You can also **precompute the reference log-probs** for the whole dataset once and drop the reference model from training entirely.
 
-**β parameter guide**:
-- β = 0.1–0.3: aggressive alignment, model diverges more from reference
+**β parameter guide** (β is the strength of the implicit KL "leash" to the reference model):
+- β = 0.1 is the common starting point; lower values (0.01–0.1) let the policy move further from the reference
 - β = 0.5–1.0: conservative, stays close to reference behavior
-- β too high: model barely changes from SFT checkpoint
-- β too low: model optimizes for format/style at the expense of factuality
+- β too high: the model barely changes from the SFT checkpoint
+- β too low: the model over-optimizes the preference data, drifting toward whatever superficially separates chosen from rejected (length, hedging, refusals) at the expense of factuality and general capability
 
 #### GRPO: The Reasoning Unlock (DeepSeek-R1)
 
-GRPO (Group Relative Policy Optimization) was the key training algorithm in DeepSeek-R1. It works for tasks with **verifiable correctness** (math, code, logic puzzles).
+GRPO (Group Relative Policy Optimization) was introduced in the DeepSeekMath paper (2024) and became famous as the RL algorithm behind DeepSeek-R1 (2025). It shines on tasks with **verifiable correctness** (math, code, logic puzzles).
 
 For each prompt, generate $G=8$ responses. Score each with a verifier (e.g., check if the math answer is correct). Normalize scores within the group:
 
@@ -342,11 +376,13 @@ $$\hat{A}_i = \frac{r_i - \text{mean}(r_1, \ldots, r_G)}{\text{std}(r_1, \ldots,
 
 The advantage $\hat{A}_i$ tells the model: "this response was better/worse than average for this prompt." Then apply a policy gradient loss:
 
-$$\mathcal{L}_{GRPO} = -\mathbb{E}\left[\hat{A}_i \cdot \log \pi_\theta(y_i|x)\right] - \text{KL penalty}$$
+$$\mathcal{L}_{GRPO} = -\mathbb{E}\left[\hat{A}_i \cdot \log \pi_\theta(y_i|x)\right] + \beta\, \text{KL}\left(\pi_\theta \,\|\, \pi_{ref}\right)$$
+
+(This is the simplified form. The full objective applies the advantage to every token of the response and uses a PPO-style clipped probability ratio between the new and old policy, exactly like PPO but with the group baseline instead of a learned value function.)
 
 **Why it works for reasoning**: Math problems have ground-truth answers. You don't need human preference annotations — the verifier is the calculator. The group-relative advantage automatically calibrates for prompt difficulty (hard prompts where all G responses fail give zero gradient signal — correct behavior).
 
-**Why it doesn't always work**: For tasks without verifiable answers (creative writing, summarization), you need a learned reward model. GRPO degenerates to PPO in that case.
+**Where it gets harder**: For tasks without verifiable answers (creative writing, summarization), you need a learned reward model or an LLM judge. GRPO still works with those (DeepSeekMath used a learned reward model), but now it inherits the reward model's blind spots and reward hacking becomes the main risk.
 
 ---
 
@@ -362,7 +398,7 @@ When you fine-tune on medical data, the model's MMLU-Math score drops. When you 
 
 **Mitigation strategies**:
 
-1. **Replay buffer**: Mix 5–10% of general pretraining data into your SFT or DPO dataset. This gives the model a constant signal to preserve general capability. Used in Anthropic's Constitutional AI and Meta's instruction tuning.
+1. **Replay buffer**: Mix 5–10% of general data (pre-training text or broad instruction data) into your SFT or DPO dataset. This gives the model a constant signal to preserve general capability. InstructGPT's "PPO-ptx" variant applied the same idea during RLHF by mixing pre-training gradients into the PPO updates.
 
 2. **Reduce LoRA rank**: Lower r means smaller perturbation, less forgetting. Start at r=8, increase only if task-specific performance is insufficient.
 
@@ -370,7 +406,7 @@ When you fine-tune on medical data, the model's MMLU-Math score drops. When you 
    $$W_{merged} = (1-\lambda) W_{base} + \lambda W_{finetuned}$$
    λ = 0.7 gives 70% fine-tuned character, 30% base knowledge. Simple and surprisingly effective.
 
-4. **Layer-specific LoRA**: Apply larger rank to later layers (which encode task-specific behavior) and smaller rank to early layers (which encode general language understanding). AdaLoRA automates this.
+4. **Layer-specific LoRA**: Give more rank to the layers that need to change and less to the rest. AdaLoRA automates this by learning an importance-based rank allocation during training.
 
 #### The Alignment-Capability Tradeoff
 
@@ -387,7 +423,7 @@ graph LR
     end
 
     Base["Base Model\n(capable, unaligned)"] -->|"SFT only"| Undertrain
-    Base -->|"Heavy DPO\nhigh β"| Overtrain
+    Base -->|"Heavy DPO, low β,\nrefusal-heavy data"| Overtrain
     Base -->|"SFT + no replay"| Forget
     Base -->|"SFT + DPO\n+ replay buffer\n+ right β"| Target
 
@@ -413,22 +449,25 @@ TIES (Trim, Elect, Disjoint Merge) handles parameter conflicts:
 
 1. **Trim**: For each adapter, zero out the lowest-magnitude parameter deltas (prune noise).
 2. **Elect**: For each parameter position, a majority vote determines the sign of the final update.
-3. **Merge**: Only parameters where a majority agrees in sign contribute to the merged result.
+3. **Disjoint merge**: For each parameter, average only the deltas whose sign matches the elected sign.
 
 Without TIES, simply averaging adapter weights causes destructive interference — parameters where adapters disagree cancel out, erasing task-specific learning.
 
 #### DARE (Drop and Rescale)
 
-A simpler alternative: randomly drop 80–90% of each adapter's parameters to zero, then rescale the remainder by 1/(1-dropout_rate). The sparsity reduces interference between adapters while rescaling preserves the expected update magnitude.
+A simpler alternative: randomly drop 80–90% of each task vector's entries to zero, then rescale the remainder by 1/(1-drop_rate). The sparsity reduces interference between tasks while rescaling preserves the expected update magnitude.
+
+> **Merge deltas, not LoRA factors.** TIES and DARE operate on *task vectors*: the weight delta ΔW of each fine-tune. For LoRA, that's ΔW = (α/r)·BA per layer. Averaging A matrices and B matrices separately is not the same thing, because the product of averages is not the average of products. Compute ΔW first (or use a library such as `mergekit` or PEFT's `add_weighted_adapter`, which handles this).
 
 ```python
 # Conceptual DARE merge
 import torch
 
-def dare_merge(adapters, drop_rate=0.9):
+def dare_merge(task_vectors, drop_rate=0.9):
+    # task_vectors: list of {param_name: delta_W} dicts (fine-tuned minus base)
     merged = {}
-    for key in adapters[0].keys():
-        stacked = torch.stack([a[key] for a in adapters])
+    for key in task_vectors[0].keys():
+        stacked = torch.stack([tv[key] for tv in task_vectors])
         # Random drop
         mask = torch.rand_like(stacked) > drop_rate
         dropped = stacked * mask / (1 - drop_rate)
@@ -444,22 +483,27 @@ def dare_merge(adapters, drop_rate=0.9):
 
 **Step 1: Memory audit.**
 - 70B in NF4 4-bit: ~35 GB
-- LoRA adapters (r=16, all attention + FFN): ~500 MB BF16
-- Active computation (dequantized layers + activations): ~12 GB
-- Gradient checkpointing enabled: activations reduced 8×
-- Adam paged to CPU RAM: ~21 GB in RAM, 0 on GPU
-- **Total GPU**: ~48 GB. Fits on 80GB H100.
+- LoRA adapters (r=16, all attention + FFN, ~200M params): ~0.4 GB BF16
+- Adapter gradients and Adam states: ~2–3 GB
+- Active computation (one dequantized layer at a time + activations, with gradient checkpointing): ~8–12 GB
+- Paged AdamW absorbs memory spikes by spilling to CPU RAM
+- **Total GPU**: ~46–50 GB. Fits on 80GB H100.
 
 **Step 2: Configuration.**
 ```python
-model = AutoModelForCausalLM.from_pretrained(
-    "meta-llama/Meta-Llama-3-70B",
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+bnb = BitsAndBytesConfig(
     load_in_4bit=True,
-    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
     bnb_4bit_use_double_quant=True,
 )
-model.gradient_checkpointing_enable()
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Meta-Llama-3-70B", quantization_config=bnb, device_map="auto"
+)
+model = prepare_model_for_kbit_training(model)   # enables gradient checkpointing, casts norms
 model = get_peft_model(model, LoraConfig(r=16, lora_alpha=32, ...))
 
 trainer = SFTTrainer(
@@ -480,15 +524,15 @@ trainer = SFTTrainer(
 
 #### "Walk me through why DPO is more memory-efficient than RLHF."
 
-**RLHF memory footprint:**
+**RLHF memory footprint (weights only, BF16):**
 - Policy model (being trained): 14 GB BF16 (7B)
 - Reference model (frozen): 14 GB BF16
 - Reward model (7B separate): 14 GB BF16
 - Value/critic model (same size as policy): 14 GB
 - PPO rollouts (G=4 responses per prompt): +8 GB activations
-- **Total: ~64 GB+** for a 7B model
+- **Total: ~64 GB+** for a 7B model, *before* gradients and optimizer states for the two trained models (policy and critic), which add ~14 bytes/param each with full fine-tuning
 
-**DPO memory footprint:**
+**DPO memory footprint (weights only):**
 - Policy model (being trained): 14 GB
 - Reference model (frozen, can be quantized to 4-bit): 3.5 GB
 - No reward model needed
@@ -501,12 +545,12 @@ DPO eliminates the reward model and critic entirely. The reference model can be 
 
 #### "Your DPO-trained model refuses harmless coding questions. What happened and how do you fix it?"
 
-**What happened**: Over-alignment. The $\beta$ parameter was too high, causing the policy to diverge too far from the reference model toward the "rejected" outputs. Some coding patterns that appeared in both chosen and rejected responses got penalized.
+**What happened**: Over-optimization on a skewed preference set. Usually two things combine: the preference data has many "chosen = refusal" pairs, so the model learns that refusing is rewarded; and β is **low**, so nothing keeps the policy close to the SFT reference that happily answered coding questions. Coding patterns that appear in rejected responses can also get penalized by association.
 
-**Diagnosis**: Compute the per-sample DPO reward margins: $r_c - r_r$. If most samples have very large positive margins, β is too high. Plot the distribution.
+**Diagnosis**: Track the implicit rewards $r = \beta \log \frac{\pi_\theta}{\pi_{ref}}$ for chosen and rejected responses. If the margin keeps growing while the *chosen* log-probabilities also fall, the model is drifting far from the reference (over-optimization). Then measure the refusal rate on a held-out set of benign prompts, before and after DPO.
 
 **Fix options** (in order of preference):
-1. Reduce β from (e.g.) 0.5 → 0.1 and retrain DPO
+1. Increase β (e.g., 0.05 → 0.1–0.3) so the policy stays closer to the SFT reference, and stop earlier
 2. Curate rejection data more carefully — avoid cases where "rejected" and "chosen" differ only in minor style
 3. Add coding examples to the DPO dataset where the "chosen" response is a good code answer (prevents coding being penalized by association)
 4. Apply weight merging: interpolate the DPO model with the SFT checkpoint at λ=0.7 to recover some capability
@@ -515,12 +559,25 @@ DPO eliminates the reward model and critic entirely. The reference model can be 
 
 ### Key Takeaways
 
-1. **LoRA rank math**: rank r on a d×k layer = 2rk parameters. At r=16, d=4096, k=4096: 131k trainable params vs. 16M frozen. This is why LoRA is so memory-efficient.
+1. **LoRA rank math**: rank r on a d×k layer = r(d+k) parameters. At r=16, d=k=4096: 131k trainable params vs. 16.8M frozen. This is why LoRA is so memory-efficient.
 2. **QLoRA = 4-bit base + BF16 adapters + paged optimizer.** A 70B model fine-tunes on a single 80GB H100. This is the production fine-tuning stack for resource-constrained scenarios.
 3. **DPO eliminated the reward model and PPO loop.** If you can construct preference pairs, DPO is the default. If your task has verifiable answers, try GRPO.
-4. **β controls the alignment-capability tradeoff.** Low β = more creative/capable but potentially misaligned. High β = very safe but over-refuses.
+4. **β is the KL leash to the reference model.** Low β lets the policy move far from the SFT model (bigger behavior change, more risk of over-optimizing quirks of the preference data, including over-refusal); high β keeps it close (safer for capabilities, smaller change). Fix over-refusal with better data and a stronger leash, not a weaker one.
 5. **Always include a replay buffer** (5–10% general data) in your SFT and DPO dataset. The alignment tax is real and preventable.
-6. **Model merging (TIES, DARE)** lets you combine specialist adapters post-hoc. It's underused and highly practical for deploying multiple task-specific capabilities from a single base model.
+6. **Model merging (TIES, DARE)** lets you combine specialist fine-tunes post-hoc. Merge weight deltas (ΔW = BA for LoRA), not raw A and B matrices. It's underused and highly practical for deploying multiple task-specific capabilities from a single base model.
+
+<details>
+<summary><strong>Self-check</strong></summary>
+
+1. How many trainable parameters does LoRA add to a 4096×11008 projection at r=8?
+2. Why is B initialized to zero in LoRA, and what would go wrong if both A and B were random?
+3. What are the three ideas in QLoRA, and where does the remaining VRAM go when fine-tuning a 70B model on one GPU?
+4. In DPO, what happens as β goes to 0? As β grows large?
+5. How does GRPO estimate the advantage without a critic, and why do prompts where every sample fails contribute no gradient?
+6. Your fine-tuned model starts emitting `<|eot_id|>` in the middle of answers. What's the likely cause?
+7. Why can't you merge two LoRA adapters by averaging their A and B matrices?
+
+</details>
 
 ---
 

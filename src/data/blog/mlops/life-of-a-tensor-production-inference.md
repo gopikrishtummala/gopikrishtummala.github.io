@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-28T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "Life of a Tensor: A Deep Dive into Production Inference"
 slug: life-of-a-tensor-production-inference
 featured: true
@@ -21,7 +21,7 @@ difficulty: Advanced
 interview_relevance:
   - ML-Infra
   - System Design
-estimated_read_time: 40
+estimated_read_time: 22
 ---
 
 *By Gopi Krishna Tummala*
@@ -57,6 +57,40 @@ Imagine you are running a high-end sushi restaurant (The Inference System).
 6.  **Streaming (Serving):** Instead of waiting for the whole meal, the waiter brings out the miso soup first so the customer doesn't get hungry.
 
 If the kitchen is slow, the waiter (API) is bored. If the kitchen (GPU) is idle, the waiter is slow. **Inference Optimization** is the art of making the kitchen and the waiter move in perfect harmony.
+
+---
+
+## Table of contents
+
+---
+
+## The Module in One Picture
+
+```mermaid
+mindmap
+  root((Life of a request))
+    Gateway
+      Protocol and payload size
+      Binary or URLs for images
+    Queue
+      Backpressure and timeouts
+      Priorities
+    CPU work
+      Tokenize off the GIL
+      Detokenize incrementally
+    Batch and schedule
+      Padding waste
+      Continuous batching
+      Chunked prefill
+    GPU execution
+      Prefill compute-bound
+      Decode memory-bound
+      CUDA graphs and fused kernels
+    Out
+      Sampling
+      Streaming SSE
+      P99 and token-rate metrics
+```
 
 ---
 
@@ -159,6 +193,48 @@ flowchart TD
 
 ---
 
+## Phase 2: Execution on the GPU
+
+**The Bottleneck:** Compute in prefill, memory bandwidth in decode
+
+Once a batch is scheduled, the request finally touches the GPU, and it lives two very different lives.
+
+### 6. Prefill: Reading the Prompt
+
+All prompt tokens are processed **in parallel** in one big forward pass, which writes their keys and values into the KV cache. This is dense matrix multiplication: **compute-bound**, and it dominates **time-to-first-token (TTFT)**. A 4,000-token prompt costs roughly 4,000× the FLOPs of a single decode step.
+
+### 7. Decode: One Token at a Time
+
+Each new token needs a full forward pass that reads **every weight** plus that sequence's KV cache from HBM, but does very little math per byte read. Decode is **memory-bandwidth-bound**, and it sets **inter-token latency (ITL)**. That's why batching matters so much here: one weight read serves every sequence in the batch.
+
+```
+Rough decode ceiling for one GPU (batch 1, BF16):
+  tokens/sec ≈ HBM bandwidth / bytes of weights
+  H100 (~3.35 TB/s) serving an 8B model (~16 GB): ≈ 200 tokens/sec at best
+```
+
+### 8. Diffusion Is Different
+
+A diffusion request has no KV cache and no token loop. Instead it runs the same denoiser **N times** (20–50 steps, or 1–8 after distillation) on a latent, then a VAE decoder turns the latent into pixels. Each step is compute-bound, so batching helps less than for LLM decode, and the biggest wins are **fewer steps** (distillation, better samplers), caching across steps, and compiling the denoiser. See [Sampling & Guidance](/posts/generative-ai/sampling-guidance-diffusion-models) for the step-count side.
+
+---
+
+## Phase 3: Post-Processing and Streaming
+
+### 9. Sample and Detokenize
+
+The model outputs logits; the sampler applies temperature, top-p/top-k, repetition penalties and any structured-output constraints (JSON schemas, grammars), then picks a token. Detokenization must be **incremental**: a single character can span several tokens, so servers buffer partial bytes before emitting text.
+
+### 10. Stream
+
+Tokens go back over **Server-Sent Events** (OpenAI-style APIs) or gRPC streams as soon as they exist. Streaming doesn't make generation faster, but it makes perceived latency equal to TTFT instead of total generation time. Watch for proxies and load balancers that buffer responses and silently undo streaming.
+
+### 11. Measure
+
+Log per-request **TTFT, ITL (or TPOT), total latency, input/output token counts, queue time and KV-cache usage**. Averages hide everything interesting: the problems live in P99 and in the correlation between long prompts and slow responses.
+
+---
+
 #### Act V.V: Mature Architecture — The Global Inference Pipeline
 
 In a 2025 production stack, inference is a multi-tier orchestration. We use **NVIDIA TensorRT** or **ONNX Runtime** to compile the model into a hardware-specific executable, bypassing Python entirely.
@@ -199,11 +275,11 @@ graph TD
 
 ##### 1. CUDA Graphs: Bypassing the Kernel Launch Overhead
 For small models or low batch sizes, the time it takes the CPU to tell the GPU "do math" can be longer than the math itself. 
-*   **The SOTA Fix:** **CUDA Graphs**. We record the entire assembly line of math operations once. During inference, the CPU sends a *single* command to execute the whole graph, reducing CPU-GPU synchronization overhead by 90%.
+*   **The SOTA Fix:** **CUDA Graphs**. We record the entire assembly line of kernel launches once. During inference, the CPU replays the whole graph with a *single* launch, removing per-kernel launch overhead. Because graphs need fixed shapes, servers like vLLM capture one graph per common decode batch size and pad to the nearest one.
 
 ##### 2. Trade-offs & Reasoning
-*   **Dynamic vs. Static Shapes:** Pre-compiling a model (TensorRT) requires knowing the input size. *Trade-off:* Static shapes are 20% faster but force padding waste. Modern stacks use **Dynamic Shapes** with optimized padding-aware kernels to get the best of both worlds.
-*   **Quantization-Aware Training (QAT) vs. PTQ:** Post-Training Quantization (PTQ) is fast but hurts accuracy. *Trade-off:* QAT integrates quantization into the training loop, yielding near-lossless INT8/FP8 performance at the cost of longer training times.
+*   **Dynamic vs. Static Shapes:** Pre-compiling a model (TensorRT) works best when it knows the input sizes. *Trade-off:* static shapes allow more aggressive kernel selection and CUDA graphs but force padding waste. Modern stacks compile for a few shape ranges ("optimization profiles") or bucket batch sizes, and use ragged/variable-length attention kernels so padding doesn't cost FLOPs.
+*   **Quantization-Aware Training (QAT) vs. PTQ:** Post-Training Quantization (PTQ) needs only a small calibration set. FP8 PTQ is usually near-lossless; INT4 PTQ (AWQ, GPTQ) costs a little accuracy that varies by task. *Trade-off:* QAT simulates quantization during training to recover that accuracy, at the cost of a training run.
 *   **Citations:** *TensorRT LLM Architecture (NVIDIA 2024)* and *FlashAttention-3: Fast and Accurate Attention with Asynchrony (Hopper Specific, 2024)*.
 
 ---
@@ -212,11 +288,11 @@ For small models or low batch sizes, the time it takes the CPU to tell the GPU "
 
 #### Scenario 1: The "Long-Tail" Latency
 *   **Question:** "Your average response time is 2 seconds, but 1% of users are seeing 30-second delays. How do you find the leak?"
-*   **Answer:** This is a **P99 Latency** problem. Check for **KV Cache Eviction** (too many concurrent long-context users) or **Batch Stalling** (one massive 4k token prefill blocking 100 small decode steps). The fix is **Chunked Prefill**.
+*   **Answer:** This is a **P99 Latency** problem, so look at the slow requests specifically. Break their latency into queue time, TTFT and decode time. Common causes: **queueing** during bursts; **preemption** when the KV cache fills (too many concurrent long-context users, so some requests are evicted and recomputed); **prefill stalls** (one massive 4k-token prefill blocking 100 small decode steps, fixed with **chunked prefill**); and very long outputs. Fixes: chunked prefill, admission control, more replicas, and routing long-context requests to dedicated capacity.
 
 #### Scenario 2: GPU Under-utilization
 *   **Question:** "Your NVIDIA-SMI shows 90% Volatile GPU-Util, but your token throughput is only 10% of theoretical max. Why?"
-*   **Answer:** You are **Memory Bandwidth Bound**. The GPU cores are waiting for the model weights to load from HBM (High Bandwidth Memory). You need to **increase batch size** or use **Quantization** to reduce the weight-loading overhead.
+*   **Answer:** First, `nvidia-smi`'s "GPU-Util" only reports the fraction of time *some* kernel was running; it says nothing about how many SMs were busy or how close you are to peak FLOPs. A tiny decode kernel keeps it at 90%+. The real culprit is usually being **memory-bandwidth-bound** in decode: the cores wait for weights to stream from HBM. **Increase batch size** (more tokens per weight read), use **quantization** (fewer bytes per weight), and confirm with Nsight Compute or DCGM metrics such as SM occupancy and achieved memory bandwidth.
 
 ---
 
@@ -228,11 +304,40 @@ You are serving a Stable Diffusion XL model.
 2.  **The Scale:** If you implement **Static Batching** with size 8, and the GPU memory transfer for the weights takes 200ms, calculate the throughput (Images/sec).
 3.  **The SOTA:** Why would using **S-LoRA** (Unified Paging for LoRAs) be better than simple weight-swapping if you serve 100 different artistic styles?
 
+<details>
+<summary><strong>Show the answers</strong></summary>
+
+1.  **Base latency:** 50 × 100 ms = **5 seconds** per image (plus text encoding and VAE decode).
+2.  **Throughput:** the question is deliberately underspecified, so state assumptions. If the 200 ms weight transfer happens once per batch and a batch of 8 still took 100 ms per step, one batch takes 0.2 + 5 = 5.2 s → 8 / 5.2 ≈ **1.5 images/s**, versus 0.2 images/s unbatched. In reality SDXL steps are compute-bound, so a batch of 8 makes each step several times slower; measure step time at each batch size and pick the size that meets your latency target. (And weights should stay resident on the GPU, not be transferred per batch.)
+3.  **S-LoRA-style serving:** swapping full weights per style means reloading or re-merging weights and serving one style at a time. Keeping many small adapters in paged GPU memory and computing `x·W + x·A_i·B_i` with batched multi-adapter kernels lets one batch contain requests for **different** styles at once, with no reload stalls. (S-LoRA introduced this for LLMs; the same idea applies to multi-LoRA diffusion serving.)
+
+</details>
+
+## Remember This
+
+- **A request lives in three places:** the CPU (gateway, queue, tokenize), the scheduler (batching), and the GPU (prefill, then decode).
+- **Prefill is compute-bound and sets TTFT; decode is memory-bound and sets ITL.** Almost every serving optimization targets one of the two.
+- **Continuous batching plus paged KV memory** is what turned LLM serving from 30% to near-full GPU utilization.
+- **CPU work matters:** slow JSON parsing, GIL-bound tokenization or buffered proxies can starve a fast GPU.
+- **Measure TTFT, ITL, queue time and KV usage per request,** and debug from P99, not averages.
+
+<details>
+<summary><strong>Self-check</strong></summary>
+
+1. Why is prefill compute-bound but decode memory-bound?
+2. Estimate the best-case batch-1 decode speed of an 8B BF16 model on a GPU with 3.35 TB/s of bandwidth.
+3. What does `nvidia-smi` GPU-Util actually measure, and why can it mislead you?
+4. Why does streaming improve perceived latency without changing generation speed?
+5. How does serving a diffusion model differ from serving an LLM?
+
+</details>
+
 ---
 
 **Further Reading (State-of-the-Art):**
-*   *Orca: A Distributed Serving System for Transformer-Based Generative Models (OSDI 2022)* - The foundation of continuous batching.
-*   *FlashAttention-3 (arXiv 2024)* - Specifically for NVIDIA Hopper architectures.
+*   [Orca: A Distributed Serving System for Transformer-Based Generative Models (OSDI 2022)](https://www.usenix.org/conference/osdi22/presentation/yu) - The foundation of continuous (iteration-level) batching.
+*   [FlashAttention-3 (2024)](https://arxiv.org/abs/2407.08608) - Specifically for NVIDIA Hopper architectures.
+*   [S-LoRA: Serving Thousands of Concurrent LoRA Adapters (2023)](https://arxiv.org/abs/2311.03285).
 *   *DeepSpeed-Inference: High-Performance Serving for LLMs*.
 
 ---

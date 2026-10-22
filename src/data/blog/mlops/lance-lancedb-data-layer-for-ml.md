@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-09-20T00:00:00Z
-modDatetime: 2026-09-20T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "Beyond Parquet: How Lance and LanceDB Rebuild the Data Layer for Machine Learning"
 slug: lance-lancedb-data-layer-for-ml
 featured: false
@@ -40,6 +40,39 @@ estimated_read_time: 30
 - For many ML teams the **table format** matters more than the raw speed: add a column (say, a new embedding) without rewriting the dataset, delete rows with deletion files, and pin a training run to an exact dataset version.
 - The catch: vendor-authored evidence, NVMe rather than S3 measurements, a younger ecosystem than Parquet's, and real metadata costs for very frequent small commits on huge tables.
 - **Interview one-liner:** *"Parquet optimizes for scans; Lance's adaptive encodings target point lookups and scans together, and its table format adds cheap column evolution and versioning. I'd keep Parquet as the interchange format and use Lance for the hot, ML-facing layer."*
+
+---
+
+## Table of contents
+
+---
+
+## The Post in One Picture
+
+```mermaid
+mindmap
+  root((Lance and LanceDB))
+    File format
+      Mini-block under 128 B
+      Full-zip 128 B and up
+      Few IOPS per random read
+    Table format
+      Add columns without rewrite
+      Deletion files
+      Versions to pin runs
+    Database
+      Vector indexes
+      Full-text and hybrid search
+      Blob columns
+    For ML
+      Random-access dataloaders
+      Embedding backfills
+      Scenario mining
+    Caveats
+      Vendor-authored benchmarks
+      NVMe not S3
+      Manifest growth
+```
 
 ---
 
@@ -107,7 +140,7 @@ graph TD
 - **Table format:** a dataset is a versioned collection of *fragments*. Each version is described by an immutable *manifest* listing the schema, the fragments, and the indices. Each fragment holds one or more data files (each storing a subset of the columns) plus an optional deletion file ([table format spec](https://lance.org/format/table/)).
 - **LanceDB:** the database and company. It adds vector, full-text (BM25), and SQL-filtered search on top of Lance tables. The project lists integrations with Arrow, Pandas, Polars, DuckDB, Spark, Ray, Trino, and Flink ([README](https://github.com/lance-format/lance)).
 
-Two ecosystem signals are worth noting because they come from *other* projects' docs, not LanceDB's marketing: Ray Data documents a [`read_lance`](https://docs.ray.io/en/latest/data/api/doc/ray.data.read_lance.html) reader, and Hugging Face's Hub documentation describes [hosting and streaming Lance datasets](https://github.com/huggingface/hub-docs/blob/main/docs/hub/datasets-lance.md). That connects to the Ray Data material in [Module 8](/posts/mlops/ml-pipeline-orchestration-layers).
+Two ecosystem signals are worth noting because they come from *other* projects' docs, not LanceDB's marketing: Ray Data documents a [`read_lance`](https://docs.ray.io/en/latest/data/api/doc/ray.data.read_lance.html) reader, and Hugging Face's Hub documentation describes [hosting and streaming Lance datasets](https://github.com/huggingface/hub-docs/blob/main/docs/hub/datasets-lance.md). That connects to the [Ray Data material in the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) and the orchestration layers in [Module 8](/posts/mlops/ml-pipeline-orchestration-layers).
 
 ---
 
@@ -442,6 +475,17 @@ There is a pattern from my own work that maps onto this. In a Zoox patent, [US 1
 7. **Watch manifest growth and commit frequency** on huge tables, and plan for compaction.
 8. **Keep Parquet for interchange and BI.** Add Lance where random access, evolving columns, and retrieval dominate.
 
+<details>
+<summary><strong>Self-check</strong></summary>
+
+1. What are Lance's three layers, and which one do most ML teams benefit from first?
+2. What does "60×" in the paper actually compare?
+3. Why does a wide value (an embedding) use a different encoding from a narrow one (an int64)?
+4. How does Lance add a new embedding column to a billion-row table without rewriting it?
+5. Name two honest limitations you'd raise before adopting Lance.
+
+</details>
+
 ---
 
 ### Graduate Assignment: The IOPS Calculator
@@ -455,6 +499,17 @@ These are back-of-envelope exercises using the paper's hardware figures, not the
 3. **Read amplification.** Compute the amplification of fetching one 8-byte scalar from an 8 KiB page, and of fetching one 3 KiB vector. Use the two numbers to explain why the gap between tuned Parquet and the disk baseline narrows as values get larger.
 4. **Metadata RAM.** Parquet's offset index costs about 20 bytes per page. If each 3 KiB vector lands on its own page, how much RAM does a billion-row column need, and what fraction of the column's raw size is that? Compare it with the paper's stated target of roughly 0.1% of data size for the search cache.
 5. **Encoding choice.** For a schema of `id: int64`, `caption: string` (about 200 bytes average), `embedding: float32[768]`, and `thumbnail: binary` (about 20 KiB), which columns would use mini-block and which full-zip under the 128-byte threshold? Which column would you move to the blob API instead?
+
+<details>
+<summary><strong>Show worked answers</strong> (back-of-envelope, same assumptions as the questions)</summary>
+
+1. **Full-zip ceiling:** at 1 IOP per lookup, at most **850K vector fetches/s**; at 2 IOPS per lookup (variable width), **425K/s**. Nothing above that is possible on this drive, whatever the format.
+2. **Parquet page ceiling:** an 8 KiB page costs two 4 KiB sector reads, so about **425K lookups/s**. The measured ~350K rows/s is **~82%** of that bound; the rest goes to decompression and decoding CPU, page-index lookups and I/O queueing.
+3. **Read amplification:** one 8-byte scalar from an 8 KiB page is **1,024×**. One 3 KiB vector on its own 8 KiB page is about **2.7×** (or ~1.3× if it fit in a single 4 KiB sector). As values grow, the fixed page cost is amortized over more useful bytes, so tuned Parquet approaches the raw-disk baseline.
+4. **Metadata RAM:** 10⁹ pages × 20 B = **20 GB** of offset index. The column is 10⁹ × 3,072 B ≈ 3.07 TB, so the index is about **0.65%** of the data, roughly 6–7× the ~0.1% target.
+5. **Encoding choice:** `id` (8 B) → **mini-block**. `caption` (~200 B average) → **full-zip** (at or above 128 B). `embedding` (3,072 B) → **full-zip**. `thumbnail` (~20 KiB) → the **blob API**, so scans and searches never drag image bytes along and reads stream lazily.
+
+</details>
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-10-18T00:00:00Z
-modDatetime: 2026-10-20T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "The Ray Field Guide: From @ray.remote to a Production GPU Cluster"
 slug: ray-field-guide-core-to-production
 featured: false
@@ -48,6 +48,38 @@ estimated_read_time: 40
 - **Interview one-liner:** *"Ray is a Python-native distributed runtime: tasks, actors and an object store with ownership-based metadata. I use placement groups for gang-scheduled training, Ray Data to stream preprocessing on CPU nodes into GPU inference or training, Ray Train to supervise DDP and recover from checkpoints, and Serve for composable, batched, autoscaled inference, all deployed with KubeRay."*
 
 > APIs below reflect **Ray 2.x**. Newer pieces (Train v2, compiled graphs, RDT, label selectors, Serve LLM) evolve quickly, so confirm signatures against the docs for the version you deploy.
+
+---
+
+## The Guide in One Picture
+
+```mermaid
+mindmap
+  root((Ray))
+    Why Ray
+      Process pool is enough on one box
+      Many nodes and mixed CPU GPU
+      Stateful workers
+    Core
+      Tasks
+      Actors
+      Objects and ownership
+      Placement groups
+    Libraries
+      Data streaming
+      Train supervises DDP FSDP
+      Tune search and ASHA
+      Serve composition and batching
+    Production
+      KubeRay CRDs
+      Autoscaler on demand
+      Dashboard and ray status
+      Compiled graphs and RDT
+    Pitfalls
+      ray.get in a loop
+      Tiny tasks
+      Unbounded submission
+```
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-04-02T00:00:00Z
-modDatetime: 2026-04-03T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "ML Pipeline Orchestration: Temporal, Airflow, Kubeflow, Ray — Which Layer Does What"
 slug: ml-pipeline-orchestration-layers
 featured: true
@@ -54,10 +54,43 @@ estimated_read_time: 30
 - **ZenML** = meta-orchestrator. Runs your pipeline on any backend (Airflow, Kubeflow, Vertex AI, etc.).
 - **Kubeflow Pipelines v2** = containerized ML DAGs on Kubernetes with compile-time type checking via IR YAML.
 - **TFX** = opinionated, full-lifecycle ML framework. Pipeline-as-code with typed component contracts.
-- **Ray 2.x** = distributed Python execution engine. OpenAI uses it for ChatGPT training. The scaling layer beneath pipelines.
+- **Ray 2.x** = distributed Python execution engine (OpenAI said in 2022 that it used Ray to train its largest models). The scaling layer beneath pipelines.
 - **Vertex AI Pipelines** = managed Kubeflow on GCP at $0.03/run. Eliminates K8s ops overhead.
 - **MLflow Recipes** = removed entirely in MLflow 3 (June 2025). Do not use.
 - Real FAANG ML systems layer these: scheduler → pipeline definition → execution layer → distributed compute → storage.
+
+---
+
+## Table of contents
+
+---
+
+## The Module in One Picture
+
+```mermaid
+mindmap
+  root((Orchestration layers))
+    Durable workflows
+      Temporal
+      Replay event history
+      Long waits and approvals
+    Schedulers
+      Airflow 3 DAG versioning
+      Prefect Python-native
+      Dagster assets
+    ML pipelines
+      Kubeflow v2 typed artifacts
+      Metaflow
+      TFX
+      ZenML meta-orchestrator
+    Compute engines
+      Ray tasks and actors
+      Spark for tabular
+      MapReduce roots
+    Storage and metadata
+      Artifacts and lineage
+      MLflow tracking
+```
 
 ---
 
@@ -275,7 +308,7 @@ Type checking now happens **at compile time** across component boundaries:
 
 ```python
 from kfp import dsl
-from kfp.dsl import Dataset, Model, Metrics
+from kfp.dsl import Dataset, Input, Metrics, Model, Output
 
 @dsl.component(base_image="pytorch/pytorch:2.3.0-cuda12.1-cudnn8-runtime")
 def train_model(
@@ -459,16 +492,16 @@ flowchart LR
     style Tune fill:#10b981,stroke:#059669,color:#fff
 ```
 
-**Ray 2.x** is the dominant distributed ML execution engine. OpenAI uses Ray to train ChatGPT—Greg Brockman stated directly: *"We are using Ray to train our largest models."* At Uber, switching to a heterogeneous Ray cluster (8 GPU + 9 CPU nodes) versus 16 homogeneous GPU nodes achieved **50% higher throughput at lower capital cost** by mixing workloads. Benchmark studies have demonstrated **1,657% speedups** for distributed LLM batch inference with Ray versus single-node.
+**Ray 2.x** is the most widely used open-source distributed ML execution engine. At Ray Summit 2022, OpenAI's Greg Brockman said *"We are using Ray to train our largest models."* Uber has reported that a heterogeneous Ray cluster (mixing GPU and CPU nodes) gave **higher training throughput at lower cost** than a homogeneous all-GPU cluster, by moving data preprocessing onto cheaper CPU nodes.
 
 Ray's ecosystem is now mature across the full ML lifecycle:
 
 ```python
-from ray import train
+import ray
 from ray.train.torch import TorchTrainer
-from ray.train import ScalingConfig, CheckpointConfig
+from ray.train import ScalingConfig, RunConfig, CheckpointConfig, DataConfig
 
-# Ray Train handles DDP/FSDP setup automatically
+# Ray Train sets up torch.distributed (DDP/FSDP) across the workers
 trainer = TorchTrainer(
     train_loop_per_worker=train_fn,
     scaling_config=ScalingConfig(
@@ -476,11 +509,16 @@ trainer = TorchTrainer(
         use_gpu=True,
         resources_per_worker={"GPU": 1},
     ),
-    checkpoint_config=CheckpointConfig(
-        num_to_keep=3,
-        checkpoint_score_attribute="eval_loss",
+    run_config=RunConfig(
+        storage_path="s3://bucket/ray-results",
+        checkpoint_config=CheckpointConfig(
+            num_to_keep=3,
+            checkpoint_score_attribute="eval_loss",
+            checkpoint_score_order="min",
+        ),
     ),
-    dataset_config={"train": train.DataConfig(datasets_to_split=["train"])},
+    datasets={"train": train_ds},
+    dataset_config=DataConfig(datasets_to_split=["train"]),
 )
 result = trainer.fit()
 ```
@@ -491,7 +529,7 @@ result = trainer.fit()
 - **Ray Tune**: HPO at scale. Uber reported **4× speedup** using Ray Tune's distributed search versus sequential approaches. Supports ASHA, HyperBand, Optuna, Ax.
 - **Ray Serve**: production model serving with autoscaling and batching
 
-**Ray is not a workflow scheduler**: it does not handle scheduling, retries, or complex dependency graphs between pipeline stages. That's Airflow's or Kubeflow's job. Ray does the compute; the pipeline orchestrator controls the flow.
+**Ray is not a workflow scheduler**: within a job it retries tasks and runs arbitrary task graphs, but it has no cron scheduling, no backfills, no cross-run artifact lineage and no notion of "yesterday's data has landed." That's Airflow's, Dagster's or Kubeflow's job. Ray does the compute; the pipeline orchestrator controls the flow. (For when Ray is worth it at all, see [Part 0 of the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production#part-0-why-ray-and-when-you-dont-need-it).)
 
 **Spark** plays a similar role for data processing at scale—when your preprocessing step involves terabytes of tabular data, you submit a Spark job. Airflow has a `SparkSubmitOperator` for exactly this pattern.
 
@@ -501,7 +539,7 @@ result = trainer.fit()
 
 Vertex AI Pipelines is Google's managed Kubeflow service. It uses the same KFP SDK v2 IR YAML format as self-hosted Kubeflow—pipeline code is portable between the two.
 
-**Pricing reality**: Vertex AI Pipelines charges **$0.03 per pipeline run** for orchestration (separate from compute costs). A team running 200 pipeline runs/day pays ~$180/month just for orchestration before any GPU charges. Custom training nodes start at **$21.25/hour**.
+**Pricing reality**: Vertex AI Pipelines charges a small per-run orchestration fee (listed at **$0.03 per pipeline run**), separate from compute costs. A team running 200 pipeline runs/day pays ~$180/month just for orchestration before any GPU charges, which is usually trivial next to the compute bill. (Check current GCP pricing; it changes.)
 
 **vs. Self-hosted Kubeflow:**
 
@@ -616,7 +654,7 @@ flowchart TD
 | Kubeflow | Pipeline trigger | Component (Docker) | Kubernetes cluster | Yes | v2 / KFP SDK 2.15 |
 | TFX | Airflow / Kubeflow | TFX Component | K8s / local | Yes (TF-only) | Stable |
 | Vertex AI Pipelines | Schedule / trigger | Component (container) | GCP managed | Yes | $0.03/run |
-| Ray | Code | Remote task / actor | Ray cluster | Yes | v2.x, OpenAI-backed |
+| Ray | Code | Remote task / actor | Ray cluster | Yes | v2.x (Anyscale-led, broad adoption) |
 | Spark | Code / Airflow | Stage | Spark cluster | Partial | Stable |
 | MLflow Recipes | — | — | — | — | **Removed in MLflow 3** |
 
@@ -636,7 +674,7 @@ The right answer:
 
 **Q: "When would you use Ray vs Kubeflow?"**
 
-> "They solve different problems and appear together in production. Ray is a distributed execution engine—use it when a single Python process isn't enough, because your training job needs 64 GPUs or your preprocessing needs 10TB processed in parallel. OpenAI uses Ray for training ChatGPT. Kubeflow is a pipeline orchestrator—it defines the DAG of steps, manages typed artifacts between them, and handles conditionals like 'only deploy if accuracy exceeds threshold.' A Kubeflow pipeline step would submit a Ray training job. Ray does the compute; Kubeflow tracks the lineage and controls the flow."
+> "They solve different problems and appear together in production. Ray is a distributed execution engine—use it when a single Python process isn't enough, because your training job needs 64 GPUs or your preprocessing needs 10TB processed in parallel. Kubeflow is a pipeline orchestrator—it defines the DAG of steps, manages typed artifacts between them, and handles conditionals like 'only deploy if accuracy exceeds threshold.' A Kubeflow pipeline step would submit a Ray training job. Ray does the compute; Kubeflow tracks the lineage and controls the flow."
 
 **Q: "What's the difference between Airflow and Dagster?"**
 
@@ -660,6 +698,23 @@ If you've worked on autonomous vehicle ML infrastructure, you're already close t
 In interviews, anchor your answers to this scale: "at Zoox, retraining a perception model meant coordinating 512 GPUs, validating against thousands of sensor-annotated scenarios across scenario categories—fog, night, construction zones—before any deployment. You're looking at Kubernetes, distributed training via Ray Train or DDP, and a pipeline system with artifact contracts that prevents you from accidentally deploying a model trained on stale annotation data."
 
 That specificity signals you understand production ML infrastructure, not just the tooling vocabulary.
+
+---
+
+### Self-Check
+
+<details>
+<summary><strong>Can you answer these without looking?</strong></summary>
+
+1. Name the three questions that place any orchestration tool on the map (trigger, unit of work, compute target).
+2. What does Temporal give you that an Airflow retry doesn't?
+3. What problem did DAG versioning in Airflow 3 fix?
+4. Dagster asks a different question than Airflow. What is it, and when does that matter?
+5. Why is "I'd use Airflow" an incomplete answer to "design a daily retraining pipeline"?
+6. Where does Ray sit in the stack, and what does it deliberately not do?
+7. Why is AllReduce a better fit than a central reducer for gradient aggregation?
+
+</details>
 
 ---
 
