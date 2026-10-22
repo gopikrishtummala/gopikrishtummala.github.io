@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-02-01T00:00:00Z
-modDatetime: 2026-04-02T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "Training Frameworks: ZeRO, FSDP, and the Memory Math That Gets You Hired"
 slug: hidden-engine-of-ai
 featured: true
@@ -46,12 +46,45 @@ estimated_read_time: 45
 
 ## TL;DR
 
-- **The memory formula**: Total VRAM = params × 2 (BF16) + params × 12 (Adam states + gradients in FP32) = **16 bytes/param**. A 7B model needs ~112 GB before activations.
+- **The memory formula**: mixed-precision Adam costs 2 bytes (BF16 params) + 2 bytes (BF16 grads) + 12 bytes (FP32 master weights, Adam m and v) = **16 bytes/param**. A 7B model needs ~112 GB before activations.
 - **DDP** replicates the full model on every GPU — works until the model doesn't fit on one GPU.
 - **FSDP / ZeRO-3** shards parameters, gradients, and optimizer states across GPUs — lets you train models 8–16× larger than a single GPU can hold.
 - **3D parallelism** (DP + PP + TP) is the only way to train 70B+ models at production throughput on real hardware.
-- **Gradient checkpointing** trades 33% compute for ~8× activation memory reduction — almost always worth it.
+- **Gradient checkpointing** trades roughly 33% extra compute (one extra forward) for a several-fold cut in activation memory — almost always worth it on large models.
 - The straggler problem: in synchronous training, your cluster is as fast as its slowest GPU. Know how to detect and mitigate it.
+
+---
+
+## Table of contents
+
+---
+
+## The Module in One Picture
+
+```mermaid
+mindmap
+  root((Training at scale))
+    Memory math
+      16 bytes per param
+      Activations scale with batch and seq
+      Checkpointing recomputes
+    Data parallel
+      DDP all-reduce
+      ZeRO 1 2 3
+      FSDP
+    Model parallel
+      Tensor parallel in node
+      Pipeline parallel across nodes
+      Bubble equals p-1 over m
+    Precision
+      BF16 compute
+      FP32 master and Adam
+      FP16 needs loss scaling
+    Resilience
+      Async sharded checkpoints
+      Stragglers
+      Elastic restarts
+```
 
 ---
 
@@ -64,14 +97,17 @@ Even for a "small" 7B model, the math is brutal:
 | Component | Bytes per Param | 7B Model Total |
 |---|---|---|
 | Parameters (BF16) | 2 | 14 GB |
-| Gradients (FP32) | 4 | 28 GB |
+| Gradients (BF16) | 2 | 14 GB |
+| Master weights (FP32) | 4 | 28 GB |
 | Adam m (momentum, FP32) | 4 | 28 GB |
 | Adam v (variance, FP32) | 4 | 28 GB |
-| **Total (mixed precision)** | **14** | **~98 GB** |
+| **Total (mixed precision)** | **16** | **~112 GB** |
+
+(This is the accounting from the ZeRO paper. With plain PyTorch autocast, weights and gradients stay FP32 instead, which is 4 + 4 + 4 + 4 = the same 16 bytes/param.)
 
 Plus activations. A batch of 4 sequences of 2048 tokens through a 7B transformer adds another ~20–40 GB depending on whether you checkpoint activations.
 
-A single H100 has 80GB. You need at least 2 to train a 7B model naively. This is why distributed training exists.
+A single H100 has 80GB. You need at least 2 to train a 7B model naively, and in practice more once activations are included. This is why distributed training exists.
 
 ---
 
@@ -98,7 +134,7 @@ graph TB
 
     subgraph Combo["🎯 3D Parallelism (Production)"]
         direction LR
-        Combo_desc["DP × PP × TP\nTypical: 8 DP × 4 PP × 8 TP\n= 256 GPUs for 70B model"]
+        Combo_desc["DP × PP × TP\nExample: 8 TP × 4 PP × 8 DP\n= 256 GPUs for a 70B model"]
     end
 
     DP --> Combo
@@ -121,12 +157,12 @@ Every GPU holds a full model copy. Each GPU processes a different mini-batch. Af
 All-Reduce cost ≈ 2 × (N-1)/N × model_size_bytes / bandwidth
 ```
 
-For a 7B model (14GB BF16) across 8 GPUs on 200 Gbps InfiniBand:
+For a 7B model (14GB of BF16 gradients) across 8 GPUs on 200 Gb/s InfiniBand (~25 GB/s):
 ```
-≈ 2 × 7/8 × 14GB / (25 GB/s) ≈ 9.8 seconds per step
+≈ 2 × 7/8 × 14GB / (25 GB/s) ≈ 1 second per step
 ```
 
-That's unacceptably slow. In practice, DDP uses **ring All-Reduce** which overlaps gradient communication with the backward pass (gradient bucketing). PyTorch's DDP does this automatically.
+That's a big chunk of a step. PyTorch DDP hides most of it by **bucketing** gradients and launching each bucket's all-reduce (a ring or tree algorithm in NCCL) as soon as that bucket's gradients are ready, overlapping communication with the rest of the backward pass. Inside a node, NVLink makes the same all-reduce far cheaper.
 
 **When DDP breaks**: model > GPU VRAM. That's when you need ZeRO/FSDP.
 
@@ -136,46 +172,44 @@ Split the model's layers across GPUs. GPU 0 runs layers 1–8, GPU 1 runs layers
 
 The **pipeline bubble** is the fundamental inefficiency: GPU 0 is idle while GPUs 1–3 are computing the forward pass. The bubble ratio = `(num_stages - 1) / num_microbatches`. With 4 stages and 8 microbatches, bubble = 3/8 = 37.5% wasted compute.
 
-**GPipe** (Google) and **PipeDream** (Microsoft) reduce the bubble via microbatch scheduling. Megatron-LM uses interleaved scheduling that halves the bubble at the cost of 2× more all-reduce operations.
+**GPipe** (Google) and **PipeDream** (Microsoft) reduce the bubble via microbatch scheduling (1F1B interleaves forwards and backwards so activation memory stays bounded). Megatron-LM's **interleaved** schedule gives each GPU several smaller "virtual" stages, shrinking the bubble by that factor at the cost of more point-to-point communication.
 
 #### Tensor Parallelism
 
 Split individual matrix multiplications across GPUs. For a weight matrix $W \in \mathbb{R}^{d \times 4d}$ (FFN layer), column-parallel splits it column-wise across $N$ GPUs. Each GPU computes $XW_i$ where $W_i$ is its column shard.
 
-This requires an **All-Reduce after every layer** — which means you need NVLink-speed interconnect (600 GB/s bidirectional on H100 NVLink 4.0) for this to not dominate compute time. Tensor parallelism over InfiniBand is usually not worth it.
+Megatron pairs a column-parallel matmul with a row-parallel one so each attention block and each MLP block needs just **one all-reduce in the forward pass (and one in the backward)**. That's still several all-reduces of full activations per layer, so you need NVLink-class bandwidth (about 900 GB/s per GPU on H100's NVLink 4, 600 GB/s on A100) for this not to dominate. Tensor parallelism across nodes over InfiniBand is usually not worth it.
 
 ---
 
 ### Act II: ZeRO and FSDP — The Memory Shavers
 
-ZeRO (Zero Redundancy Optimizer) is the key insight: **DDP stores 4 redundant copies of optimizer state**. With N GPUs, every GPU stores the same momentum/variance tensors. That's N-1 copies wasted.
+ZeRO (Zero Redundancy Optimizer) is the key insight: **DDP stores N identical copies of the optimizer state**. With N GPUs, every GPU stores the same master weights, momentum and variance. That's N-1 copies wasted.
 
 ```mermaid
 graph LR
     subgraph Base["DDP (Baseline)\n16 bytes/param per GPU"]
         B_P["Params\n2 bytes"]
-        B_G["Gradients\n4 bytes"]
-        B_M["Adam m\n4 bytes"]
-        B_V["Adam v\n4 bytes"]
-        B_A["Activations\n~2 bytes"]
+        B_G["Gradients\n2 bytes"]
+        B_M["Optimizer states\n(master + m + v)\n12 bytes"]
     end
 
     subgraph Z1["ZeRO-1\nOptimizer Sharded"]
         Z1_P["Params\n2 bytes"]
-        Z1_G["Gradients\n4 bytes"]
-        Z1_M["Adam m/v\n8/N bytes"]
+        Z1_G["Gradients\n2 bytes"]
+        Z1_M["Optimizer states\n12/N bytes"]
     end
 
     subgraph Z2["ZeRO-2\nOptimizer + Grad Sharded"]
         Z2_P["Params\n2 bytes"]
-        Z2_G["Gradients\n4/N bytes"]
-        Z2_M["Adam m/v\n8/N bytes"]
+        Z2_G["Gradients\n2/N bytes"]
+        Z2_M["Optimizer states\n12/N bytes"]
     end
 
     subgraph Z3["ZeRO-3 / FSDP\nFully Sharded"]
         Z3_P["Params\n2/N bytes"]
-        Z3_G["Grads\n4/N bytes"]
-        Z3_M["Adam m/v\n8/N bytes"]
+        Z3_G["Gradients\n2/N bytes"]
+        Z3_M["Optimizer states\n12/N bytes"]
     end
 
     Base -->|"shard opt states"| Z1
@@ -198,12 +232,13 @@ Without sharding (DDP): **~112 GB per GPU** → doesn't fit on H100.
 
 With ZeRO-3 (8 GPUs):
 - Parameters: 14GB / 8 = **1.75 GB per GPU**
-- Gradients: 28GB / 8 = **3.5 GB per GPU**
-- Adam states: 56GB / 8 = **7 GB per GPU**
-- Activations (batch 4, seq 2048): **~4 GB per GPU**
-- **Total: ~16.25 GB per GPU** — fits comfortably on 40GB A100
+- Gradients: 14GB / 8 = **1.75 GB per GPU**
+- Optimizer states (FP32 master + m + v): 84GB / 8 = **10.5 GB per GPU**
+- Activations (batch 4, seq 2048, with checkpointing): **~4 GB per GPU**
+- Plus temporary buffers for the layer currently being gathered
+- **Total: roughly 18–20 GB per GPU** — fits comfortably on a 40GB A100
 
-The cost: ZeRO-3 does 3 all-gathers and 1 reduce-scatter per layer during forward, and the same during backward. Communication volume is ~1.5× DDP. On NVLink, this is hidden by overlap; on InfiniBand at scale, it matters.
+The cost: ZeRO-3 **all-gathers each layer's parameters** just before its forward pass, **all-gathers them again** for the backward pass, and **reduce-scatters the gradients** afterward. Total traffic is about 1.5× DDP's (3 × model size vs 2 ×). Prefetching the next layer's parameters overlaps most of it with compute on NVLink; on InfiniBand at scale, it matters.
 
 #### PyTorch FSDP vs. DeepSpeed ZeRO
 
@@ -213,12 +248,12 @@ Both implement ZeRO-3. Choose based on your stack:
 |---|---|---|
 | Integration | Native PyTorch | Separate library |
 | Config | Python API | JSON config |
-| CPU offload | Limited | Excellent |
-| Overlap comm | Yes (v2 API) | Yes |
-| Activation checkpointing | Via `use_orig_params` | Via `activation_checkpointing` |
+| CPU offload | Basic (params and grads) | Extensive (ZeRO-Offload, ZeRO-Infinity to NVMe) |
+| Overlap comm | Yes (prefetching; FSDP2 `fully_shard` is the current API) | Yes |
+| Activation checkpointing | `apply_activation_checkpointing` / `torch.utils.checkpoint` | `activation_checkpointing` config |
 | Best for | Standard PyTorch training | Max memory savings (CPU offload) |
 
-FSDP is the right default in 2025 unless you need CPU offload for extreme memory savings (e.g., fine-tuning a 70B model on 8 × 40GB A100s).
+FSDP (now FSDP2, built on per-parameter DTensor sharding) is the right default for PyTorch-native training unless you need aggressive CPU/NVMe offload for extreme memory savings (e.g., fine-tuning a 70B model on 8 × 40GB A100s).
 
 ---
 
@@ -233,39 +268,33 @@ graph TD
 
         subgraph DPGroup["Data Parallel Groups (8 replicas)"]
             direction LR
-            subgraph Node0["Node 0 — DP Rank 0"]
-                subgraph PP0["Pipeline Stage 0\n(Layers 1-20)"]
-                    TP0A["GPU 0\nTP Rank 0"]
-                    TP0B["GPU 1\nTP Rank 1"]
-                    TP0C["GPU 2\nTP Rank 2"]
-                    TP0D["GPU 3\nTP Rank 3"]
-                end
-                subgraph PP1["Pipeline Stage 1\n(Layers 21-40)"]
-                    TP1A["GPU 4\nTP Rank 0"]
-                    TP1B["GPU 5\nTP Rank 1"]
-                    TP1C["GPU 6\nTP Rank 2"]
-                    TP1D["GPU 7\nTP Rank 3"]
-                end
+            subgraph Replica0["DP Replica 0 (4 nodes = 32 GPUs)"]
+                PP0["Node 0 = Pipeline Stage 0\nLayers 1-20\n8 GPUs, TP=8 over NVLink"]
+                PP1["Node 1 = Pipeline Stage 1\nLayers 21-40\n8 GPUs, TP=8"]
+                PP2["Node 2 = Pipeline Stage 2\nLayers 41-60\n8 GPUs, TP=8"]
+                PP3["Node 3 = Pipeline Stage 3\nLayers 61-80\n8 GPUs, TP=8"]
             end
+            Others["DP Replicas 1-7\n(same layout)"]
         end
     end
 
-    TP0A & TP0B & TP0C & TP0D -->|"Activation\n(seq fwd)"| TP1A & TP1B & TP1C & TP1D
+    PP0 -->|"activations (IB)"| PP1
+    PP1 -->|"activations"| PP2
+    PP2 -->|"activations"| PP3
+    Replica0 -.->|"gradient all-reduce (IB)"| Others
 
-    classDef tp fill:#6366f1,color:#fff,stroke:#4f46e5
     classDef pp fill:#f59e0b,color:#fff,stroke:#d97706
     classDef dp fill:#10b981,color:#fff,stroke:#059669
-    class TP0A,TP0B,TP0C,TP0D,TP1A,TP1B,TP1C,TP1D tp
-    class PP0,PP1 pp
-    class DPGroup dp
+    class PP0,PP1,PP2,PP3 pp
+    class DPGroup,Others dp
 ```
 
-*Figure 3: A single data-parallel replica of a 70B model using 32 GPUs with 4-way pipeline parallelism and 8-way tensor parallelism. 8 such replicas = 256 GPUs total.*
+*Figure 3: One data-parallel replica of an 80-layer, 70B model: 4 pipeline stages (one per node) × 8-way tensor parallelism inside each node = 32 GPUs. Eight such replicas = 256 GPUs.*
 
 **The communication hierarchy:**
-- TP (within a node): NVLink, ~600 GB/s, every layer boundary
-- PP (within a DP group): InfiniBand, ~200 GB/s, every microbatch
-- DP (across replicas): InfiniBand, ~200 GB/s, every step
+- TP (within a node): NVLink, ~900 GB/s per GPU on H100, several all-reduces per layer
+- PP (between stages): InfiniBand, ~25–50 GB/s per GPU (200–400 Gb/s NICs), point-to-point every microbatch
+- DP (across replicas): InfiniBand, gradient all-reduce (or reduce-scatter) once per step
 
 ---
 
@@ -277,7 +306,7 @@ These are not optional on large models. They're load-bearing.
 
 During the forward pass, PyTorch stores all intermediate activations to compute gradients in the backward pass. For a 70B model at batch size 4, sequence length 2048, this is **~30–50 GB of activations** — often more than the model weights themselves.
 
-Gradient checkpointing discards activations during the forward pass and recomputes them during the backward pass when needed. The cost: one extra forward pass per checkpoint segment (≈33% compute overhead). The benefit: ~8× reduction in activation memory.
+Gradient checkpointing discards activations during the forward pass and recomputes them during the backward pass when needed. The cost: roughly one extra forward pass (≈33% more compute, since backward is about 2× forward). The benefit: you keep only the activations at checkpoint boundaries, often a several-fold reduction in activation memory. **Selective** recomputation (Megatron-LM) recomputes only the cheap-to-redo but memory-hungry parts, such as attention, for a few percent of overhead.
 
 ```python
 from torch.utils.checkpoint import checkpoint_sequential
@@ -291,7 +320,7 @@ In Hugging Face Transformers:
 model.gradient_checkpointing_enable()
 ```
 
-This is almost always the right call for models >7B. The 33% compute cost is worth the memory savings that allow larger batch sizes.
+This is almost always the right call for models >7B. The extra compute is usually worth the memory savings that allow larger batch sizes or longer sequences.
 
 #### Mixed Precision Training (BF16)
 
@@ -304,7 +333,7 @@ graph LR
     end
 
     subgraph Backward["Backward Pass"]
-        FP32_G["Gradients\nFP32 (4 bytes)"]
+        FP32_G["Gradients\nBF16 (2 bytes)\nreduced/upcast to FP32"]
         FP32_M["Master Weights\nFP32 (4 bytes)"]
     end
 
@@ -328,13 +357,13 @@ graph LR
 
 *Figure 4: Mixed precision training. The forward pass is in BF16 for speed; optimizer state is kept in FP32 for numerical stability. This is why Adam optimizer states cost 12 bytes/param, not 4.*
 
-**BF16 vs FP16**: BF16 has the same exponent range as FP32 (8 bits), so it never overflows on typical LLM training without loss scaling. FP16 (5-bit exponent) frequently overflows and requires a dynamic loss scaler (`torch.cuda.amp.GradScaler`). On H100s, use BF16 unconditionally.
+**BF16 vs FP16**: BF16 has the same exponent range as FP32 (8 bits), so it rarely overflows or underflows and typical LLM training needs no loss scaling. (It has fewer mantissa bits, which is why master weights and optimizer states stay in FP32.) FP16 (5-bit exponent) frequently overflows and requires a dynamic loss scaler (`torch.cuda.amp.GradScaler`). On H100s, use BF16 unconditionally.
 
 ---
 
 ### Act V: Fault Tolerance and Checkpointing
 
-At scale, hardware failures are not exceptions — they're the steady state. A 1,000-GPU run with 0.01% daily failure rate per GPU means you expect a failure every 10 hours.
+At scale, hardware failures are not exceptions — they're the steady state. Meta's Llama 3 paper reported **419 unexpected interruptions in a 54-day window** of 405B pre-training on 16K H100s, roughly one every three hours, mostly GPU and HBM faults. Failure rates scale with GPU count: at 0.1% daily failure probability per GPU, a 1,000-GPU job sees about one failure per day.
 
 #### Synchronous Checkpointing (Naive)
 
@@ -343,23 +372,28 @@ if step % 1000 == 0:
     torch.save(model.state_dict(), f"checkpoint_{step}.pt")
 ```
 
-Problem: Saving a 70B model (140GB BF16) to a single file takes 10–20 minutes. The cluster idles. Over a 2-week run with checkpointing every hour, this wastes **~5 GPU-hours per GPU** in idle time.
+Problem: Saving a 70B model from a single rank is slow — the BF16 weights alone are 140GB, and a full training checkpoint with FP32 master weights and Adam states is about 16 bytes/param, **~1.1 TB**. If that takes ~15 minutes and you checkpoint hourly over a 2-week run, that's 336 × 15 min ≈ **84 hours of idle time per GPU**, a quarter of the run.
 
 #### Async Distributed Checkpointing
 
 The modern approach: each rank saves its own shard in parallel, without blocking training.
 
 ```python
-from torch.distributed.checkpoint import save, FileSystemWriter
+import torch.distributed.checkpoint as dcp
+from torch.distributed.checkpoint.state_dict import get_state_dict
 
-# All ranks write their shard simultaneously
-save(
-    {"model": model, "optimizer": optimizer},
-    storage_writer=FileSystemWriter("/checkpoint/step_{step}"),
+model_sd, optim_sd = get_state_dict(model, optimizer)
+
+# Every rank writes only its own shard, in parallel.
+# async_save snapshots to CPU memory, then writes in the background
+# while training continues; wait on the future before the next save.
+future = dcp.async_save(
+    {"model": model_sd, "optimizer": optim_sd},
+    checkpoint_id=f"/checkpoint/step_{step}",
 )
 ```
 
-Each GPU writes ~`total_size / world_size` of data in parallel. A 140GB checkpoint across 64 GPUs becomes 64 concurrent 2.2GB writes. On NVMe-backed shared storage, that's ~5 seconds instead of 20 minutes.
+Each GPU writes ~`total_size / world_size` of data in parallel. A 1.1TB checkpoint across 256 GPUs becomes 256 concurrent ~4.4GB writes, and with async save the GPUs only block for the copy to host memory (seconds), not for the upload.
 
 #### Straggler Detection
 
@@ -398,7 +432,7 @@ sequenceDiagram
 
 **Mitigation options**:
 1. **TorchElastic**: Elastic training that can remove a failed rank and rebalance shards
-2. **Gradient accumulation**: Decouple All-Reduce from every step — sync every K steps
+2. **Gradient accumulation**: sync every K micro-batches instead of every one, so a straggler's jitter is averaged over more work (it doesn't remove a persistently slow GPU)
 3. **Asynchronous SGD**: Let fast GPUs run ahead, accept stale gradients (Hogwild-style). Used at Google scale but rarely in LLM training due to convergence sensitivity.
 
 ---
@@ -411,13 +445,14 @@ sequenceDiagram
 - Each H100 has 80GB VRAM
 - 70B model ≈ 140GB BF16 parameters
 - With ZeRO-3 across 256 GPUs: 140GB / 256 ≈ 0.55 GB parameters per GPU (trivial)
-- In practice: use 4-way TP (within a node, uses NVLink) × 8-way PP (across nodes) × 8-way DP = 256 GPUs
-- TP=4 keeps all-reduces on NVLink. PP=8 keeps pipeline bubble low with 16 microbatches (bubble = 7/16 = 44%, acceptable). DP=8 gives 8 independent data streams.
+- In practice: use 8-way TP (one full node, NVLink) × 4-way PP (across nodes) × 8-way DP = 256 GPUs, as in Figure 3
+- TP=8 keeps the per-layer all-reduces on NVLink. PP=4 with 16+ microbatches keeps the bubble at (4−1)/16 ≈ 19% (interleaving lowers it further). DP=8 gives 8 data-parallel replicas, with optimizer states sharded across them (ZeRO-1, Megatron's "distributed optimizer").
+- Memory check: each GPU holds 1/32 of the model (~2.2B params). At 16 bytes/param that's ~35 GB; sharding optimizer states 8 ways brings it to ~12 GB, leaving plenty of the 80 GB for activations.
 
 **Communication schedule**:
-- TP all-reduce: every transformer layer (~200 ns on NVLink vs 100 ms of compute — effectively free)
-- PP activations: every microbatch boundary, ~20 MB per layer activation — overlapped with compute
-- DP gradient sync: every step, ~140GB/8 (ZeRO-3) = 17.5GB per replica — 700ms on 200 Gbps IB, overlapped with optimizer step
+- TP all-reduces: two per layer in forward and two in backward, each moving a microbatch's activations; fast on NVLink but not free, which is why TP stays inside a node
+- PP activations: point-to-point at each stage boundary for every microbatch, overlapped with compute
+- DP gradient sync: once per step, each GPU's ~4.4 GB of BF16 gradients across 8 replicas ≈ 2 × 7/8 × 4.4 GB / 50 GB/s ≈ 0.15 s on 400 Gb/s InfiniBand, overlapped with the backward pass
 
 **Checkpointing**: async distributed checkpoint every 1000 steps, each rank writes to S3 in parallel. Keep 3 checkpoints. Total overhead: ~30 seconds every ~4 hours of training.
 
@@ -456,7 +491,9 @@ for i, (x, y) in enumerate(loader):
 2. **Communication**: reduces All-Reduce frequency by K× — critical when network is the bottleneck
 3. **Training stability**: LLM pretraining often benefits from large effective batch sizes (1M+ tokens)
 
-**Gotcha**: Gradient accumulation interacts with BatchNorm (running stats update every micro-batch) and dropout (different masks per micro-batch). For LLM training, these rarely matter, but be aware.
+**Gotcha 1**: With DDP, `loss.backward()` triggers the all-reduce on *every* micro-batch unless you wrap the non-final micro-batches in `with model.no_sync():`. Forget that and you get none of the communication savings.
+
+**Gotcha 2**: Gradient accumulation interacts with BatchNorm (running stats update every micro-batch) and dropout (different masks per micro-batch). For LLM training, these rarely matter, but be aware. Also normalize the loss by the number of *tokens* across all micro-batches, not by K, when sequences have different lengths.
 
 ---
 
@@ -465,10 +502,23 @@ for i, (x, y) in enumerate(loader):
 1. **Memorize the memory formula**: 16 bytes/param for BF16 + Adam mixed precision. A 7B model needs ~112GB across all states — always more than one GPU.
 2. **DDP for fits-on-one-GPU; FSDP/ZeRO-3 for anything larger.** FSDP is the native PyTorch path; DeepSpeed ZeRO-3 is better if you need aggressive CPU offload.
 3. **3D parallelism = TP within node (NVLink) + PP across nodes + DP across replicas.** TP over InfiniBand is usually a mistake.
-4. **Gradient checkpointing is almost always worth 33% compute for 8× activation memory savings.** Enable it by default on any model >7B.
-5. **BF16 > FP16** on modern hardware. BF16 never overflows, no loss scaler needed.
+4. **Gradient checkpointing is almost always worth ~33% extra compute for a several-fold activation memory saving.** Enable it by default on any model >7B, and prefer selective recomputation when your framework supports it.
+5. **BF16 > FP16** on modern hardware. BF16 has FP32's range, so no loss scaler is needed; keep master weights and optimizer states in FP32.
 6. **Async distributed checkpointing** is the production pattern. Synchronous saves kill throughput.
 7. **Stragglers dominate in synchronous training.** Monitor per-rank step times; detect thermal throttling and PCIe issues early.
+
+<details>
+<summary><strong>Self-check</strong></summary>
+
+1. Break down the 16 bytes/param of mixed-precision Adam. Which parts does each ZeRO stage shard?
+2. Estimate the per-GPU memory for a 13B model with ZeRO-3 on 16 GPUs, before activations.
+3. Why does tensor parallelism stay inside a node while pipeline parallelism spans nodes?
+4. With 8 pipeline stages and 32 microbatches, what's the bubble fraction? How would you shrink it?
+5. Your step time grows from 1.0 s to 1.4 s, and one rank is consistently slow. What do you check?
+6. You add gradient accumulation with DDP but network traffic doesn't drop. What did you forget?
+7. Why is asynchronous, sharded checkpointing so much cheaper than a rank-0 `torch.save`?
+
+</details>
 
 ---
 

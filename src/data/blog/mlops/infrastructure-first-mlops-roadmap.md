@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-12-18T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "The Infrastructure-First MLOps Roadmap: From Data DNA to Agentic AI"
 slug: infrastructure-first-mlops-roadmap
 featured: true
@@ -58,6 +58,61 @@ Most people think building an AI company is about having the smartest "Brain" (T
 *   **Agentic AI:** Giving the body hands and autonomy to act in the world.
 
 If your infrastructure is weak, you spend $40,000 on a GPU just to watch it sit idle. **This roadmap is how you build a body strong enough to support a super-intelligence.**
+
+---
+
+## Table of contents
+
+---
+
+## The Whole Series in One Picture
+
+Before diving in, here's the entire roadmap as a mind map. Come back to it after each module: if you can explain every leaf out loud, you own that part of the stack.
+
+```mermaid
+mindmap
+  root((MLOps Infrastructure))
+    Data
+      Module 1 Data DNA
+        Parquet stores
+        Arrow computes
+        Columnar plus compression
+      Lance companion
+        Random access
+        Versioned tables
+      Module 2 Dataloaders
+        GPU never waits
+        Prefetch and pinned memory
+        Sharded streaming
+    Training
+      Module 3 Frameworks
+        DDP FSDP ZeRO
+        Memory math 16 bytes per param
+        Checkpoint and resume
+      Module 4 Post-Training
+        SFT LoRA
+        DPO GRPO
+    Serving
+      Module 5 vLLM
+        PagedAttention
+        Continuous batching
+      Module 5b Life of a Tensor
+        Prefill vs decode
+        Latency budget
+      Module 6 Kernels
+        Fusion
+        FlashAttention
+        Triton
+    Systems
+      Module 7 Agentic MLOps
+        MCP
+        Sandboxes
+      Module 8 Orchestration
+        Scheduler vs pipeline vs compute
+      Ray companion
+        Tasks actors objects
+        Data Train Serve
+```
 
 ---
 
@@ -132,6 +187,14 @@ Deep dive into **PagedAttention** and **Continuous Batching**. Learn how to fit 
 
 ---
 
+### 🧬 Module 5b: Life of a Tensor (Production Inference, End to End)
+**The Core Idea:** Follow one request from the load balancer to the GPU and back.
+Where the milliseconds actually go: tokenization, batching queues, prefill vs decode, KV cache transfer and post-processing. This is the module that turns "I know vLLM" into "I can debug a p99 latency spike."
+
+📖 **[Deep Dive: Life of a Tensor](/posts/mlops/life-of-a-tensor-production-inference)**
+
+---
+
 ### ⚙️ Module 6: Custom Kernels & GPU Optimization (The Deep Tech)
 **The Core Idea:** Hand-grinding your own tools.
 When standard libraries fail, we write **Triton** or **CUDA**. Learn why **FlashAttention** was a breakthrough in I/O management and how to bypass the "Memory Wall."
@@ -148,6 +211,35 @@ The shift from stateless request-response to stateful, autonomous agents. Master
 
 ---
 
+### 🧭 Module 8: Pipeline Orchestration (Who Runs What, When)
+**The Core Idea:** Schedulers, pipelines and compute engines are different layers.
+Temporal, Airflow, Kubeflow and Ray solve different problems. Learn which layer owns retries, lineage, scheduling and distributed compute, and how to compose them instead of picking "one tool."
+
+📖 **[Deep Dive: Which Layer Does What](/posts/mlops/ml-pipeline-orchestration-layers)**
+
+---
+
+### 📚 Companion Deep Dives
+
+These sit alongside the numbered modules. Read them when the module they extend clicks.
+
+| Companion | Extends | Why read it |
+|---|---|---|
+| [Beyond Parquet: Lance & LanceDB](/posts/mlops/lance-lancedb-data-layer-for-ml) | Modules 1–2 | What changes when the file format is designed for random access, embeddings and versioned datasets |
+| [The Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production) | Modules 2, 3, 5, 8 | The distributed runtime under many of these systems: when a process pool is enough and when Ray earns its keep |
+| [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) | Modules 1–5 | The same stack applied to vision-language, image and video models |
+| [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) | All | How to use AI tools while learning this material, and how AI-enabled interviews work |
+
+---
+
+## Three Ways Through This Roadmap
+
+- **"I have an infra interview in two weeks":** Modules 1 → 2 → 3 → 5 → 5b, then the Ray Field Guide's Part 0 and cheat sheet. Focus on the trade-offs table below.
+- **"I'm moving from research to production":** Modules 2 → 3 → 4 → 5 → 8. These cover the gap between a training script and a service.
+- **"I want the full picture":** in order, 1 through 8, reading each companion right after the module it extends.
+
+---
+
 ## The Interview Philosophy: "Why" Over "What"
 
 Senior ML infrastructure interviews don't test whether you know what PagedAttention is. They test whether you understand *why* it was necessary.
@@ -157,6 +249,40 @@ Throughout this roadmap, focus on the **Trade-offs**:
 2. **Training:** Why FSDP? → Trade Network Bandwidth for VRAM capacity.
 3. **Serving:** Why Quantization? → Trade Accuracy for Throughput.
 4. **Kernels:** Why Fusion? → Trade logic complexity for Memory Bandwidth.
+
+---
+
+## Remember This: The Trade-Offs Cheat Sheet
+
+If you remember only one line per module, make it this one.
+
+| Module | The one-line idea | The trade-off you should be able to defend |
+|---|---|---|
+| 1. Data DNA | Store in Parquet, compute in Arrow | CPU decompression cycles for far less disk and network I/O |
+| 2. Dataloaders | The GPU should never wait for the CPU | Host memory and CPU workers (prefetch, pinned memory) for GPU utilization |
+| 3. Training | Shard what doesn't fit | Network bandwidth (all-gathers, reduce-scatters) for per-GPU memory |
+| 4. Post-Training | Adapt cheaply, align with preferences | A little quality ceiling (LoRA) for much less compute and memory |
+| 5. Serving | Memory, not compute, is the bottleneck | Scheduling complexity (paging, continuous batching) for throughput |
+| 5b. Life of a Tensor | Latency is a budget across many stages | Batch size and throughput vs per-request latency (TTFT, TPOT) |
+| 6. Kernels | Move less data | Engineering complexity for memory bandwidth |
+| 7. Agentic MLOps | Agents need state, tools and sandboxes | Autonomy for safety and control surface |
+| 8. Orchestration | Know which layer owns what | One more system to run for retries, lineage and reproducibility |
+
+<details>
+<summary><strong>Self-check: can you answer these without looking?</strong></summary>
+
+1. Why is Parquet slower to *write* but much faster to *query* than CSV for analytics?
+2. Your GPU utilization is 55% during training. Name three places to look before buying more GPUs.
+3. How many bytes of memory per parameter does mixed-precision Adam need, and how does ZeRO-3 split them?
+4. Why does LoRA use so much less memory than full fine-tuning?
+5. What problem does PagedAttention solve, and why does it raise throughput rather than per-token speed?
+6. What's the difference between time-to-first-token and time-per-output-token, and which one does batch size hurt more?
+7. Why can a fused kernel be faster even though it does the same arithmetic?
+8. Airflow, Temporal, Kubeflow and Ray: which one would you use for a daily retraining DAG, a long-running stateful workflow, and distributed GPU batch inference?
+
+Each answer is in the corresponding module above.
+
+</details>
 
 ---
 

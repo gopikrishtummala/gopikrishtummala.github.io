@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-12-03T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "The DNA of Data: Parquet, Arrow, and the Quest for Analytic Speed"
 slug: parquet-arrow-quest-for-analytic-speed
 featured: true
@@ -20,7 +20,7 @@ interview_relevance:
   - System Design
   - Theory
   - ML-Infra
-estimated_read_time: 45
+estimated_read_time: 15
 ---
 
 *By Gopi Krishna Tummala*
@@ -53,9 +53,40 @@ Imagine you are moving houses. You have two ways to pack your stuff:
 
 **Parquet** is the king of **Long-Term Storage (The Warehouse)**. It squeezes data down to 10% of its original size and organizes it into these "Topic Boxes" (Columns).
 
-**Arrow** is the king of **The Workbench (In-Memory)**. Once you open the Parquet boxes, Arrow lays everything out on a conveyor belt so the CPU can process it 100x faster than a human could.
+**Arrow** is the king of **The Workbench (In-Memory)**. Once you open the Parquet boxes, Arrow lays everything out on a conveyor belt so the CPU can process whole columns at once, often orders of magnitude faster than looping over rows in Python.
 
 The Golden Rule of MLOps: **Store in Parquet, Compute in Arrow.**
+
+---
+
+## Table of contents
+
+---
+
+## The Module in One Picture
+
+```mermaid
+mindmap
+  root((Data DNA))
+    Parquet at rest
+      Columnar layout
+      Compression Zstd Snappy
+      Row groups and stats
+      Predicate pushdown
+    Arrow in memory
+      Same layout in every language
+      Zero-copy sharing
+      SIMD vectorized ops
+      Memory mapping
+    Moving data
+      Arrow Flight
+      Compaction of small files
+      Multithreaded readers
+    Trade-offs
+      CPU decode vs disk IO
+      Row group size
+      Storage vs speed
+```
 
 ---
 
@@ -64,7 +95,7 @@ The Golden Rule of MLOps: **Store in Parquet, Compute in Arrow.**
 #### 1. Apache Parquet: The Archivist (Data at Rest)
 Parquet is optimized for **Disk I/O** and **Cost**. It uses "Columnar Pruning"—if your model only needs the "Temperature" and "Timestamp" columns, it skips the other 50 columns in the file entirely.
 
-*   **Key Trick: Zone Maps.** Parquet stores the Min and Max values for every chunk of data. If you query `WHERE temperature > 100`, and a chunk says `Min: 20, Max: 40`, Parquet doesn't even open that chunk. It just skips it.
+*   **Key Trick: Zone Maps (column statistics).** Parquet stores the min and max values for every column chunk in every row group (and, with the page index, for every page). If you query `WHERE temperature > 100` and a chunk says `min: 20, max: 40`, the reader never decompresses that chunk. It just skips it. This is called **predicate pushdown**.
 
 #### 2. Apache Arrow: The High-Speed Rail (Data in Motion)
 Arrow is optimized for **CPU Throughput**. Traditional data formats force you to "Serialize" (convert to text like JSON) and "Deserialize" (convert back to math) every time you move data between Python and C++.
@@ -114,7 +145,7 @@ graph TD
 Traditionally, moving data from a database to a worker node used ODBC/JDBC (Slow). **Arrow Flight** is an RPC framework that sends Arrow buffers directly over the wire. It is parallel by design, allowing 10 servers to stream data to 10 workers simultaneously.
 
 ##### 2. Trade-offs & Reasoning
-*   **Parquet vs. Arrow for Storage:** Why not store everything in Arrow? *Trade-off:* Arrow has **zero compression** by default (to stay fast). A 1TB dataset in Parquet might be 10TB in Arrow. We trade CPU cycles (decoding Parquet) for storage savings.
+*   **Parquet vs. Arrow for Storage:** Why not store everything in Arrow? *Trade-off:* Arrow's in-memory buffers are **uncompressed** so they can be operated on directly (the Arrow IPC/Feather file format can optionally compress with LZ4 or Zstd, but it lacks Parquet's encodings such as dictionary and run-length encoding). A 1TB dataset in Parquet can easily be several times larger as raw Arrow. We trade CPU cycles (decoding Parquet) for storage and network savings.
 *   **Row-Group Size:** If your row-groups are too small, Parquet's metadata becomes a bottleneck. If they are too large, "Zone Maps" can't skip data effectively. The mature sweet spot is **128MB to 512MB** per row-group.
 *   **Citations:** *A Deep Dive into Common Open Formats for Analytical DBMSs (VLDB 2023)* and *Apache Arrow: A Cross-Language Development Platform for In-Memory Data (2022)*.
 
@@ -128,7 +159,7 @@ Traditionally, moving data from a database to a worker node used ODBC/JDBC (Slow
 
 #### Scenario 2: Python GIL Bottlenecks
 *   **Question:** "Your CPU is at 100% and your GPU is at 5%, waiting for data. Your preprocessing is in Pandas. How do you fix it?"
-*   **Answer:** Discuss **Polars** or **PyArrow**. Standard Pandas uses a single CPU core and triggers the Python GIL. PyArrow/Polars are written in C++/Rust; they release the GIL and use all CPU cores to decompress Parquet into Arrow buffers in parallel.
+*   **Answer:** Discuss **Polars** or **PyArrow**. Most Pandas transformations run on a single core and row-wise `apply` holds the Python GIL. PyArrow and Polars are written in C++ and Rust; they release the GIL and use all CPU cores to decompress Parquet into Arrow buffers and run vectorized transforms in parallel. (Pandas 2.x can use PyArrow-backed dtypes and the PyArrow Parquet reader, which helps for I/O, but your transforms still need to be vectorized.)
 
 #### Scenario 3: Memory-Mapping vs. Full Load
 *   **Question:** "You have a 500GB dataset but only 64GB of RAM. How do you train a model?"
@@ -144,12 +175,44 @@ You have a 10TB uncompressed dataset.
 2.  **Throughput:** Your network is 10Gbps. How long does it take to move the *uncompressed* data vs. the *compressed* Parquet data to your worker node?
 3.  **The Optimization:** If you only need 3 columns out of 100, and those 3 columns represent 5% of the data, what is your theoretical maximum speedup using **Columnar Pruning**?
 
+<details>
+<summary><strong>Show the answers</strong></summary>
+
+1.  **Storage:** 10 TB × 0.15 = **1.5 TB** on S3.
+2.  **Throughput:** 10 Gbps ≈ 1.25 GB/s. Uncompressed: 10,000 GB ÷ 1.25 GB/s = 8,000 s ≈ **2.2 hours**. Compressed: 1,500 GB ÷ 1.25 GB/s = 1,200 s = **20 minutes**. (You then pay CPU time to decompress, which is why multithreaded readers matter.)
+3.  **Columnar pruning:** you read 5% of the bytes, so the I/O-bound upper limit is **20×** (1 ÷ 0.05). In practice metadata reads, decompression and per-file overhead keep you below that, and predicate pushdown on row-group statistics can push you further above it when filters are selective.
+
+</details>
+
+---
+
+## Remember This
+
+- **Store in Parquet, compute in Arrow.** Parquet minimizes bytes on disk and over the network; Arrow minimizes work in memory.
+- **Columnar wins because ML reads few columns, many rows.** Read only what you need (projection) and skip chunks that can't match (predicate pushdown on min/max statistics).
+- **Compression is a CPU-for-I/O trade.** It pays off whenever the network or disk is slower than your decoder, which in the cloud is almost always.
+- **Arrow's superpower is a shared memory layout.** Python, C++, Rust and GPUs can read the same buffers without serialization.
+- **File layout is a performance knob.** Avoid millions of tiny files (compact them), and size row groups so statistics can still skip data.
+- **Memory-map datasets larger than RAM** and let the OS page in what you touch.
+
+<details>
+<summary><strong>Self-check</strong></summary>
+
+1. Why is a row-oriented CSV slow for "average temperature by day" over a 100-column table?
+2. What is predicate pushdown, and what metadata makes it possible in Parquet?
+3. Why don't we just store training data as uncompressed Arrow files?
+4. What goes wrong with a million 1 KB Parquet files, and how do you fix it?
+5. How does memory-mapping let you train on 500 GB with 64 GB of RAM?
+
+</details>
+
 ---
 
 **Further Reading:**
 *   *VLDB 2023: A Deep Dive into Common Open Formats.*
 *   *HuggingFace Blog: How we handle datasets with 100B+ tokens.*
-*   *Apache Arrow Documentation: The memory layout specification.*
+*   [Apache Arrow columnar format specification](https://arrow.apache.org/docs/format/Columnar.html)
+*   [Apache Parquet documentation](https://parquet.apache.org/docs/)
 
 ---
 

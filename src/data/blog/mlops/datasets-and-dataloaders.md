@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2026-04-02T00:00:00Z
+modDatetime: 2026-10-21T00:00:00Z
 title: "Datasets & Dataloaders: The Art of Never Starving Your GPU"
 slug: datasets-and-dataloaders
 featured: true
@@ -19,7 +19,7 @@ difficulty: Advanced
 interview_relevance:
   - ML-Infra
   - System Design
-estimated_read_time: 40
+estimated_read_time: 20
 ---
 
 *By Gopi Krishna Tummala*
@@ -53,9 +53,43 @@ estimated_read_time: 40
 
 ---
 
+## Table of contents
+
+---
+
+## The Module in One Picture
+
+```mermaid
+mindmap
+  root((Never starve the GPU))
+    Measure first
+      Loader-only throughput test
+      Nsight timeline gaps
+      CPU vs GPU utilization
+    DataLoader knobs
+      num_workers
+      pin_memory plus non_blocking
+      prefetch_factor
+      persistent_workers
+    Dataset styles
+      Map-style exact shuffle
+      Iterable streaming shards
+      Split shards per rank and worker
+    Moving decode
+      libjpeg-turbo on CPU
+      DALI and nvJPEG on GPU
+      Pre-process offline
+    Distributed
+      DistributedSampler
+      set_epoch every epoch
+      Two-tier shuffle
+```
+
+---
+
 ### Act 0: The Anatomy of a Stall
 
-Your H100 can do ~3,000 TFLOPS of BF16 compute. A typical LLM forward pass on a 2048-token sequence at batch size 8 takes ~400ms of pure compute. If your dataloader takes 600ms to prepare the next batch, your **effective GPU utilization is 40%**. You are paying for a sports car and driving it in traffic.
+Your H100 can do roughly 1,000 TFLOPS of dense BF16 compute (about 2,000 with structured sparsity). A typical LLM forward pass on a 2048-token sequence at batch size 8 takes ~400ms of pure compute. If your dataloader takes 600ms to prepare the next batch, your **effective GPU utilization is 40%**. You are paying for a sports car and driving it in traffic.
 
 This is not theoretical. At Zoox, running distributed prediction model training across 32 A100s, our first profiling run showed 58% GPU utilization. The culprit: JPEG image decompression in Python workers, with a `num_workers` value set by someone who had never read the documentation.
 
@@ -116,11 +150,11 @@ graph TD
 
 **`num_workers`**: Number of subprocesses spawned. Each worker calls `__getitem__` independently. `0` means single-process (blocking). Rule of thumb: `num_workers = 4 × num_gpus` on a single machine. Check `htop` — if any core hits 100%, you need more workers.
 
-**`pin_memory=True`**: Allocates output tensors in **page-locked** (pinned) RAM. The OS cannot swap this memory out. This lets the GPU's DMA engine initiate transfers without CPU involvement. On a PCIe 4.0 x16 link (64 GB/s theoretical, ~32 GB/s practical), unpinned transfers add a `memcpy` round-trip on every batch. With pinned memory + `non_blocking=True` on `.cuda()`, H2D transfer happens in the background while the previous batch computes.
+**`pin_memory=True`**: Allocates output tensors in **page-locked** (pinned) RAM. The OS cannot swap this memory out. This lets the GPU's DMA engine initiate transfers without CPU involvement. On a PCIe 4.0 x16 link (~32 GB/s per direction theoretical, ~25 GB/s practical), unpinned transfers add a `memcpy` round-trip on every batch. With pinned memory + `non_blocking=True` on `.cuda()`, H2D transfer happens in the background while the previous batch computes.
 
 **`prefetch_factor`**: How many batches ahead each worker prepares. Default is 2. If your GPU is idle between batches, increase this — you want the queue never to run dry.
 
-**`persistent_workers=True`**: Keeps workers alive between epochs. Without this, Python spawns and tears down N processes at the start of every epoch. For large worker counts or complex initialization, this is a 30–60 second per-epoch overhead.
+**`persistent_workers=True`**: Keeps workers alive between epochs. Without this, Python spawns and tears down N processes at the start of every epoch. For large worker counts or heavy initialization (opening shard indexes, loading tokenizers), that can add tens of seconds per epoch.
 
 ---
 
@@ -171,6 +205,8 @@ Each `.tar` shard contains ~1000 samples. Workers stream sequentially within a s
 
 **Trade-off**: You lose exact epoch boundaries and reproducible shuffling. For most large-scale pretraining, this is fine. For fine-tuning on small datasets, use Map-style.
 
+> **The classic `IterableDataset` bug:** with `num_workers > 1`, *every worker runs the same `__iter__`*, so each sample is produced `num_workers` times unless you split the stream. Map-style datasets don't have this problem because the sampler hands out distinct indices. With a hand-written `IterableDataset`, split by `torch.utils.data.get_worker_info()`; with WebDataset, use its node and worker splitters (`wds.split_by_node`, `wds.split_by_worker`) or resampled shards. Always count unique sample IDs in a quick test run.
+
 ---
 
 ### Act III: The Zero-Copy Data Pump
@@ -189,7 +225,7 @@ graph LR
     end
 
     subgraph CPUPipeline["🖥️ CPU Pipeline (per worker)"]
-        Decomp["libjpeg-turbo\nHW-accelerated decode\n~2 GB/s per core"]
+        Decomp["libjpeg-turbo\nSIMD-accelerated decode\n(CPU-bound per core)"]
         Aug["Numpy/OpenCV\nCrop, flip, normalize"]
         Collate["Collate → Tensor\npin_memory=True"]
     end
@@ -240,7 +276,7 @@ for i, batch in enumerate(loader):
 print(f"{100 * 64 / (time.time() - start):.0f} samples/sec")
 ```
 
-Compare that number to your model's training throughput. If the dataloader is slower, you're bottlenecked. On a typical 4× H100 node training a ViT-L on ImageNet:
+Compare that number to your model's training throughput. If the dataloader is slower, you're bottlenecked. The *shape* of the improvement typically looks like this (illustrative numbers for a JPEG-heavy vision pipeline on a multi-GPU node; measure your own):
 
 | Pipeline | Throughput |
 |---|---|
@@ -279,7 +315,7 @@ for epoch in range(num_epochs):
 
 Forgetting `sampler.set_epoch(epoch)` means all epochs use the same shuffle order. Your model will still train, but the epoch-level diversity is gone — a subtle bug that shows up in final accuracy, not in loss curves.
 
-For WebDataset in distributed settings, split shards by rank:
+For WebDataset in distributed settings, split shards by rank (and, as noted in Act II, by DataLoader worker too):
 
 ```python
 urls = list(braceexpand("s3://bucket/shard-{000000..009999}.tar"))
@@ -344,20 +380,34 @@ With `pin_memory=True` in the DataLoader, step 1–2 happen in the worker proces
 
 On a PCIe 4.0 x16 link, the practical improvement is:
 - Without: ~8 GB/s effective H2D bandwidth (includes memcpy overhead)
-- With: ~28 GB/s effective H2D bandwidth
+- With: ~25 GB/s effective H2D bandwidth
 
-For a batch of 64 × 3 × 224 × 224 float32 images (~38 MB), that's 4.7ms vs 1.4ms. At 200ms compute per batch, that's 2.3% vs 0.7% overhead — sounds small, but over 1M training steps it compounds.
+For a batch of 64 × 3 × 224 × 224 float32 images (~38.5 MB), that's ~4.8 ms vs ~1.5 ms. At 200 ms compute per batch, that's 2.4% vs 0.8% overhead. More importantly, with `non_blocking=True` the pinned copy can overlap with compute, so the visible cost can drop to near zero. (Tip: send `uint8` images to the GPU and normalize there; that alone cuts transfer bytes 4×.)
 
 ---
 
 ### Key Takeaways
 
 1. **Profile before tuning.** Run the dataloader standalone and measure samples/sec. If it exceeds your model's throughput, the pipeline isn't your bottleneck.
-2. **`pin_memory=True` + `non_blocking=True` is always free money** — enable both unconditionally.
+2. **`pin_memory=True` + `non_blocking=True` is almost always free money.** The one caveat: pinned memory can't be swapped, so very large batches × many workers × a high `prefetch_factor` can exhaust host RAM. Watch host memory when you turn these up.
 3. **`persistent_workers=True`** eliminates per-epoch worker spawn overhead. Always use it.
 4. **WebDataset over Map-style** for anything stored on object storage. Sequential reads are not optional at scale.
 5. **DALI is the unlock for vision**. If your CPU cores are at 100% and GPU is idle, it's decode bottleneck — NVIDIA DALI moves JPEG decode to the GPU's dedicated NVJPEG engine.
 6. **`sampler.set_epoch(epoch)`** is the most common distributed training bug. Add it to your checklist.
+7. **Split iterable streams by rank *and* worker**, or you'll silently train on duplicated data.
+8. **Plan for resumption.** For long runs, checkpoint the data position too (`torchdata`'s `StatefulDataLoader`), or a restart replays or skips data.
+
+<details>
+<summary><strong>Self-check</strong></summary>
+
+1. Your loader-only benchmark does 40k samples/s and training does 12k samples/s. Is the data pipeline your bottleneck?
+2. Why does `pin_memory=True` speed up host-to-device copies, and what does `non_blocking=True` add?
+3. You switch to an `IterableDataset` with 8 workers and each epoch suddenly has 8× as many samples. What happened?
+4. Why are sharded tar files faster than millions of individual JPEGs on S3?
+5. What's the cost of forgetting `sampler.set_epoch(epoch)`, and why doesn't the loss curve reveal it?
+6. When does moving decode to the GPU (DALI) pay off, and when is it unnecessary?
+
+</details>
 
 ---
 
