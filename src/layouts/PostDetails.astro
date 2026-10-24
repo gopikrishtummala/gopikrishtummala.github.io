@@ -394,24 +394,23 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
       }
     }
 
-    async function initializeMermaid() {
-      // Wait for mermaid to be available
-      if (typeof window.mermaid === "undefined") {
-        setTimeout(initializeMermaid, 100);
-        return;
-      }
+    // ---- Theme palettes -------------------------------------------------
+    // Node boxes use a soft tint of the accent with full-contrast text;
+    // the bright accent is reserved for borders and subgraph titles.
+    const themeColors = {
+      light:    { accent: "#10b981", accentDim: "#059669", title: "#047857", bg: "#fafafa", elBg: "#ffffff", fg: "#1a1a1a", fg2: "#4a4a4a", muted: "#f3f4f6", border: "#d1d5db", nodeBg: "#ecfdf5", clusterBg: "#f6fef9" },
+      dark:     { accent: "#f59e0b", accentDim: "#d97706", title: "#fbbf24", bg: "#0a0a0a", elBg: "#171717", fg: "#f3f4f6", fg2: "#a3a3a3", muted: "#262626", border: "#404040", nodeBg: "#2a2214", clusterBg: "#1c1c1c" },
+      cyber:    { accent: "#a855f7", accentDim: "#9333ea", title: "#d8b4fe", bg: "#020617", elBg: "#0f172a", fg: "#f8fafc", fg2: "#94a3b8", muted: "#1e293b", border: "#334155", nodeBg: "#1e1636", clusterBg: "#111a2e" },
+      academic: { accent: "#0d9488", accentDim: "#0f766e", title: "#115e59", bg: "#fdfdfc", elBg: "#ffffff", fg: "#1c1c1c", fg2: "#525252", muted: "#f3f3f2", border: "#d4d4d4", nodeBg: "#f0fdfa", clusterBg: "#f7fdfc" },
+    };
 
-      // Configure Mermaid theme based on current site theme
-      const siteTheme = document.documentElement.getAttribute("data-theme") || "light";
+    function currentTheme() {
+      return document.documentElement.getAttribute("data-theme") || "light";
+    }
+
+    function configureMermaid() {
+      const siteTheme = currentTheme();
       const isDark = siteTheme === "dark" || siteTheme === "cyber";
-
-      // Theme-aware color palettes matching the site's CSS variables
-      const themeColors = {
-        light:   { accent: "#10b981", accentDim: "#059669", bg: "#fafafa", elBg: "#ffffff", fg: "#1a1a1a", fg2: "#4a4a4a", muted: "#f3f4f6", border: "#e5e7eb" },
-        dark:    { accent: "#f59e0b", accentDim: "#d97706", bg: "#0a0a0a", elBg: "#171717", fg: "#f3f4f6", fg2: "#9ca3af", muted: "#262626", border: "#262626" },
-        cyber:   { accent: "#a855f7", accentDim: "#9333ea", bg: "#020617", elBg: "#0f172a", fg: "#f8fafc", fg2: "#94a3b8", muted: "#1e293b", border: "#1e293b" },
-        academic:{ accent: "#0d9488", accentDim: "#0f766e", bg: "#fdfdfc", elBg: "#ffffff", fg: "#1c1c1c", fg2: "#525252", muted: "#f3f3f2", border: "#e5e5e5" },
-      };
       const c = themeColors[siteTheme] || themeColors.light;
 
       window.mermaid.initialize({
@@ -444,12 +443,13 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
         gantt: { wrap: true },
         gitgraph: { wrap: true },
         themeVariables: {
+          darkMode: isDark,
           fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, sans-serif',
           fontSize: "13px",
           lineHeight: "1.5",
-          // Node colors
-          primaryColor: c.accent,
-          primaryTextColor: isDark ? c.fg : "#ffffff",
+          // Node colors: soft tint fill, full-contrast text, accent border
+          primaryColor: c.nodeBg,
+          primaryTextColor: c.fg,
           primaryBorderColor: c.accentDim,
           // Secondary nodes
           secondaryColor: c.muted,
@@ -464,27 +464,165 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
           edgeLabelBackground: c.elBg,
           // Backgrounds
           background: c.bg,
-          mainBkgColor: c.elBg,
+          mainBkgColor: c.nodeBg,
           // Clusters / subgraphs
-          clusterBkg: isDark ? c.muted : "#f0fdf4",
-          clusterBorder: c.accent,
-          titleColor: c.accent,
+          clusterBkg: c.clusterBg,
+          clusterBorder: c.accentDim,
+          titleColor: c.title,
           // Notes
           noteBkgColor: isDark ? c.muted : "#fefce8",
           noteTextColor: c.fg,
           noteBorderColor: c.accentDim,
+          // Sequence diagrams
+          actorBkg: c.nodeBg,
+          actorTextColor: c.fg,
+          actorBorder: c.accentDim,
+          signalColor: c.fg2,
+          signalTextColor: c.fg,
+          labelTextColor: c.fg,
+          loopTextColor: c.fg,
           // Text
           textColor: c.fg,
           // Link labels
-          defaultLinkColor: c.accent,
-          // Rounded corners
+          defaultLinkColor: c.fg2,
           nodeBorder: c.accentDim,
         },
         securityLevel: "loose",
       });
+    }
+
+    // ---- Contrast repair ---------------------------------------------------
+    // Posts set their own colors (classDef / style), often tuned for one theme.
+    // After every render, any label whose text is hard to read against what is
+    // actually behind it is switched to near-black or white, whichever reads
+    // better. This keeps arrow labels and node text legible in every theme.
+    function parseColor(str) {
+      if (!str) return null;
+      const m = str.match(/rgba?\(([^)]+)\)/);
+      if (m) {
+        const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number);
+        return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+      }
+      return null;
+    }
+    function luminance(col) {
+      const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      return 0.2126 * f(col.r) + 0.7152 * f(col.g) + 0.0722 * f(col.b);
+    }
+    function contrast(a, b) {
+      const l1 = luminance(a), l2 = luminance(b);
+      return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+    }
+    const isOpaque = (col) => col && col.a > 0.5;
+
+    function shapeFill(owner) {
+      if (!owner) return null;
+      const shape = owner.querySelector(":scope > rect, :scope > polygon, :scope > circle, :scope > path, :scope > .label-container, :scope > g > rect, :scope > g > path");
+      if (!shape) return null;
+      const f = parseColor(getComputedStyle(shape).fill);
+      return isOpaque(f) ? f : null;
+    }
+    function clusterUnder(svg, el) {
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      let best = null, bestArea = Infinity;
+      svg.querySelectorAll("g.cluster > rect").forEach((rc) => {
+        const b = rc.getBoundingClientRect();
+        if (cx >= b.left && cx <= b.right && cy >= b.top && cy <= b.bottom) {
+          const area = b.width * b.height;
+          const f = parseColor(getComputedStyle(rc).fill);
+          if (isOpaque(f) && area < bestArea) { best = f; bestArea = area; }
+        }
+      });
+      return best;
+    }
+    function containerBg(svg) {
+      let el = svg.parentElement;
+      while (el) {
+        const b = parseColor(getComputedStyle(el).backgroundColor);
+        if (isOpaque(b)) return b;
+        el = el.parentElement;
+      }
+      return { r: 255, g: 255, b: 255, a: 1 };
+    }
+
+    const DARK_TEXT = { r: 17, g: 17, b: 17, a: 1 };
+    const LIGHT_TEXT = { r: 255, g: 255, b: 255, a: 1 };
+
+    function fixContrast(svg) {
+      const cont = containerBg(svg);
+      const leaves = Array.from(svg.querySelectorAll("foreignObject span, foreignObject p, foreignObject div, text"))
+        .filter((e) => e.textContent.trim() && !Array.from(e.children).some((ch) => ch.textContent.trim()));
+      leaves.forEach((e) => {
+        const isSvgText = e.tagName.toLowerCase() === "text" || !!e.closest("text");
+        const cs = getComputedStyle(e);
+        const textColor = parseColor(isSvgText ? cs.fill : cs.color);
+        if (!textColor) return;
+
+        let bg = null;
+        let a = e;
+        while (a && a.tagName && a.tagName.toLowerCase() !== "foreignobject" && a !== svg) {
+          const b = parseColor(getComputedStyle(a).backgroundColor);
+          if (isOpaque(b)) { bg = b; break; }
+          a = a.parentElement;
+        }
+        if (!bg) bg = shapeFill(e.closest("g.node") || e.closest("g.edgeLabel"));
+        if (!bg) bg = clusterUnder(svg, e);
+        if (!bg) bg = cont;
+
+        if (contrast(textColor, bg) >= 4.5) return;
+        const better = contrast(DARK_TEXT, bg) >= contrast(LIGHT_TEXT, bg) ? "#111111" : "#ffffff";
+        if (isSvgText) {
+          e.style.setProperty("fill", better, "important");
+        } else {
+          e.style.setProperty("color", better, "important");
+        }
+      });
+    }
+
+    function postRender() {
+      document.querySelectorAll(".mermaid svg").forEach((svg) => {
+        // Ensure text doesn't get clipped
+        svg.style.overflow = "visible";
+        svg.querySelectorAll("foreignObject").forEach((fo) => {
+          fo.style.overflow = "visible";
+          const div = fo.querySelector("div");
+          if (div) {
+            div.style.overflow = "visible";
+            div.style.wordWrap = "break-word";
+            div.style.overflowWrap = "break-word";
+            div.style.whiteSpace = "normal";
+          }
+        });
+        svg.querySelectorAll("text").forEach((text) => {
+          text.style.whiteSpace = "normal";
+          text.style.wordWrap = "break-word";
+        });
+        fixContrast(svg);
+      });
+    }
+
+    async function runMermaid(nodes) {
+      if (!nodes.length || !window.mermaid || !window.mermaid.run) return;
+      try {
+        await window.mermaid.run({ nodes });
+        // Let fonts and layout settle before measuring colors and positions
+        setTimeout(postRender, 100);
+      } catch (e) {
+        console.error("Error rendering Mermaid diagrams:", e);
+      }
+    }
+
+    async function initializeMermaid() {
+      // Wait for mermaid to be available
+      if (typeof window.mermaid === "undefined") {
+        setTimeout(initializeMermaid, 100);
+        return;
+      }
+
+      configureMermaid();
 
       // Find all code blocks - try multiple approaches
-      // First, try standard selectors
       const selectors = [
         "pre code.language-mermaid",
         "pre code[class*='language-mermaid']",
@@ -504,7 +642,6 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
         const allCodeBlocks = document.querySelectorAll("pre code");
         allCodeBlocks.forEach(function(block) {
           const code = block.textContent || block.innerText || "";
-          // Check if it looks like Mermaid code (starts with graph, flowchart, etc.)
           if (code.trim().match(/^\s*(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|gitgraph|journey|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|mindmap|timeline|sankey-beta|quadrantChart)/)) {
             mermaidBlocks.push(block);
           }
@@ -512,92 +649,71 @@ const nextPostFull = nextPost ? posts.find(p => p.id === nextPost.id) : null;
       }
 
       if (mermaidBlocks.length === 0) {
-        // Try again after a short delay in case content hasn't rendered yet
-        setTimeout(initializeMermaid, 200);
+        // Nothing new to render. Retry briefly only if the page has no
+        // diagrams yet (content may still be arriving); otherwise stop.
+        if (!document.querySelector(".mermaid-processed") && (initializeMermaid.retries = (initializeMermaid.retries || 0) + 1) < 10) {
+          setTimeout(initializeMermaid, 200);
+        }
         return;
       }
-      
+
+      const newDivs = [];
       mermaidBlocks.forEach((block, index) => {
         // Skip if already processed
         if (block.closest(".mermaid-processed") || block.closest(".mermaid")) {
           return;
         }
 
-        // Get the code content - try multiple methods
-        let mermaidCode = "";
-        if (block.textContent) {
-          mermaidCode = block.textContent;
-        } else if (block.innerText) {
-          mermaidCode = block.innerText;
-        } else {
-          // Try to get text from all child nodes
-          mermaidCode = Array.from(block.childNodes)
-            .map(node => node.textContent || "")
-            .join("");
-        }
-
+        let mermaidCode = block.textContent || block.innerText ||
+          Array.from(block.childNodes).map((node) => node.textContent || "").join("");
         mermaidCode = mermaidCode.trim();
         if (!mermaidCode) {
           return;
         }
 
         const id = `mermaid-${index}-${Date.now()}`;
-        
-        // Get the parent pre element (Shiki wraps code in pre)
         const preElement = block.closest("pre");
-        
-        // Create a new div for Mermaid to render into
+
         const mermaidDiv = document.createElement("div");
         mermaidDiv.className = "mermaid mermaid-processed";
         mermaidDiv.id = id;
+        mermaidDiv.dataset.src = mermaidCode; // keep source so we can re-render on theme change
         mermaidDiv.textContent = mermaidCode;
-        
-        // Replace the pre element (which contains the code block)
+
         if (preElement) {
           preElement.replaceWith(mermaidDiv);
         } else {
-          // Fallback: replace just the code block
           block.replaceWith(mermaidDiv);
         }
+        newDivs.push(mermaidDiv);
       });
 
-      // Render all Mermaid diagrams
-      if (window.mermaid && window.mermaid.run) {
-        try {
-          await window.mermaid.run({
-            querySelector: ".mermaid",
-            nodes: document.querySelectorAll(".mermaid"),
-          });
-          
-          // Post-render fix: Ensure text doesn't get clipped
-          setTimeout(() => {
-            document.querySelectorAll(".mermaid svg").forEach((svg) => {
-              // Force overflow visible on all SVG elements
-              svg.style.overflow = "visible";
-              
-              // Fix foreignObject overflow
-              svg.querySelectorAll("foreignObject").forEach((fo) => {
-                fo.style.overflow = "visible";
-                const div = fo.querySelector("div");
-                if (div) {
-                  div.style.overflow = "visible";
-                  div.style.wordWrap = "break-word";
-                  div.style.overflowWrap = "break-word";
-                  div.style.whiteSpace = "normal";
-                }
-              });
-              
-              // Ensure text elements have proper wrapping
-              svg.querySelectorAll("text").forEach((text) => {
-                text.style.whiteSpace = "normal";
-                text.style.wordWrap = "break-word";
-              });
-            });
-          }, 100);
-        } catch (e) {
-          console.error("Error rendering Mermaid diagrams:", e);
+      await runMermaid(newDivs);
+    }
+
+    // Re-render every diagram with the new palette when the reader switches theme
+    async function rerenderForTheme() {
+      if (!window.mermaid) return;
+      const divs = Array.from(document.querySelectorAll(".mermaid-processed")).filter((d) => d.dataset.src);
+      if (!divs.length) return;
+      configureMermaid();
+      divs.forEach((d) => {
+        d.removeAttribute("data-processed");
+        d.innerHTML = "";
+        d.textContent = d.dataset.src;
+      });
+      await runMermaid(divs);
+    }
+
+    if (typeof MutationObserver !== "undefined") {
+      let lastTheme = currentTheme();
+      new MutationObserver(function() {
+        const t = currentTheme();
+        if (t !== lastTheme) {
+          lastTheme = t;
+          rerenderForTheme();
         }
-      }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     }
 
     // Load Mermaid and initialize
