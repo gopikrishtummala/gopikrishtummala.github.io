@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-10-21T00:00:00Z
-modDatetime: 2026-10-21T00:00:00Z
+modDatetime: 2026-10-24T00:00:00Z
 title: "Coding With AI Without Losing Your Edge: Conscious AI-Assisted Engineering and the New AI-Enabled Interview"
 slug: ai-assisted-coding-conscious-practice-and-interviews
 featured: true
@@ -13,14 +13,14 @@ tags:
   - learning
   - productivity
   - coding-interviews
-description: "What the research actually says about AI coding tools (faster? slower? worse at learning?), a conscious workflow that keeps you in charge, the mistakes that quietly cost teams, and a concrete plan for the new AI-enabled coding interviews at Meta and elsewhere."
+description: "How software engineering really works (ownership, contracts, readability and the tribal knowledge behind every codebase), what changes when a technically solid change is one button away, how to think like an architect who builds with AI-made walls, what the research says about AI coding tools, the mistakes that quietly cost teams, and a concrete plan for the new AI-enabled coding interviews."
 track: Fundamentals
 difficulty: Intermediate
 interview_relevance:
   - Coding
   - Behavioral
   - System Design
-estimated_read_time: 35
+estimated_read_time: 50
 ---
 
 *By Gopi Krishna Tummala*
@@ -29,7 +29,7 @@ estimated_read_time: 35
 
 > **Who this is for.** Engineers who already use Copilot, Cursor, Claude Code or ChatGPT every day and have a nagging feeling: *"Am I getting better, or just getting faster at producing code I don't fully understand?"* And anyone preparing for the new generation of coding interviews where an AI assistant sits in the editor next to you.
 
-**Quick jump:** [The evidence](#act-i-what-the-research-actually-says) · [The conscious loop](#act-ii-the-conscious-loop) · [Daily workflow](#act-iii-a-workflow-that-keeps-you-in-charge) · [Getting better, not worse](#act-iv-using-ai-to-get-better-not-worse) · [Mistakes](#act-v-the-mistakes-that-quietly-cost-you) · [AI-enabled interviews](#act-vi-the-ai-enabled-coding-interview) · [4-week prep plan](#act-vii-a-four-week-preparation-plan) · [ML-specific traps](#act-viii-for-ml-engineers-the-silent-bug-problem) · [Checklists](#checklists) · [Self-check](#check-yourself)
+**Quick jump:** [The hidden expert](#act-05-the-hidden-expert-how-software-engineering-actually-works) · [The evidence](#act-i-what-the-research-actually-says) · [The conscious loop](#act-ii-the-conscious-loop) · [Legos, not bricks](#act-ii5-legos-not-bricks-thinking-like-an-architect) · [Daily workflow](#act-iii-a-workflow-that-keeps-you-in-charge) · [Getting better, not worse](#act-iv-using-ai-to-get-better-not-worse) · [Mistakes](#act-v-the-mistakes-that-quietly-cost-you) · [AI-enabled interviews](#act-vi-the-ai-enabled-coding-interview) · [4-week prep plan](#act-vii-a-four-week-preparation-plan) · [ML-specific traps](#act-viii-for-ml-engineers-the-silent-bug-problem) · [Checklists](#checklists) · [Self-check](#check-yourself)
 
 ## Table of contents
 
@@ -37,6 +37,10 @@ estimated_read_time: 35
 
 ## TL;DR
 
+- **Software engineering is programming integrated over time.** Most of what makes a change safe lives *outside* the diff: who owns the code, which behaviors others depend on, why the odd-looking line is there, how it's rolled out and who gets paged. That knowledge accumulated as stories and lives in a few "hidden experts."
+- **AI made a technically solid change one button away, but not the knowledge around it.** The cost moved from *writing* code to *reviewing, integrating and supporting* it. A clean diff can still break a contract, bypass an owner or land a pager on someone else.
+- **Always build a mental map first:** what it does, roughly how, and how the pieces fit. Use AI to *recover* tribal knowledge (history, callers, contracts), then confirm it with the owners.
+- **Think in Legos, not bricks.** Given a wall and a spec, AI will build the wall. Deciding where the walls go, which ones are load-bearing and how they connect is architecture, and it's still your job.
 - **AI is an amplifier, not an equalizer.** Google's DORA 2025 report found that AI magnifies the strengths of good teams *and* the dysfunctions of struggling ones. The same is true for individuals: strong engineers get stronger; engineers who outsource their thinking get weaker.
 - **Feeling faster is not being faster.** In METR's 2025 randomized trial, experienced open-source developers were **19% slower** with AI tools on their own repos, yet *believed* they were ~20% faster. Newer tools may well change the number; the perception gap is the lesson.
 - **Delegating code can cost you the skill.** Anthropic's 2026 randomized study found developers learning a new library with AI scored **~17 percentage points lower** on a follow-up quiz, with the biggest gap in **debugging**. But how people used AI mattered: those who asked *conceptual* questions or asked for *explanations* scored far better than those who just delegated.
@@ -45,6 +49,36 @@ estimated_read_time: 35
 - **The conscious loop:** *Think → Specify → Generate small → Verify → Understand → Own.* You own the problem framing, the design, the verification and the final judgment. AI accelerates everything in between.
 - **Interviews changed.** Meta replaced one onsite coding round with a **60-minute AI-enabled round** in CoderPad on a multi-file codebase; other companies allow AI in some rounds, and many still ban it. AI-enabled rounds grade **judgment, verification, communication and ownership**, not prompt magic.
 - **Interview one-liner:** *"I use AI like a fast junior pair: I frame the problem and the plan, delegate small well-specified pieces, verify everything with tests and reading, and I never ship code I can't explain."*
+
+---
+
+## The Post in One Picture
+
+```mermaid
+mindmap
+  root((Coding with AI))
+    The hidden expert
+      Ownership and approvals
+      Contracts and Hyrum's Law
+      Readability and idioms
+      Why the fence is there
+      Operations and support
+    One-button changes
+      Clean diff
+      Hidden support cost
+      Recover knowledge first
+    Architect mindset
+      Mental map what how fit
+      Legos not bricks
+      Specs and interfaces
+    Conscious loop
+      Think specify generate
+      Verify understand own
+    Interviews
+      Read before prompting
+      Delegate small pieces
+      Narrate and verify
+```
 
 ---
 
@@ -62,6 +96,117 @@ AI coding tools are GPS for code.
 There's a second analogy I like even more: **a brilliant, fast, overconfident junior engineer** who has read every Stack Overflow answer ever written, never gets tired, never says "I don't know," and has never seen *your* codebase, *your* users or *your* production incidents. You would never let that person merge to `main` without review. You'd give them clear tasks, check their work and teach them your conventions. That's exactly the relationship to build with AI.
 
 Keep both pictures in mind. Everything below is about keeping your mental map while still letting the GPS drive the boring parts.
+
+---
+
+## Act 0.5: The Hidden Expert (How Software Engineering Actually Works)
+
+Before talking about AI, we need to be honest about what software engineering *is*, because AI changed one part of it dramatically and left the rest exactly where it was.
+
+### Programming vs. software engineering
+
+The authors of *Software Engineering at Google* put it in one line: software engineering is **programming integrated over time**. Programming is getting the computer to do the thing. Engineering is everything required to keep it doing the thing for years, while dozens of people change it, thousands of systems depend on it, and the people who wrote it move on.
+
+A useful way to feel the difference: code is written once, read many times, and *supported* for its entire life. Most of the cost lives in the reading and the supporting.
+
+### The knowledge that isn't in the code
+
+Open any mature codebase and you'll find that the code is only the visible part. Around it is a large body of knowledge that rarely gets written down in one place:
+
+| Kind of knowledge | What it sounds like | Where it usually lives |
+|---|---|---|
+| **Ownership** | "That directory belongs to the payments team; they must approve any change." | `OWNERS` / `CODEOWNERS` files, on-call rotations, team charters |
+| **Contracts** | "Don't rename that field; two mobile app versions in the wild still read it." | API docs (sometimes), schema registries, the memory of whoever got paged last time |
+| **What can change** | "The order of that list isn't documented, but a downstream job depends on it." | Nowhere. This is **Hyrum's Law** |
+| **Why it's like this** | "That `sleep(2)` papers over a race in the vendor SDK; removing it caused the 2023 outage." | Postmortems, old code review threads, one senior engineer's head |
+| **Language and codebase idioms** | "We never use exceptions for control flow here; we return status objects." | Style guides, readability reviews, code review comments |
+| **Interfaces and boundaries** | "The scheduler must never call the billing service directly; go through the event bus." | Design docs, API reviews, architecture diagrams |
+| **Operations** | "Roll this out behind a flag, region by region, and watch this dashboard." | Runbooks, launch checklists, SLOs |
+
+Two laws explain why this knowledge matters so much:
+
+- **Hyrum's Law:** *"With a sufficient number of users of an API, it does not matter what you promise in the contract: all observable behaviors of your system will be depended on by somebody."* The real contract of your code is everything it observably does, not what the docstring says.
+- **Chesterton's fence:** if you find a fence across a road and can't see why it's there, don't remove it until you find out. Every "weird" line in an old codebase is a fence. Some are pointless; many are load-bearing.
+
+### How this knowledge was passed on: stories and the hidden expert
+
+Very little of it was taught in documents. It was transmitted through **stories**: a code review comment that said "we tried that in 2021, here's what happened," a postmortem everyone on the team read, a design review where someone asked "who pages when this queue backs up?", a hallway conversation that ended with "ask Priya, she wrote the original scheduler."
+
+Every team has these **hidden experts**: people whose value isn't the code they write but the map they carry. Big engineering organizations built institutions to spread that map:
+
+- **Code review with owner approval:** a change touching a directory needs someone who owns it to approve, so the person with the context sees every change.
+- **Readability:** at Google, "readability" is a certification in a specific language; every change needs approval from someone who holds it, so idioms and style are taught one review at a time. It's mentorship disguised as process.
+- **Design docs and API reviews**, so interface decisions get argued about *before* code exists.
+- **Postmortems**, so the story of each failure becomes shared knowledge.
+
+The computer scientist Peter Naur described the deeper point back in 1985 in *Programming as Theory Building*: the real product of programming is not the code but the **theory** in the developers' heads, meaning their understanding of how the program maps to the world, why each part is the way it is, and how it could change. The code is a lossy shadow of that theory. When the team that holds the theory leaves, the program starts to "die," even though it still compiles and runs.
+
+### What changed: a technically solid change is one button away
+
+AI coding tools changed the economics of exactly one part of this picture. Producing a **clean, idiomatic, compiling, tested diff** used to take hours of a skilled engineer's time. Now it takes a prompt. The diff often looks *better* than what a hurried human would write.
+
+But the knowledge around the diff didn't come along. The model sees the code you show it. It doesn't see the pager, the mobile client two versions behind, the 2023 outage or the team that will be woken up at 3 a.m.
+
+```mermaid
+flowchart TB
+  subgraph Visible["Visible in the diff"]
+    V1["Compiles and passes tests"]
+    V2["Idiomatic, well-named, documented"]
+    V3["Solves the stated problem"]
+  end
+  subgraph Hidden["Hidden below the waterline"]
+    H1["Owners who never saw it"]
+    H2["Downstream users of changed behavior"]
+    H3["Rollout, flags and rollback plan"]
+    H4["Monitoring, alerts and on-call load"]
+    H5["Security, privacy and compliance review"]
+    H6["Who supports it in a year"]
+  end
+  Visible -->|"one-click change"| Hidden
+```
+
+Some realistic ways a technically solid change goes wrong:
+
+- **The tidy rename.** The AI renames `user_id` to `userId` in an API response "for consistency." Every test passes. An older mobile app version that still parses `user_id` breaks for a slice of users.
+- **The flaky-test fix.** Asked to fix a flaky test, the model raises a timeout. The test goes green; the race condition it was catching ships.
+- **The helpful retry.** A retry loop with no backoff or jitter is added around a downstream call. During the next partial outage, every client retries at once and turns a blip into an incident.
+- **The new cache.** Latency drops. Now someone owns cache invalidation, memory growth and stale-data bugs, and it isn't the person who clicked "accept."
+- **The sprawling change.** An 800-line change touches three teams' directories. It's technically correct, and it lands a review burden on three sets of owners and an on-call burden on whoever runs those services.
+
+None of these are coding mistakes. They are **missing-knowledge mistakes**. The cost of software moved from *writing* to *reviewing, integrating and supporting*, and the hidden expert's map matters more than ever because changes now arrive faster than any human can carry context for them.
+
+### What to do about it: recover the knowledge before you change the code
+
+AI is also very good at *recovering* tribal knowledge, if you ask it to. Before any non-trivial change, map the territory:
+
+1. **Who owns this?** Read the owners files and recent reviewers. Plan to involve them early, not at approval time.
+2. **Who depends on it?** Find callers, consumers of the API, jobs that read the table, clients that parse the payload.
+3. **What's the real contract?** Documented behavior *and* observable behavior others may rely on (ordering, timing, error formats, default values).
+4. **Why is it like this?** Read the history: commits, linked bugs, design docs, postmortems.
+5. **How does it ship and how do we undo it?** Flags, staged rollout, migrations, rollback.
+6. **Who supports it afterward?** Dashboards, alerts, runbook updates, on-call handoff.
+
+Prompts that turn the assistant into an archaeologist instead of a bricklayer:
+
+```text
+Before changing anything: summarize the git history of src/scheduler/retry.py.
+Which commits changed behavior, what bugs or incidents do they reference,
+and what invariants do they seem to protect? Quote the commit messages.
+```
+
+```text
+List every caller of PaymentClient.charge() across the repo, grouped by
+service and owner (use the OWNERS/CODEOWNERS files). For each, note which
+fields of the response it reads.
+```
+
+```text
+I want to rename this response field. List everything that could observe
+the change: serializers, clients, tests, docs, dashboards, logs, schemas.
+Then propose a backward-compatible migration plan.
+```
+
+Then do the human part: **confirm the story with the owner.** The model can find the fence; only the people who built it can tell you whether it's load-bearing.
 
 ---
 
@@ -126,6 +271,107 @@ A simple way to decide how much to hand off: **how risky is the code** × **how 
 | **High risk** (auth, payments, data pipelines, concurrency, infra) | Write the core yourself or delegate tiny pieces; review line by line | **Slow down.** Learn first (docs + conceptual questions), write it yourself, use AI as a reviewer |
 
 The bottom-right box is where people get hurt: high-risk code in an unfamiliar domain, generated fast, accepted because it looks plausible.
+
+---
+
+## Act II.5: Legos, Not Bricks (Thinking Like an Architect)
+
+Here's the shift in one picture. For most of software history, engineers built houses **brick by brick**: every line of code placed by hand. Your attention was on mortar and alignment.
+
+With AI, you increasingly build with **Lego pieces and prefabricated walls**. Hand the tool a wall's dimensions and a spec ("a wall with a door here, rated for this load, wired for these outlets") and it hands you back a finished wall, often a good one.
+
+That doesn't make you less important. It changes which part of you matters:
+
+- Someone still has to decide **where the walls go** (decomposition into modules and services).
+- Someone has to know **which walls are load-bearing** (the invariants and contracts that must never break).
+- Someone has to design **how walls connect**: the doors, the plumbing, the wiring (interfaces, data flow, failure handling).
+- Someone has to satisfy the **building code and the inspector** (security, privacy, reliability, cost, operability).
+
+That someone is the architect. The AI can sketch floor plans and critique yours, and it's a good sparring partner, but it doesn't live in the house, doesn't know the family, and won't be there when the roof leaks.
+
+### Always build the mental map: what, how, how it fits
+
+Before accepting any non-trivial AI-built piece, you should be able to answer three questions at three altitudes:
+
+| Altitude | Question | Example answer |
+|---|---|---|
+| **What** | What does this piece do, in one sentence, and what's its contract? | "Deduplicates events by `(user, event_id)` within a 10-minute window; input and output are the same schema." |
+| **How (roughly)** | What's the core mechanism and state? | "A Redis set per minute bucket with TTL; checks membership, then adds." |
+| **How it fits** | What calls it, what does it call, and what happens when those fail? | "Called by the ingest consumer; if Redis is down we fail open and log, so downstream must tolerate duplicates." |
+
+You don't need to know every line by heart. You do need the map, because the map is what lets you review, debug at 3 a.m., explain it in a design review and change it safely later. This is Naur's "theory" again: **if AI writes the code and nobody holds the theory, the program is born already dying.**
+
+Ask the AI to draw the map, then check the map against the code:
+
+```text
+Give me a map of this module: its responsibilities, its public interface,
+the modules it depends on, the modules that depend on it, the state it
+owns, and the failure modes at each boundary. Keep it to one page.
+Cite file and function names so I can verify each claim.
+```
+
+### What the architect owns, and what the AI can build
+
+```mermaid
+flowchart LR
+  subgraph You["Architect (you)"]
+    A1["Problem framing<br/>and non-goals"]
+    A2["Decomposition:<br/>where the walls go"]
+    A3["Interfaces and contracts:<br/>how walls connect"]
+    A4["Invariants and<br/>failure modes"]
+    A5["Non-functional needs:<br/>latency, cost, privacy"]
+    A6["Evolution and<br/>ownership plan"]
+  end
+  subgraph AI["AI (prefab walls)"]
+    B1["Implement a module<br/>to a spec"]
+    B2["Tests from your cases"]
+    B3["Boilerplate, glue,<br/>migrations, scripts"]
+    B4["Alternatives and<br/>critique of designs"]
+  end
+  A3 -->|"spec"| B1
+  A4 -->|"test cases"| B2
+  B4 -.->|"options"| A2
+  B1 -->|"wall to inspect"| A4
+```
+
+### Interfaces are the studs on the Lego
+
+Lego pieces snap together because every stud is the same size. Software pieces fit together because of **interfaces**. This is why interface design matters *more* in the AI era, not less:
+
+- **Small, explicit, typed interfaces** let you swap an AI-built implementation in and out safely. A vague interface means every generated piece fits a little differently.
+- **Contracts belong in tests at the boundary.** Tests on the interface are the building inspection. They keep checking that each wall still fits after the next round of AI edits.
+- **Keep implementations replaceable.** If a module is hard to regenerate from its spec and tests, the spec is incomplete.
+- **When the AI is itself a component** (an LLM call inside your product), the same rules apply: define the input and output schema, validation, fallbacks when the model fails or times out, and an eval suite that acts as its contract test.
+
+### What a good "wall spec" looks like
+
+```text
+Goal:        Rate-limit outbound calls to the email provider per tenant.
+Interface:   class TenantRateLimiter: allow(tenant_id: str) -> bool
+Contract:    At most N calls per tenant per rolling 60 s (N from config).
+             Thread-safe. Never raises; on internal error, returns True
+             and increments the `ratelimiter_errors` counter.
+Constraints: Use the existing Redis client in infra/redis.py. No new deps.
+             p99 under 2 ms.
+Non-goals:   Global (cross-tenant) limits. Persisting counts across restarts.
+Tests:       burst of N+1 calls -> last denied; window rolls over -> allowed;
+             Redis down -> allowed + counter incremented; 50 threads concurrently.
+Owners:      @platform-infra must review; update runbook RB-142.
+```
+
+Notice what that spec contains that the code never will: the non-goals, the failure policy, the owners and the runbook. That's the architect's contribution. The AI can write the class in a minute; it could not have invented "fail open and count it" or "the platform team must review."
+
+### The new definition of seniority
+
+Junior engineers used to be limited by how fast they could lay bricks. Now everyone can lay bricks at the same speed, so the differentiators are the things that were always senior skills:
+
+- holding a **mental map** of a system you didn't write;
+- knowing the **stories**: who owns what, what broke before, what others depend on;
+- designing **interfaces** that make pieces composable and replaceable;
+- predicting the **support cost** of a change before it lands;
+- writing specs and tests that let anyone, human or AI, build the right wall.
+
+That's also exactly what AI-enabled interviews are starting to measure (Act VI).
 
 ---
 
@@ -240,6 +486,9 @@ This is the part most people skip. The Anthropic study is worth re-reading here,
 | **Debugging by slot machine** | Paste error → paste fix → new error → repeat | Slow, and you learn nothing | Form a hypothesis; reproduce with a failing test first |
 | **Outsourcing design** | "Build me a scalable system for X" | Generic architecture that ignores your constraints | You design; AI critiques and fills in |
 | **Measuring by feel** | "I'm so much faster now" | METR's perception gap | Track cycle time, review rework, escaped bugs |
+| **Knowledge-blind changes** | A clean diff that renames a field, changes ordering or adds a retry | Breaks contracts others relied on (Hyrum's Law); support lands on someone else | Map owners, callers and the real contract before changing behavior |
+| **Bypassing the owners** | Large AI change across several teams' code, sent for approval at the end | Review overload, missed context, eroded trust | Involve owners at design time; split changes by ownership boundary |
+| **Theory-less code** | Nobody on the team can explain how the new module works | Every future change and incident is slower and riskier | Write the one-page map (what, how, how it fits) before merging |
 
 ---
 
@@ -261,24 +510,16 @@ Across the published guidance and prep material, the rubric converges on:
 4. **Communication.** Can you narrate what you asked, what you kept, what you changed and why?
 5. **Ownership.** Can you explain and defend every line of the final code?
 
-Notice what's *not* on the list: clever prompts. The AI is the same for every candidate. **The differentiator is you.**
+Notice what's *not* on the list: clever prompts. Notice also that items 1, 2 and 5 are the hidden-expert and architect skills from Acts 0.5 and II.5, compressed into an hour: read the territory first, decide the structure yourself, and own the result. The AI is the same for every candidate. **The differentiator is you.**
 
 ### A 60-minute game plan
 
 ```mermaid
-gantt
-  title AI-enabled round: one way to spend 60 minutes
-  dateFormat mm
-  axisFormat %M
-  section Orient
-  Read task, code, tests (no AI)     :a1, 00, 8m
-  Plan out loud, agree on approach   :a2, after a1, 4m
-  section Build
-  Task 1: debug / small fix          :b1, after a2, 12m
-  Task 2: feature, AI for subtasks   :b2, after b1, 20m
-  section Prove
-  Run tests, add edge cases          :c1, after b2, 10m
-  Walk through and simplify          :c2, after c1, 6m
+flowchart LR
+  O["0-12 min<br/>Orient without AI<br/>read task, code, tests;<br/>state a plan"] --> B1["12-24 min<br/>Task 1<br/>reproduce and fix<br/>the bug"]
+  B1 --> B2["24-44 min<br/>Task 2<br/>build the feature;<br/>AI drafts small pieces"]
+  B2 --> P["44-54 min<br/>Prove it<br/>run tests,<br/>add edge cases"]
+  P --> W["54-60 min<br/>Own it<br/>simplify and<br/>walk through"]
 ```
 
 **Minutes 0–12: Orient without AI.** Read the task, skim the file structure, run the existing tests to see what fails. Say out loud what you think the code does. You can ask the AI to *summarize* an unfamiliar file, but form your own picture first. Then state a plan.
@@ -386,8 +627,17 @@ The ML version of "give it a way to verify" is **invariants**: shape assertions,
 
 ## Checklists
 
+### Before you change behavior (the hidden-expert check)
+
+- [ ] I know who owns this code and have involved them.
+- [ ] I've found the callers and consumers, and what they rely on (including undocumented behavior).
+- [ ] I've read the history of the lines I'm changing and know why they're there.
+- [ ] There's a rollout and rollback plan, and monitoring that would show a problem.
+- [ ] I know who supports this afterward, and the runbook or docs are updated.
+
 ### Before you accept AI code
 
+- [ ] I can explain what it does, roughly how, and how it fits with its neighbors (the mental map).
 - [ ] I can explain what every line does and why it's there.
 - [ ] Tests exist that would **fail** if this code were wrong (I checked by breaking it).
 - [ ] Edge cases covered: empty, null, duplicates, large inputs, invalid input, concurrency if relevant.
@@ -407,6 +657,34 @@ The ML version of "give it a way to verify" is **invariants**: shape assertions,
 ---
 
 ## Check Yourself
+
+<details>
+<summary><strong>What does "software engineering is programming integrated over time" mean for AI-generated code?</strong></summary>
+
+Writing the code is a small part of its lifetime cost; reading, changing, operating and supporting it dominate. AI collapses the writing cost, so the remaining costs (review, integration, contracts, on-call) become the main thing to manage.
+
+</details>
+
+<details>
+<summary><strong>Explain Hyrum's Law and give an example of an AI change that violates it.</strong></summary>
+
+With enough users, all observable behavior of a system is depended on by somebody, regardless of the documented contract. Example: an AI "cleanup" that changes the order of a returned list, renames a JSON field or changes an error message format. Tests pass, and a downstream consumer that relied on the old behavior breaks.
+
+</details>
+
+<details>
+<summary><strong>What is the "hidden expert," and how can AI help recover their knowledge?</strong></summary>
+
+The person whose value is the map in their head: owners, history, contracts, past incidents. AI can summarize commit history and linked bugs, find callers and consumers, and surface design docs, which recovers much of the story. You still confirm with the owners, because the model can find the fence but not tell you for sure whether it's load-bearing.
+
+</details>
+
+<details>
+<summary><strong>In the Lego analogy, what is the architect responsible for that the AI is not?</strong></summary>
+
+Where the walls go (decomposition), which are load-bearing (invariants and contracts), how they connect (interfaces and failure handling), the building code (security, reliability, cost) and who maintains the house (ownership and support). The AI can build walls to a spec and critique plans.
+
+</details>
 
 <details>
 <summary><strong>Why might an experienced developer be slower with AI on their own codebase?</strong></summary>
@@ -476,6 +754,13 @@ Broadcasting errors (shape assertions), data leakage from fitting preprocessing 
 - Veracode, [2025 GenAI Code Security Report](https://www.veracode.com/blog/genai-code-security-report).
 - Spracklen et al., package hallucinations at USENIX Security 2025, summarized by [Dark Reading](https://www.darkreading.com/application-security/ai-code-tools-widely-hallucinate-packages) and [TechRepublic](https://www.techrepublic.com/article/news-slopsquatting-vibe-coding-ai-cybersecurity-risk/).
 - GitClear, AI Copilot Code Quality 2025, summarized by [DevClass](https://devclass.com/2025/02/20/ai-is-eroding-code-quality-states-new-in-depth-report/).
+
+**Software engineering foundations**
+- Winters, Manshreck and Wright, [*Software Engineering at Google*](https://abseil.io/resources/swe-book) (free online): "programming integrated over time," knowledge sharing, readability and code review with ownership.
+- [Hyrum's Law](https://www.hyrumslaw.com/).
+- Peter Naur, *Programming as Theory Building* (1985).
+- G. K. Chesterton's fence, from *The Thing* (1929).
+- Melvin Conway, *How Do Committees Invent?* (1968): systems mirror the communication structure of the organizations that build them.
 
 **Workflow guides**
 - Anthropic, [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices).
