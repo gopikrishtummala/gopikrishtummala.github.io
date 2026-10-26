@@ -264,4 +264,4 @@ Calculate the KV cache size for a Llama-3 70B model with:
 
 ---
 
-**Related deep dives:** [Ray Serve LLM](/posts/mlops/ray-field-guide-core-to-production#13-ray-serve-online-inference) runs vLLM engines as autoscaled replicas, and [compiled graphs](/posts/mlops/ray-field-guide-core-to-production#15-gpu-native-paths-compiled-graphs-and-direct-transport) power vLLM's multi-node pipeline parallelism · [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) covers serving and distilling vision-language and video models.
+**Related deep dives:** [Ray Serve LLM](/posts/mlops/ray-field-guide-core-to-production#ray-serve-answering-requests) runs vLLM engines as autoscaled replicas, and [compiled graphs](/posts/mlops/ray-field-guide-core-to-production#the-gpu-to-gpu-fast-path) power vLLM's multi-node pipeline parallelism · [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) covers serving and distilling vision-language and video models.

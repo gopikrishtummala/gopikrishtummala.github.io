@@ -223,4 +223,4 @@ You have a 10TB uncompressed dataset.
 
 ---
 
-**Related deep dives:** [Ray Data](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) streams Parquet and Arrow blocks to GPUs across a cluster · [Beyond Parquet: Lance](/posts/mlops/lance-lancedb-data-layer-for-ml) revisits this module's advice for ML access patterns.
+**Related deep dives:** [Ray Data](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) streams Parquet and Arrow blocks to GPUs across a cluster · [Beyond Parquet: Lance](/posts/mlops/lance-lancedb-data-layer-for-ml) revisits this module's advice for ML access patterns.

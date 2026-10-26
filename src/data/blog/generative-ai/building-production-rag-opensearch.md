@@ -188,4 +188,4 @@ In Stage 2 (Cross-Encoder), we feed the **Query AND Document** into the same mod
 
 ---
 
-**Related deep dives:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-a-model-learns-to-see-and-talk) explains the vision-language models behind multimodal RAG · [Ray Data batch inference](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) for computing embeddings over millions of documents.
+**Related deep dives:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-a-model-learns-to-see-and-talk) explains the vision-language models behind multimodal RAG · [Ray Data batch inference](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) for computing embeddings over millions of documents.

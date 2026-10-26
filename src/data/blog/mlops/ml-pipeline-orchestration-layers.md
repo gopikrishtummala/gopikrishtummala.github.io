@@ -529,7 +529,7 @@ result = trainer.fit()
 - **Ray Tune**: HPO at scale. Uber reported **4× speedup** using Ray Tune's distributed search versus sequential approaches. Supports ASHA, HyperBand, Optuna, Ax.
 - **Ray Serve**: production model serving with autoscaling and batching
 
-**Ray is not a workflow scheduler**: within a job it retries tasks and runs arbitrary task graphs, but it has no cron scheduling, no backfills, no cross-run artifact lineage and no notion of "yesterday's data has landed." That's Airflow's, Dagster's or Kubeflow's job. Ray does the compute; the pipeline orchestrator controls the flow. (For when Ray is worth it at all, see [Part 0 of the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production#part-0-why-ray-and-when-you-dont-need-it).)
+**Ray is not a workflow scheduler**: within a job it retries tasks and runs arbitrary task graphs, but it has no cron scheduling, no backfills, no cross-run artifact lineage and no notion of "yesterday's data has landed." That's Airflow's, Dagster's or Kubeflow's job. Ray does the compute; the pipeline orchestrator controls the flow. (For when Ray is worth it at all, see [Part 0 of the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production#when-a-process-pool-is-enough).)
 
 **Spark** plays a similar role for data processing at scale—when your preprocessing step involves terabytes of tabular data, you submit a Spark job. Airflow has a `SparkSubmitOperator` for exactly this pattern.
 
@@ -742,4 +742,4 @@ That specificity signals you understand production ML infrastructure, not just t
 
 ---
 
-**Related deep dives:** [The Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production) goes deep on the compute layer: [why Ray, and when a process pool is enough](/posts/mlops/ray-field-guide-core-to-production#part-0-why-ray-and-when-you-dont-need-it), plus Data, Train, Tune, Serve and KubeRay.
+**Related deep dives:** [The Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production) goes deep on the compute layer: [why Ray, and when a process pool is enough](/posts/mlops/ray-field-guide-core-to-production#when-a-process-pool-is-enough), plus Data, Train, Tune, Serve and KubeRay.

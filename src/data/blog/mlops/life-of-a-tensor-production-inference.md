@@ -349,4 +349,4 @@ You are serving a Stable Diffusion XL model.
 
 ---
 
-**Related deep dives:** [Ray Serve](/posts/mlops/ray-field-guide-core-to-production#13-ray-serve-online-inference) for composing multi-model inference graphs with batching and autoscaling · [Ray Data batch inference](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) for the offline counterpart.
+**Related deep dives:** [Ray Serve](/posts/mlops/ray-field-guide-core-to-production#ray-serve-answering-requests) for composing multi-model inference graphs with batching and autoscaling · [Ray Data batch inference](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) for the offline counterpart.

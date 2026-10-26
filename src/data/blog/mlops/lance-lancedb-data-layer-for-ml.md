@@ -140,7 +140,7 @@ graph TD
 - **Table format:** a dataset is a versioned collection of *fragments*. Each version is described by an immutable *manifest* listing the schema, the fragments, and the indices. Each fragment holds one or more data files (each storing a subset of the columns) plus an optional deletion file ([table format spec](https://lance.org/format/table/)).
 - **LanceDB:** the database and company. It adds vector, full-text (BM25), and SQL-filtered search on top of Lance tables. The project lists integrations with Arrow, Pandas, Polars, DuckDB, Spark, Ray, Trino, and Flink ([README](https://github.com/lance-format/lance)).
 
-Two ecosystem signals are worth noting because they come from *other* projects' docs, not LanceDB's marketing: Ray Data documents a [`read_lance`](https://docs.ray.io/en/latest/data/api/doc/ray.data.read_lance.html) reader, and Hugging Face's Hub documentation describes [hosting and streaming Lance datasets](https://github.com/huggingface/hub-docs/blob/main/docs/hub/datasets-lance.md). That connects to the [Ray Data material in the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) and the orchestration layers in [Module 8](/posts/mlops/ml-pipeline-orchestration-layers).
+Two ecosystem signals are worth noting because they come from *other* projects' docs, not LanceDB's marketing: Ray Data documents a [`read_lance`](https://docs.ray.io/en/latest/data/api/doc/ray.data.read_lance.html) reader, and Hugging Face's Hub documentation describes [hosting and streaming Lance datasets](https://github.com/huggingface/hub-docs/blob/main/docs/hub/datasets-lance.md). That connects to the [Ray Data material in the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) and the orchestration layers in [Module 8](/posts/mlops/ml-pipeline-orchestration-layers).
 
 ---
 
@@ -534,4 +534,4 @@ These are back-of-envelope exercises using the paper's hardware figures, not the
 
 ---
 
-**Related deep dives:** [Ray Data](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) reads and writes Lance for streaming batch inference · [Multimodal data curation](/posts/generative-ai/multimodal-foundation-models-end-to-end#most-of-the-work-is-data) is the add-a-column-again workload Lance is built for.
+**Related deep dives:** [Ray Data](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) reads and writes Lance for streaming batch inference · [Multimodal data curation](/posts/generative-ai/multimodal-foundation-models-end-to-end#most-of-the-work-is-data) is the add-a-column-again workload Lance is built for.
