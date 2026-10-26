@@ -1,8 +1,8 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-11-11T00:00:00Z
-modDatetime: 2025-11-11T00:00:00Z
-title: Tongue Twister Practice Sheet — Clarity and Fluency for Tech Talks
+modDatetime: 2026-10-25T00:00:00Z
+title: "Tongue Twister Practice Sheet for Clearer Tech Talks"
 slug: tongue-twister-practice-sheet
 featured: false
 draft: false
@@ -18,13 +18,17 @@ interview_relevance:
 estimated_read_time: 5
 ---
 
-# Tongue Twister Practice Sheet — Clarity and Fluency for Tech Talks
+*By Gopi Krishna Tummala*
+
+*A five-minute warm-up for speaking clearly in demos, reviews and talks, with a log to track progress.*
+
+---
 
 Consistent articulation practice is one of the quickest ways to upgrade how you sound in demos, stakeholder reviews, or conference talks. Use this sheet as a repeatable warm-up: build muscle memory for crisp consonants, smooth pacing, and confident projection.
 
 ---
 
-## 📅 Session Log
+## Session log
 
 | Date | Time Spent | Focus Sounds |
 | :--- | :--- | :--- |
@@ -32,9 +36,9 @@ Consistent articulation practice is one of the quickest ways to upgrade how you 
 
 ---
 
-## 🔥 Part 1: Daily Warm-Up (≈5 minutes)
+## Part 1: Daily warm-up (about 5 minutes)
 
-Say each twist **slowly five times** to lock in clarity, then **faster five times** to build agility. Log a self-rating from 1️⃣ (muddy) to 5️⃣ (crystal clear).
+Say each twist **slowly five times** to lock in clarity, then **faster five times** to build agility. Rate yourself from 1 (muddy) to 5 (crystal clear).
 
 | Focus Area | Tongue Twister | Clarity Score (1–5) |
 | :--- | :--- | :--- |
@@ -45,7 +49,7 @@ Say each twist **slowly five times** to lock in clarity, then **faster five time
 
 ---
 
-## 🎯 Part 2: Targeted Articulation Drills
+## Part 2: Targeted articulation drills
 
 Use this grid to focus on sounds that typically blur together when you present. Add your own notes about what caught you off guard.
 
@@ -58,7 +62,7 @@ Use this grid to focus on sounds that typically blur together when you present. 
 
 ---
 
-## 📣 Part 3: Projection & Pacing Test
+## Part 3: Projection and pacing
 
 Bridge the warm-up to real meetings. Pick a 30-second summary from a current project (e.g., a sprint update or roadmap milestone).
 
@@ -71,13 +75,10 @@ Bridge the warm-up to real meetings. Pick a 30-second summary from a current pro
 
 ---
 
-## 🚀 Practice Tips
+## Practice tips
 
 - **Mirror work:** Over-articulate in front of a mirror to reinforce tongue and jaw placement.
-- **Micro sessions:** Even 2 minutes count—run one warm-up row and one projection drill whenever you have a gap.
+- **Micro sessions:** Even two minutes count: run one warm-up row and one projection drill whenever you have a gap.
 - **Weekly review:** Keep your best self-recordings in a folder; compare week to week to track clarity and pacing gains.
 
-Would an advanced sheet with higher-speed twisters help next week? Let me know—happy to draft a Level 2 module focused on long passages and rapid-fire consonant clusters.
-
-— Gopi Krishna Tummala
-
+If you want a harder version, with longer passages and faster consonant clusters, let me know and I'll write a second sheet.
