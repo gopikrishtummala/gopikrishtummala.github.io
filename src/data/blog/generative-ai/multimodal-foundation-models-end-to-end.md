@@ -1,8 +1,8 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2026-10-20T00:00:00Z
-modDatetime: 2026-10-20T00:00:00Z
-title: "The Multimodal Atlas: How MLLMs, Text-to-Image and Text-to-Video Models Are Built, End to End"
+modDatetime: 2026-10-25T00:00:00Z
+title: "The Multimodal Atlas: How Models That See, Paint and Film Are Built"
 slug: multimodal-foundation-models-end-to-end
 featured: true
 draft: false
@@ -13,641 +13,161 @@ tags:
   - diffusion-models
   - video-generation
   - post-training
-  - reinforcement-learning
-  - evaluation
-description: "A bird's-eye chapter for experienced ML engineers: how multimodal LLMs, text-to-image and text-to-video models are built, from data curation and tokenizing pixels, through architectures, pre-training and post-training (SFT, DPO, GRPO-style RL), to metrics and evaluation. One shared lifecycle, three very different machines."
+description: "A map of how vision-language models, image generators and video generators are built: the data, the two kinds of visual tokens, the training stages and how they're evaluated, with links out for depth."
 track: GenAI Systems
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - Theory
   - System Design
   - ML-Infra
-estimated_read_time: 60
+estimated_read_time: 12
 ---
 
 *By Gopi Krishna Tummala*
 
----
-
-> **How to read this.** This is the map, not the territory. Each Act could be (and in a few cases already is) its own post on this site; I link to those deep dives as we go. The goal here is that after one sitting you can look at *any* multimodal model card or tech report and immediately place every paragraph of it into one mental picture. When you want to go deeper, the [Course Slides, Lectures & Tutorials](#course-slides-lectures--tutorials) section near the end lists the best free courses, slide decks and tutorials for each Act, with a suggested study path.
-
-**Quick jump:** [Tokens](#act-i-the-shared-foundation-turning-pixels-into-tokens) · [Data](#act-ii-data-the-real-moat) · [MLLMs](#act-iii-the-mllm-machine-pixels-in-text-out) · [Text-to-Image](#act-iv-the-painter-text-to-image) · [Text-to-Video](#act-v-the-filmmaker-text-to-video) · [Evaluation](#act-vi-evaluation-the-hardest-part) · [End-to-end table](#act-vii-the-end-to-end-picture) · [Unified models](#act-viii-the-convergence-unified-models) · [Self-check](#check-yourself) · [Courses & slides](#course-slides-lectures--tutorials)
-
-## Table of contents
+*A map of how vision-language models, image generators and video generators are built: the data, the two kinds of visual tokens, the training stages and how they're evaluated, with links out for depth.*
 
 ---
 
-## TL;DR
+Take one scene: a dog leaping to catch a frisbee on a beach. Three different kinds of model can work with it.
 
-- Three families dominate multimodal AI: **MLLMs** (pixels in, text out), **text-to-image** (text in, pixels out) and **text-to-video** (text in, moving pixels out). Increasingly, **unified models** do all of it in one network.
-- They all follow the **same lifecycle**: curate data → turn pixels into tokens → pre-train on huge, noisy pairs → post-train on small, clean data → sharpen with rewards (RL) → evaluate, mostly with humans and model judges.
-- The single most important idea: **there are two kinds of visual tokens.** *Understanding* tokens (from contrastive encoders like CLIP/SigLIP) keep meaning and throw away detail. *Generation* tokens (from VAEs) keep detail so you can rebuild pixels. MLLMs eat the first kind; diffusion models predict the second kind.
-- **Data is the moat.** Every serious tech report spends more pages on filtering and **re-captioning** than on architecture. Alt-text from the web is too noisy; synthetic dense captions changed everything.
-- **MLLMs** are mostly *vision encoder + connector + LLM*, trained in stages (connector-only alignment → full pre-training → long context), then SFT, preference tuning and, since 2025, **RL with verifiable rewards** (GRPO-style) for reasoning and grounding.
-- **Image and video generators** are now mostly **Diffusion Transformers trained with flow matching** in a VAE latent space, pre-trained with progressive resolution, then aesthetically fine-tuned, preference-tuned, RL-tuned (Flow-GRPO, DanceGRPO) and **distilled** for few-step sampling.
-- **Video is image generation times time**, and time is expensive: a 5-second 720p clip is on the order of 100K tokens. That fact drives the VAE design, the attention design and the whole infrastructure.
-- **Evaluation is the weakest link.** FID, CLIPScore and multiple-choice benchmarks are useful smoke tests; decisions are made on human preference arenas, compositional checkers (GenEval, VBench) and your own golden sets.
-- **Interview one-liner:** *"Every multimodal model is a tokenizer, a sequence model and a training curriculum. MLLMs use semantic tokens and next-token loss; generators use VAE latents and flow-matching loss. Both pre-train on billions of re-captioned pairs, post-train with SFT and preference/RL rewards, and are judged mostly by humans and VLM judges."*
+A **vision-language model** (VLM, also called a multimodal LLM) looks at a photo of the scene and answers questions: "What breed is the dog? Did it catch the frisbee?" An **image generator** takes the sentence and paints the scene. A **video generator** has the hardest job: five seconds of the dog running, jumping and catching, with the frisbee flying in a believable arc and the dog keeping four legs the whole time.
 
----
+These look like three different fields, and the papers use three different vocabularies. Underneath, they're built the same way: collect and clean a lot of image-text data, turn pixels into tokens, pre-train on noisy data at huge scale, then fine-tune and reward the model on a small amount of carefully chosen data, and finally argue about how to measure the result. This post walks through that shared recipe using the frisbee scene, and points to deeper posts for each part.
 
-## Act 0: Multimodal Models in Plain English
-
-Imagine you run a small art studio and you hire three people.
-
-1. **The Critic (the MLLM).** You hand the Critic a photo and ask, *"What's going on here, and is that a stop sign or a yield sign?"* The Critic looks and *talks*. The Critic never draws.
-2. **The Painter (text-to-image).** You describe a scene in words, and the Painter produces a picture. The Painter doesn't explain anything; it just paints.
-3. **The Filmmaker (text-to-video).** Same as the Painter, but every picture has to flow into the next one for five seconds without the cat suddenly growing a sixth leg. The Filmmaker has to understand not just *what things look like* but *how things move*.
-
-Now here's the trick: **all three were trained the same way.**
-
-- First, they spent years in a giant, messy library of the internet: billions of pictures with bad, half-true captions underneath. They learned *a lot*, but they also learned bad habits. This is **pre-training**.
-- Then they went to a small finishing school, where a few teachers showed them thousands of *excellent* examples. Same knowledge, much better manners. This is **supervised fine-tuning (SFT)**.
-- Then they practiced in front of judges. They tried many answers or many paintings, the judges scored them, and they learned to do more of what scored well. This is **preference tuning and reinforcement learning (RL)**.
-- Finally, someone had to decide *who is actually good*. That's surprisingly hard, and it's **evaluation**.
-
-One more thing before we go. The Critic and the Painter need very different *eyes*. The Critic needs to know "this is a golden retriever catching a frisbee" and doesn't care about every blade of grass. The Painter needs every blade of grass, because it has to put them back. Hold on to that distinction; it explains half of the architecture decisions in this field.
+## The idea in one picture
 
 ```mermaid
 flowchart LR
-  D["Data<br/>crawl, filter,<br/>re-caption"] --> T["Tokenize pixels<br/>ViT or VAE"]
+  D["Data<br/>collect, filter,<br/>re-caption"] --> T["Tokens<br/>pixels to vectors"]
   T --> P["Pre-train<br/>billions of noisy pairs"]
-  P --> S["SFT<br/>small, clean,<br/>curated"]
-  S --> R["Preference + RL<br/>DPO, GRPO,<br/>reward models"]
-  R --> X["Distill + serve<br/>fewer steps,<br/>smaller models"]
-  X --> E["Evaluate<br/>benchmarks, judges,<br/>human arenas"]
-  E -.->|"failure analysis<br/>drives new data"| D
+  P --> S["Fine-tune<br/>small, curated set"]
+  S --> R["Reward<br/>preferences and RL"]
+  R --> E["Evaluate<br/>benchmarks, judges,<br/>people"]
+  E -.->|"failures become<br/>new data"| D
 ```
 
-That loop, especially the dotted arrow back to data, is the whole job.
+*All three kinds of model follow this loop. The dotted arrow, turning evaluation failures into new data, is where most of the real work happens.*
 
----
+## Two kinds of visual tokens
 
-## Act I: The Shared Foundation, Turning Pixels into Tokens
+Transformers work on sequences of vectors. Text is easy to turn into tokens. An image is millions of numbers, so every multimodal model first has to decide how to turn pixels into a manageable number of tokens. There are two very different answers, and which one a model uses tells you most of what you need to know about it.
 
-Transformers eat sequences of vectors (refresher: [The Transformer: How Machines Pay Attention](/posts/fundamentals/transformers-attention-mechanism)). Text is easy: a tokenizer chops it into ~100K possible pieces. Pixels are not: a single 1024×1024 RGB image is three million numbers. Every multimodal model starts by answering *"how do I turn this into a reasonable number of tokens?"* There are two very different answers.
+**Tokens for understanding** come from an encoder like CLIP or SigLIP, trained to make an image's embedding land near its caption's embedding. These tokens keep meaning and throw away detail: they know "dog, frisbee, beach, mid-air," not the exact texture of the sand. That's what a VLM wants, because it needs to talk about the picture, not redraw it.
 
-### 1.1 Understanding tokens: the librarian's summary
+**Tokens for generation** come from a VAE (variational autoencoder), trained to compress an image and then rebuild it as faithfully as possible. These tokens keep detail, every grain of sand, but don't organize it by meaning. That's what a generator wants, because at the end it has to turn its tokens back into pixels.
 
-A **contrastive vision encoder** (CLIP, SigLIP, SigLIP 2) is trained on image-caption pairs with one job: make the embedding of an image close to the embedding of *its* caption, and far from everybody else's.
+One way to hold the difference: the first kind is a librarian's summary of the photo, the second is a photocopy shrunk onto a small card.
 
-For a batch of $N$ pairs with image embeddings $u_i$ and text embeddings $v_j$, CLIP uses a softmax over the batch (InfoNCE):
+Video adds a cost that shapes everything else. A 1024×1024 image becomes about 4,000 tokens after compression. Five seconds of 720p video at 24 frames per second becomes roughly 110,000 tokens, even after a video VAE squeezes time by 4× and space by 8× in each direction. Attention cost grows with the square of the sequence length, so the video costs hundreds of times more per layer than the image. That one fact explains why video models compress so aggressively, train at low resolution first and need distillation to be usable.
 
-$$
-\mathcal{L}_{\text{CLIP}} = -\frac{1}{2N}\sum_{i=1}^{N}\left[\log\frac{e^{\langle u_i, v_i\rangle/\tau}}{\sum_j e^{\langle u_i, v_j\rangle/\tau}} + \log\frac{e^{\langle u_i, v_i\rangle/\tau}}{\sum_j e^{\langle u_j, v_i\rangle/\tau}}\right]
-$$
+## Most of the work is data
 
-SigLIP replaces the batch-wide softmax with an independent **sigmoid** per pair ("is this pair a match, yes or no?"), which removes the all-to-all normalization and scales better to huge batches.
+Read the technical reports for Qwen-VL, Movie Gen or Wan side by side and you'll notice the architecture sections are short and the data sections are long. Architectures have largely converged. Data hasn't.
 
-**The Feynman version:** the encoder is a librarian who reads a picture and writes a one-paragraph summary in a language the LLM can read. Great summaries. But you can't rebuild the photo from the summary. That's exactly what an MLLM wants: it needs *meaning*, not pixels.
+The raw material is web images with alt-text, interleaved web documents, rendered documents and charts, video clips, and increasingly synthetic data. The raw material is also mostly bad. A photo of our dog on the beach might carry the alt-text "IMG_4032" or "summer vibes!!", which teaches a model nothing about dogs or frisbees.
 
-A Vision Transformer chops the image into patches (say 14×14 or 16×16 pixels), so a 448×448 image becomes $32 \times 32 = 1024$ patch tokens. Many MLLMs then **merge** neighboring tokens (e.g., 2×2 → 1) in the connector so the LLM sees 256 tokens instead of 1024.
+Two practices fix most of that:
 
-### 1.2 Generation tokens: the photocopier
+- **Filtering in stages:** remove duplicates, unsafe content and low-quality images, then (for video) split clips at scene cuts and drop clips with no motion. For video it's normal to keep only a small fraction of the raw footage.
+- **Re-captioning:** use a captioning model to write a detailed description of every image or clip ("a golden retriever leaps to catch a red frisbee, wet sand, low sun behind it"). OpenAI's [DALL·E 3 report](https://cdn.openai.com/papers/dall-e-3.pdf) showed that training on detailed synthetic captions made image models follow prompts much better, and nearly every serious model since has done some version of it, usually mixing short and long captions so the model still handles lazy prompts.
 
-A **VAE (variational autoencoder)** is trained for a different job: compress the image and then *reconstruct it as faithfully as possible*. Its loss is reconstruction (L1/L2) plus perceptual (LPIPS) plus usually an adversarial term, plus a small KL term to keep the latent space well-behaved. (The probabilistic story is in [Variational Autoencoders: From Compression to Creation](/posts/fundamentals/variational-autoencoders-from-compression-to-creation).)
+The [Molmo and PixMo](https://arxiv.org/abs/2409.17146) work makes the same point from the other direction. Its authors wanted a strong open VLM without copying outputs from closed models, and the main thing that worked was better human data: annotators *spoke* detailed descriptions of images, because people say far more than they type. If a capability isn't in the data, no training trick will find it.
 
-**The Feynman version:** the VAE is a photocopier that shrinks the picture onto a tiny card and can blow it back up nearly perfectly. The card doesn't *mean* anything to a human, but every detail is preserved. That's what a generator wants: it will *predict* cards, and the decoder will turn them back into pixels.
+## How a model learns to see and talk
 
-Typical image VAEs downsample 8× in each spatial direction with 4 to 16 (newer: 16 to 64) channels. Video VAEs add **temporal** compression, typically 4×, and newer ones push spatial compression to 16×.
+Most VLMs are three parts glued together: a vision encoder that produces understanding tokens, a small connector that translates them into the language model's embedding space, and a language model that reads those tokens alongside your question. A few designs instead let the language model look at the image through cross-attention layers, and some newer models are trained on images and text together from the start.
 
-### 1.3 Token arithmetic: why video is the hard one
+Training happens in stages, and the order matters. [Qwen3-VL's report](https://arxiv.org/abs/2511.21631) is a good recent example. First only the connector is trained, with the vision encoder and language model frozen, because a randomly initialized connector would otherwise send noisy updates into two expensive pre-trained models. Then everything is trained together on about a trillion tokens of mixed image, video and text data. Later stages extend the context so the model can handle long documents and hour-long video. Text-only data stays in the mix throughout; without it, the language model gets noticeably worse at plain reasoning.
 
-Let's do the math a senior engineer should be able to do on a whiteboard.
+After pre-training comes post-training, which shapes behavior:
 
-| Input | Latent (VAE) | After 2×2 patchify | Tokens |
+- **Instruction tuning** on examples of questions and good answers about images.
+- **Preference tuning** that targets the classic VLM failure, hallucination: describing a frisbee that isn't in the picture because the language prior expects one at the beach.
+- **Reinforcement learning with checkable rewards.** The model answers the same question several times, each answer is scored automatically (exact match for a math answer, box overlap for "point to the frisbee," edit distance for reading text), and the model is pushed toward its better-than-average answers. This approach, called GRPO, comes from the [DeepSeekMath paper](https://arxiv.org/abs/2402.03300).
+
+One honest caution: some recent work suggests part of the "visual reasoning" gain from RL comes from better answer patterns rather than better looking, because models trained with the images hidden recover a surprising share of it. Testing a model with the image removed is a cheap way to keep yourself honest.
+
+## How an image generator learns to paint
+
+Modern image generators start from pure noise and turn it into an image step by step. The network doing the work is usually a Diffusion Transformer, which treats patches of the compressed image as tokens and lets them attend to the text prompt. Most current models train it with **flow matching**: draw a straight line from a clean image to random noise,
+
+$$x_t = (1-t)\,x_0 + t\,\epsilon,$$
+
+and teach the network to predict which way along that line to move at any point. At generation time you start from noise and follow those predictions back to an image. Straighter paths need fewer steps. The [Sampling and Guidance](/posts/generative-ai/sampling-guidance-diffusion-models) post covers the step-by-step side, including classifier-free guidance, the dial that trades variety for prompt-following.
+
+Pre-training happens at low resolution first (where the model learns what a dog is and where frisbees go) and then at higher resolutions (where it learns fur and sand). Post-training then improves how the images look and how well they follow prompts:
+
+- **Quality tuning** on a few thousand hand-picked images. Meta's [Emu paper](https://arxiv.org/abs/2309.15807) showed this small step noticeably improves visual appeal.
+- **Preference tuning** on pairs of images people ranked for the same prompt.
+- **Reinforcement learning against checkers.** An object detector can check whether the image really contains one dog and one red frisbee. Using checks like that as rewards, [Flow-GRPO](https://arxiv.org/abs/2505.05470) raised Stable Diffusion 3.5 Medium's score on the GenEval compositional benchmark from 63% to 95%.
+- **Distillation**, which teaches a student model to produce in 1–8 steps what the original needed 30–50 for.
+
+The risk with rewards is reward hacking: optimize a single aesthetic score and every image comes out oversaturated and similar. Multiple rewards, staying close to the original model and human spot checks keep it in bounds.
+
+## Video: the same recipe, plus time
+
+A video generator is an image generator that also has to understand motion. The frisbee must follow an arc, the dog must stay the same dog across frames, and nothing should pass through anything else.
+
+Three choices shape most video models:
+
+- **Compress time as well as space.** A causal video VAE encodes the first frame on its own and then every four frames together, so a single image is just a one-frame video and the same model can train on both.
+- **Learn appearance from images first.** Meta's [Movie Gen](https://arxiv.org/abs/2410.13720) starts training on images only, then mixes in short, low-resolution clips, then longer and sharper ones. Images are cheap tokens for learning what things look like; expensive video tokens are saved for learning how things move.
+- **Split the work by noise level.** Wan 2.2 uses two expert networks: one for the early, very noisy steps that set layout and motion, and one for the late steps that add detail. Each step only runs one of them.
+
+Video models still struggle with physics, objects that disappear when hidden, and keeping a face consistent over a minute. The [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models) post goes into that.
+
+## The whole lifecycle side by side
+
+| Stage | Vision-language model | Image generator | Video generator |
 |---|---|---|---|
-| Image 1024×1024 | 8× spatial → 128×128 | 64×64 | **4,096** |
-| Video 5 s, 24 fps, 1280×720 (121 frames) | 4× temporal, 8× spatial → 31 × 90 × 160 | 31 × 45 × 80 | **~111,600** |
-| Same video, 4×16×16 VAE, no transformer patchify | 4× temporal, 16× spatial → 31 × 45 × 80 | (VAE already did it) | **~111,600**, but the VAE, not the transformer, did the compression |
+| Visual tokens | Meaning-preserving encoder (SigLIP-style) | Image VAE | Video VAE, time and space |
+| Core model | Language model plus connector | Diffusion Transformer | Diffusion Transformer with attention across frames |
+| Pre-training objective | Predict the next text token | Flow matching | Flow matching, images and video together |
+| Curriculum | Connector only, then everything, then long context | Low resolution, then high | Images, then short clips, then longer and sharper |
+| Post-training | Instruction tuning, preference tuning, RL with checkable rewards | Quality tuning, preference tuning, RL with detectors and judges | The same, with motion and consistency rewards |
+| Main failure | Hallucinating objects | Miscounting, mangled text | Physics, flicker, identity drift |
 
-(The "121 frames → 31 latent frames" comes from causal video VAEs that encode the **first frame on its own** and then compress every 4 frames: $1 + 120/4 = 31$. That design lets the same VAE encode a single image as a one-frame video.)
+## Measuring what you built
 
-Self-attention costs $O(L^2)$. Going from 4K to 110K tokens is ~27× longer, which is **~750× more attention compute** per layer. That one number explains: aggressive video VAEs, sequence/context parallelism in training, why video models train in low resolution first, and why everyone is obsessed with distillation for inference.
+Evaluation is the weakest part of the whole field, and the part most worth being skeptical about.
 
-### 1.4 Discrete tokens: the third option
+For VLMs, benchmarks like [MMMU](https://arxiv.org/abs/2311.16502) test expert knowledge with images, and [MMStar](https://arxiv.org/abs/2403.20330) was built specifically from questions that can't be answered without looking. That second point matters: on many older benchmarks, a model with the image removed still scores surprisingly well. For generators, the classic metric (FID) compares image statistics without looking at the prompt at all, so it can improve while prompt-following gets worse. Checkers like [GenEval](https://arxiv.org/abs/2310.11513) for images and [VBench](https://arxiv.org/abs/2311.17982) for video test specific abilities such as counting, spatial relations and motion.
 
-You can also quantize latents into a codebook (VQ-VAE, VQGAN, and newer lookup-free quantizers). Then an image is literally a sequence of integer IDs, and you can train it with the **same next-token loss** as text. This is how DALL·E 1, Parti, Chameleon and Emu3 work, and it's one road to unified models (Act VIII). The trade-off: quantization loses detail, so continuous-latent diffusion has generally won on raw image quality.
+In practice, teams use automated metrics to catch regressions on every checkpoint, a fixed set of prompts that represent their own users judged by a strong model, and side-by-side human comparisons to make launch decisions. The most useful output of evaluation isn't a score. It's a list of specific failures (hands holding objects, counts above five, text in a particular script), which becomes the next round of data collection.
 
-> **Takeaway for Act I:** *Understanding wants semantic tokens. Generation wants reconstructive tokens.* Most of the architecture zoo is people choosing one, the other, or trying to have both.
+## Where this is heading
 
----
+The model that understands and the model that paints are starting to merge. If a model can tell that the frisbee is above the dog, it should be better at drawing that, and image editing ("make the frisbee blue") needs both skills at once. Current approaches range from one transformer trained with both a text loss and an image loss ([Transfusion](https://arxiv.org/abs/2408.11039)) to designs that keep separate visual tokenizers for understanding and generation inside one model ([Janus](https://arxiv.org/abs/2410.13848), [BAGEL](https://arxiv.org/abs/2505.14683)). The tension is the one from the start of this post: understanding wants meaning tokens and generation wants detail tokens, and forcing one representation to do both tends to shortchange one of them.
 
-## Act II: Data, the Real Moat
+## What I'd remember
 
-If you read the Qwen-VL, Movie Gen, Wan or Seedance reports side by side, you'll notice something: **architecture sections are short; data sections are long.** The architectures have converged. Data has not.
+- **One recipe, three machines.** Data, tokens, large-scale pre-training, small careful fine-tuning, rewards, evaluation.
+- **Understanding and generation want different tokens.** Meaning for the first, detail for the second. Most architecture choices follow from that.
+- **Data is the moat.** Filtering and detailed re-captioning matter more than most architecture tweaks.
+- **Video is expensive because of tokens.** Five seconds is more than 25 times as many tokens as an image, and attention cost grows with the square of that.
+- **Distrust single numbers.** Test VLMs with the image removed, don't judge generators on FID alone, and let human comparisons make the final call.
 
-### 2.1 Where multimodal data comes from
+## Where to go next
 
-| Source | Examples | What it teaches | Problem |
-|---|---|---|---|
-| Web image–alt-text pairs | LAION-5B, COYO-700M, DataComp | Broad concepts, names, styles | Captions are short, wrong or SEO spam |
-| Interleaved web documents | MMC4, OBELICS | Multi-image reasoning, in-context learning | Loose image–text alignment |
-| Documents, OCR, charts, UIs | PDFs, rendered pages, screenshots | Reading text, tables, layouts | Needs synthetic rendering to scale |
-| Grounding / detection | boxes, points, referring expressions | *Where* things are | Expensive labels |
-| Video clips + captions | stock video, licensed footage, web video | Motion, physics, temporal order | Scene cuts, static clips, watermarks |
-| Synthetic | captions from a VLM, rendered math, generated QA | Density, coverage, reasoning | Inherits teacher's errors and biases |
-| Human-written dense data | PixMo (Molmo) spoken-then-transcribed captions | Accuracy, detail | Cost |
+On this site:
 
-### 2.2 The curation funnel
+- The diffusion series, starting with [Diffusion: From Molecules to Machines](/posts/generative-ai/diffusion-from-molecules-to-machines) and [Image Diffusion: From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit).
+- [Video Diffusion: The Fourth Dimension](/posts/generative-ai/video-diffusion-fundamentals) and [The Training Lifecycle](/posts/generative-ai/pre-training-post-training-video-diffusion).
+- [Post-Training Playbook](/posts/mlops/modern-post-training-peft-2026) for SFT, DPO and GRPO in text models.
+- [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), a gentler introduction to VLMs.
 
-Every large pipeline is some version of this, and for video the funnel is brutal; it's common to keep only a small fraction of raw footage.
+Courses and tutorials:
 
-```mermaid
-flowchart TD
-  A["Raw crawl / licensed pool<br/>(billions of images, millions of hours)"] --> B["Basic hygiene<br/>dedup (perceptual hash), corrupt files,<br/>resolution and aspect filters"]
-  B --> C["Safety + legal<br/>NSFW, CSAM hash match, faces/PII policy,<br/>license and opt-out lists"]
-  C --> D["Quality models<br/>aesthetic score, blur, watermark,<br/>text-area (OCR) ratio"]
-  D --> E["Video-specific<br/>shot-boundary splitting, motion score<br/>(optical flow), camera shake, static-clip removal"]
-  E --> F["Semantic balancing<br/>cluster embeddings, cap over-represented<br/>concepts, boost the long tail"]
-  F --> G["Re-captioning<br/>VLM writes short + dense captions;<br/>video: per-shot, camera and motion terms"]
-  G --> H["Training buckets<br/>by resolution, aspect ratio,<br/>duration, quality tier"]
-```
+- [MIT 6.S184: Introduction to Flow Matching and Diffusion Models](https://diffusion.csail.mit.edu/2026/index.html), lecture notes, slides and labs.
+- [An Introduction to Vision-Language Modeling](https://arxiv.org/abs/2405.17247), a long tutorial paper from Meta.
+- [CVPR 2025 tutorial: Recent Advances in Vision Foundation Models](https://vlp-tutorial.github.io/), slides for each talk.
+- [Stanford CS231n](https://cs231n.stanford.edu/schedule.html) lectures on vision and language and on generative models.
+- Lilian Weng's [What are Diffusion Models?](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/) and [Diffusion Models for Video Generation](https://lilianweng.github.io/posts/2024-04-12-diffusion-video/).
+- Nathan Lambert's free [RLHF Book](https://rlhfbook.com/) for the post-training side.
 
-Three ideas in that funnel are worth slowing down for.
+**Questions to sit with**
 
-**Re-captioning is the biggest single lever.** OpenAI's DALL·E 3 report made this explicit: web alt-text describes *why the image was posted*, not *what is in it*. They trained a captioner, re-captioned the training set with dense descriptions, and trained on a mix that was overwhelmingly synthetic captions (with some original text kept so the model can still handle short, lazy prompts). Prompt-following jumped. Every serious T2I and T2V model since does some version of this, often producing **multiple captions per sample** at different lengths. For video, captions add camera language ("slow dolly-in, shallow depth of field") and motion verbs, because that's what users will type.
-
-**Quality tiers, not a single dataset.** You don't filter once; you build *tiers*. Pre-training uses the big, mediocre tier for coverage. Later stages use smaller, stricter tiers. The final "aesthetic" or "SFT" tier might be only thousands of hand-picked samples. Meta's Emu paper called this **quality-tuning**: a few thousand exceptional images, used after pre-training, dramatically improved visual appeal without hurting concept coverage.
-
-**Balancing the concept distribution.** The web is 30% product shots and selfies. If you don't rebalance (cluster embeddings and cap the head, upsample the tail), the model becomes excellent at sneakers and terrible at, say, medical diagrams or anything outside the head of the distribution.
-
-### 2.3 The Molmo lesson
-
-Most strong open VLMs of 2024 were trained heavily on synthetic data *from proprietary VLMs*, which is effectively distillation. The Molmo/PixMo work asked whether you could build a top model without that. Their answer was yes, and the key wasn't architecture: it was **new human data**, especially very detailed image descriptions collected by having annotators *speak* about images for a minute or so (people say far more than they type), plus a 2D pointing dataset for grounding. The general lesson: *the capability you want has to exist in the data, in density, before any training trick can find it.*
-
-> **Infra note.** At this scale curation is a distributed batch inference problem: run a VLM captioner, an aesthetic model, an OCR model, an optical-flow model and a shot detector over petabytes. This is exactly the CPU-decode → GPU-model streaming pattern from my [Ray field guide](/posts/mlops/ray-field-guide-core-to-production) and the storage problem in the [Lance post](/posts/mlops/lance-lancedb-data-layer-for-ml): you keep adding *columns* (new captions, new scores) to the same rows, over and over.
-
----
-
-## Act III: The MLLM Machine (Pixels In, Text Out)
-
-### 3.1 The three-part anatomy
-
-(For a gentler introduction to CLIP-style models and the first VLMs, start with [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained).) Almost every production MLLM is:
-
-```mermaid
-flowchart LR
-  I["Image / video frames"] --> V["Vision encoder<br/>(SigLIP-style ViT,<br/>dynamic resolution)"]
-  V --> C["Connector<br/>(MLP + token merge,<br/>or Q-Former, or cross-attn)"]
-  T["Text prompt"] --> L
-  C --> L["LLM decoder<br/>(dense or MoE)"]
-  L --> O["Text out"]
-```
-
-The interesting design choices are in *how vision enters the LLM*. Sebastian Raschka's framing is a good one to remember:
-
-**Method A, unified embedding-decoder (LLaVA style).** Project visual tokens into the LLM's embedding space with a small MLP and simply *put them in the sequence*, next to the text. The LLM is unmodified. Simple, scales with the LLM, and is what most open models (LLaVA, Qwen-VL, InternVL, Molmo) do. Cost: visual tokens consume context.
-
-**Method B, cross-attention (Flamingo / Llama 3.2 Vision style).** Keep the text sequence as it is; insert cross-attention layers so text tokens can *look at* image features. Visual tokens don't consume context, and you can freeze the original LLM to protect its text skills. Cost: more architectural surgery, and the fusion is shallower.
-
-**Compression variants (BLIP-2's Q-Former, Perceiver resamplers).** A small set of learned queries attends to the image and outputs a *fixed* number of tokens (e.g., 32 or 64). Efficient, but it throws away detail, which hurts OCR and documents; the field mostly moved back toward "more tokens, smarter merging."
-
-**Native / early fusion.** Train one model on interleaved text and image tokens from the beginning (Chameleon with discrete tokens; frontier proprietary models are described as natively multimodal). This is where unified models come from (Act VIII).
-
-### 3.2 Details that separate good from great
-
-- **Resolution is everything for OCR and documents.** Early models resized everything to 224 or 336 pixels; a receipt became mush. Two fixes: **AnyRes/tiling** (cut a large image into tiles plus a thumbnail) and **native dynamic resolution** (NaViT-style: patchify at the native aspect ratio and pack variable-length sequences). Qwen2-VL onwards uses the latter.
-- **Positional encoding in 2D and 3D.** Text RoPE is 1D. Qwen2-VL introduced **M-RoPE**, splitting rotary dimensions across time, height and width. Qwen3-VL's report describes an **interleaved MRoPE** for better spatial-temporal modeling, plus **text-based timestamps** for video so the model can say *"at 01:23 the car turns left."*
-- **Multi-level visual features.** The last ViT layer is very semantic and loses fine detail. Qwen3-VL's **DeepStack** injects features from *several* ViT layers into the LLM.
-- **Video = frames + time.** Sample frames (fixed fps or adaptive), encode each, merge tokens aggressively across time, and add time information. Long video is mostly a token-budget problem.
-- **Audio** typically comes through a Whisper-style encoder and the same connector trick; "omni" models add speech output with a separate speech decoder.
-
-### 3.3 Pre-training an MLLM: a curriculum, not a single run
-
-The Qwen3-VL report is a clean modern example (sizes from 2B dense up to a 235B-A22B MoE, 256K native context):
-
-| Stage | What's trainable | Data | Context | Purpose |
-|---|---|---|---|---|
-| 0. Alignment | **Connector only** (ViT + LLM frozen) | ~67B tokens: captions, visual knowledge, OCR | 8K | Teach the projector to "translate" vision into LLM space without damaging either |
-| 1. Multimodal pre-training | **Everything** | ~1T tokens of mixed multimodal + text | 8K | Real joint learning |
-| 2. Long-context | Everything | ~1T tokens, more long text, video, agent data | 32K | Long documents and video |
-| 3. Ultra-long | Everything | ~100B tokens | 256K | Hour-long video, book-length docs |
-
-Why the stages?
-
-- **Stage 0 exists to protect investments.** Both the ViT and the LLM are expensive pre-trained models. A randomly initialized connector sends garbage gradients; if you train everything from step zero, you damage both. So you warm up the bridge first.
-- **Always mix in text-only data.** Without it, the LLM's language and reasoning ability degrades (catastrophic forgetting). Good reports claim their VL model *matches or beats* its own text-only backbone on text tasks; that's the test of a healthy mix.
-- **Loss is next-token prediction on text tokens only.** Image tokens are inputs; you mask them out of the loss.
-
-> **Infra note.** MLLM pre-training has a load-balancing problem LLMs don't: some samples are 90% visual tokens (the ViT does most of the work), some are pure text (the ViT is idle). Packing variable-resolution images into fixed-length sequences, and balancing ViT vs LLM compute across pipeline stages and data-parallel ranks, is a big part of achieved MFU. The sharding and memory math (ZeRO, FSDP) is in [Training Frameworks](/posts/mlops/hidden-engine-of-ai), and launching and restarting these jobs is covered in [Ray Train](/posts/mlops/ray-field-guide-core-to-production#11-ray-train-distributed-training-orchestration).
-
-### 3.4 Post-training an MLLM
-
-**SFT (instruction tuning).** Millions of (image, instruction, response) examples: VQA, captioning, OCR, charts, grounding ("give the box for the red car"), multi-turn chat, and, increasingly, **long chain-of-thought** traces as a "cold start" for reasoning. LLaVA showed in 2023 that GPT-generated instruction data could bootstrap this; today the recipes are curated mixtures of human, synthetic and distilled data, and Qwen3-VL also lists explicit **distillation** from stronger teachers into smaller models.
-
-**Preference tuning.** MLLMs have a signature failure: **hallucination**, confidently describing objects that aren't there, because the language prior is stronger than the visual evidence. DPO-style preference data where the "rejected" answer contains a hallucination (RLHF-V, and many follow-ups) directly targets this.
-
-**RL with verifiable rewards (the 2025–2026 wave).** After DeepSeek-R1 showed that RL on checkable answers creates long, self-correcting reasoning in text models, the same recipe moved to vision. The workhorse is **GRPO** (RL basics in [RL: From Intuition to Algorithms](/posts/fundamentals/reinforcement-learning-intuition-to-algorithms)): for each prompt, sample a *group* of $G$ answers, score them, and use the group itself as the baseline instead of a learned value model:
-
-$$
-\hat{A}_i = \frac{r_i - \operatorname{mean}(r_1,\dots,r_G)}{\operatorname{std}(r_1,\dots,r_G)}
-$$
-
-$$
-\mathcal{J}(\theta)=\mathbb{E}\left[\frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_i|}\sum_{t}\min\Big(\rho_{i,t}\hat{A}_i,\ \operatorname{clip}(\rho_{i,t},1-\epsilon,1+\epsilon)\hat{A}_i\Big)\right]-\beta\, D_{\text{KL}}\big(\pi_\theta\,\|\,\pi_{\text{ref}}\big)
-$$
-
-where $\rho_{i,t}$ is the token-level probability ratio between the new and old policy.
-
-**The Feynman version:** ask the student the same question eight times, grade all eight, and tell them "do more of what your above-average answers did, less of what your below-average answers did." No separate critic network needed.
-
-What makes it *multimodal* is the reward design:
-
-| Task | Verifiable reward |
-|---|---|
-| Visual math / science (MathVista-style) | Exact final answer match |
-| Grounding / detection | IoU between predicted and true box |
-| OCR / document reading | Edit distance to the ground truth |
-| Counting, charts | Numeric match within tolerance |
-| Format | Did it think inside `<think>` tags, then answer? |
-| Open-ended | Reward model or VLM judge (not verifiable, so hackable) |
-
-Two findings worth knowing, because they'll come up in any serious discussion:
-
-- RL seems to improve *perception*, not only reasoning. A 2025 study ("RL makes MLLMs see better than SFT") found RL beats SFT on vision-heavy VQA and actually reshapes the vision encoder's representations.
-- But be skeptical about *what* RL is teaching. Recent preprints show models trained **without the images** recover a large share of the "visual reasoning" gains on some benchmarks: the model learned answer priors and reasoning templates, not better looking. Work like Faithful-GRPO and perception-specific rewards is a response to exactly this.
-
-**"Thinking with images."** The frontier pattern is agentic: during reasoning, the model calls tools on the image (crop, zoom, rotate, draw a box, run OCR) and looks again, trained with RL so it learns *when* to zoom. GUI agents (click this button on this screenshot) are the same machinery with a different action space.
-
-> For the general post-training toolbox (LoRA, DPO, GRPO and friends), see [Modern Post-Training & PEFT](/posts/mlops/modern-post-training-peft-2026).
-
----
-
-## Act IV: The Painter (Text-to-Image)
-
-### 4.1 Five years of lineage in one paragraph
-
-GANs made sharp faces but couldn't follow prompts. **DALL·E 1** (2021) treated images as discrete tokens and ran a GPT over them. **GLIDE/Imagen** showed diffusion in pixel space plus a strong text encoder wins on prompt-following. **Latent Diffusion / Stable Diffusion** (2022) moved diffusion into a VAE latent space, making it 10–50× cheaper; a convolutional **U-Net** did the denoising. **DiT** (2023) replaced the U-Net with a plain Transformer over latent patches, and it scaled like LLMs do. **SD3's MMDiT** and **FLUX** (2024) let text and image tokens attend to each other jointly, and switched the objective to **rectified flow / flow matching**. In 2025, natively multimodal autoregressive models (GPT-4o image generation, and open unified models) showed that an LLM-centered design can be excellent at prompt-following, text rendering and editing.
-
-> Deep dives: [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines), [From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit), [Sampling & Guidance](/posts/generative-ai/sampling-guidance-diffusion-models).
-
-### 4.2 Anatomy of a modern T2I model
-
-```mermaid
-flowchart LR
-  P["Prompt"] --> TE["Text encoder(s)<br/>CLIP + T5, or an LLM/VLM"]
-  N["Noise in latent space"] --> DIT
-  TE --> DIT["Diffusion Transformer<br/>(MMDiT: joint text–image attention,<br/>timestep via adaLN)"]
-  DIT -->|"N sampling steps<br/>(ODE solver)"| Z["Clean latent"]
-  Z --> VD["VAE decoder"] --> IMG["Image"]
-```
-
-- **Text encoder.** Prompt understanding is bounded by it. CLIP's text tower is short-context and bag-of-words-ish; T5-XXL reads long, compositional prompts; the trend is toward using a decoder LLM or VLM as the text encoder.
-- **Denoiser.** MMDiT-style blocks keep separate weights for text and image streams but run **joint attention** over the concatenated sequence. Timestep (noise level) enters via adaptive LayerNorm.
-- **VAE.** More latent channels (4 → 16 and beyond) were a quiet but large quality jump: fine text and small faces need the capacity.
-
-### 4.3 The training objective: flow matching in one picture
-
-Pick a clean latent $x_0$ and pure noise $\epsilon \sim \mathcal{N}(0, I)$. Draw a straight line between them:
-
-$$
-x_t = (1-t)\,x_0 + t\,\epsilon, \qquad t\in[0,1]
-$$
-
-The velocity along that line is constant: $v = \epsilon - x_0$. Train the network to predict it:
-
-$$
-\mathcal{L}_{\text{FM}} = \mathbb{E}_{x_0,\epsilon,t}\,\big\|\,v_\theta(x_t, t, c) - (\epsilon - x_0)\,\big\|^2
-$$
-
-At sampling time, start at noise and integrate the predicted velocity backward to $t=0$ with an ODE solver.
-
-**The Feynman version:** classic diffusion taught the model to remove a little fog at a time along a curvy path. Flow matching says: *draw a straight road from fog to photo and learn the speedometer.* Straighter paths need fewer steps, and the loss is simpler and more stable.
-
-Two practical knobs from the SD3 paper that everyone copied: **which $t$ you train on matters** (sample the middle timesteps more, e.g. logit-normal, because that's where the hard decisions are made), and **shift the schedule toward more noise at higher resolutions** (bigger images keep more signal at the same noise level).
-
-**Classifier-free guidance** is how prompt adherence is dialed up at inference. During training, drop the caption ~10% of the time so the model learns both conditional and unconditional predictions. At sampling time, extrapolate:
-
-$$
-\tilde{v} = v_\theta(x_t, \varnothing) + w\,\big(v_\theta(x_t, c) - v_\theta(x_t, \varnothing)\big)
-$$
-
-Higher $w$ means more prompt-following and more saturated, less diverse images.
-
-### 4.4 Pre-training recipe
-
-1. **Precompute latents and text embeddings offline.** The VAE encoder and the T5 encoder are frozen; running them inside the training loop wastes GPU. This turns the dataset into a big table of tensors (another reason columnar, appendable formats matter).
-2. **Progressive resolution.** Train most steps at 256², then 512², then 1024². Low resolution is where concepts and composition are learned cheaply; high resolution adds detail.
-3. **Aspect-ratio bucketing.** Group images by aspect ratio so batches share a shape; never center-crop away the subject.
-4. **Caption mixing.** Short and long synthetic captions plus some original alt-text; caption dropout for CFG.
-5. **EMA weights.** Keep an exponential moving average of the weights; it's usually what you ship.
-
-### 4.5 Post-training: from "knows everything" to "looks great and listens"
-
-| Stage | Data | Objective | What it fixes |
-|---|---|---|---|
-| Aesthetic / quality SFT | Thousands of hand-picked images | Same flow loss | Visual appeal, composition, lighting |
-| Preference tuning | Pairs of images for the same prompt, human-ranked | Diffusion-DPO | Human preference without a reward model |
-| Online RL | Prompts + reward functions | Flow-GRPO, DanceGRPO | Counting, spatial relations, text rendering |
-| Distillation | Teacher model samples | Consistency / adversarial / distribution matching | 30–50 steps → 1–8 steps |
-
-**RL for flow models deserves a closer look**, because the naive version doesn't work. GRPO needs *randomness* to explore: you want 8 different images for the same prompt and their relative scores. But a flow-matching sampler is a deterministic ODE. **Flow-GRPO**'s key move is converting the ODE into an equivalent **SDE** with the same marginal distributions, so each step becomes a Gaussian policy with a log-probability you can compute, and it also trains on fewer denoising steps to save cost. Their headline result: Stable Diffusion 3.5 Medium on **GenEval** went from **63% → 95%**, and visual text rendering from **59% → 92%**, with little sign of reward hacking. DanceGRPO applied the same family of ideas across image and video generators. Since then this has become a standard post-training stage, including for video models (the Wan and HunyuanVideo ecosystems).
-
-**Rewards** come in three kinds: **rule-based checkers** (an object detector verifies "three red apples left of a cup" — this is what GenEval does), **learned preference models** (HPSv2, PickScore, ImageReward, trained on human comparisons) and **VLM judges** (ask a strong MLLM whether the image matches the prompt). This is where Act III and Act IV meet: *the Critic grades the Painter.*
-
-**Reward hacking** is the constant risk: optimize a single aesthetic score and you get oversaturated, same-looking images; optimize OCR and you get text slapped everywhere. Mitigations: KL to the reference model, multiple rewards, held-out human evals, and early stopping.
-
----
-
-## Act V: The Filmmaker (Text-to-Video)
-
-Text-to-video is text-to-image plus a time axis, and the time axis changes everything about cost, data and failure modes.
-
-> Deep dives: [Video Diffusion Fundamentals](/posts/generative-ai/video-diffusion-fundamentals), [Training Lifecycle of Video Diffusion](/posts/generative-ai/pre-training-post-training-video-diffusion), [Sora, Veo and Open-Sora](/posts/generative-ai/modern-video-models-sora-veo-opensora), [Physics-Aware Video Models](/posts/generative-ai/physics-aware-video-diffusion-models).
-
-### 5.1 What's different about the architecture
-
-- **3D causal VAE.** Compresses time (typically 4×) and space (8× or 16×). "Causal" means each latent frame only depends on current and past frames, and the first frame is encoded alone, so **images are just 1-frame videos** and one model can train on both.
-- **Spacetime patches.** Sora's report popularized the phrase: chop the latent video into small 3D cubes and treat each as a token. Variable duration, resolution and aspect ratio are just variable sequence lengths.
-- **Full 3D attention.** Early video models factorized attention (spatial within a frame, then temporal across frames) to save compute. Modern large models mostly use **full spatiotemporal attention**, because factorized attention produces flicker and weak long-range motion. This is why video training is a long-context problem.
-- **Mixture of experts by noise level.** Wan 2.2 splits its denoiser into a **high-noise expert** (early steps: global layout and motion) and a **low-noise expert** (late steps: textures and detail), each ~14B parameters, switched by signal-to-noise ratio; ~27B total, ~14B active per step. It's a neat idea: the job at $t=0.9$ and the job at $t=0.1$ really are different jobs.
-- **Joint audio.** Meta's Movie Gen paired a video model with a separate audio model; Google's Veo 3 popularized generating synchronized audio and dialogue together with video. Audio is becoming part of "video" by default.
-
-### 5.2 A reference point: Movie Gen
-
-Meta's Movie Gen paper (2024) remains one of the most detailed public recipes:
-
-- A **30B-parameter Transformer** trained with flow matching, maximum context **73K video tokens**, enough for **16 seconds at 16 fps**.
-- Pre-training data on the order of **100M video–text pairs and 1B image–text pairs**, with multi-stage filtering for visual quality, motion and content, and LLM-based re-captioning.
-- A curriculum that starts with **text-to-image only**, then moves to **joint image + video**, at increasing resolution, followed by fine-tuning on a small, very high-quality video set.
-
-Wan, HunyuanVideo, Seedance, LongCat-Video and others follow the same skeleton with their own twists.
-
-### 5.3 The standard T2V training curriculum
-
-```mermaid
-flowchart LR
-  A["T2I pre-train<br/>(low res, images only)"] --> B["Joint image+video<br/>low res, short clips"]
-  B --> C["Raise resolution<br/>and duration"]
-  C --> D["High-quality SFT<br/>(curated, cinematic)"]
-  D --> E["Preference / RL<br/>(motion, alignment,<br/>text, physics rewards)"]
-  E --> F["Distill<br/>(few-step, causal /<br/>streaming)"]
-```
-
-Why start with images? Images are cheap tokens and teach *what things look like*. Video tokens are expensive and should be spent teaching *how things move*. You also keep mixing images in later so concept coverage doesn't collapse to what's in the (smaller) video set.
-
-**RL for video** borrows from Act IV (Flow-GRPO, DanceGRPO) with video rewards: VLM judges for prompt alignment, motion-quality and temporal-consistency scorers, text-in-video OCR, and physics plausibility checks. The LongCat-Video report is a nice public example of the full chain: flow-matching pre-training → GRPO-based RLHF → distillation.
-
-**Distillation is not optional for video.** 50 steps × 110K tokens × a 14B model is minutes per clip. Few-step distillation, and **causal / autoregressive distillation** that turns a bidirectional video model into one that streams frames chunk by chunk, are what make video products and interactive "world models" possible.
-
-### 5.4 Where video models still fail
-
-Physics (objects passing through each other, liquids, hands), object permanence (things vanish when occluded), counting over time, long-range consistency (a character's face drifting across a minute), and fine text. These are the failure modes the newer benchmarks (Act VI) and the "physics-aware" line of work target.
-
-> **Infra note.** Video training is where infra and research are inseparable: **sequence/context parallelism** (Ulysses, ring attention) to split 100K-token sequences across GPUs, activation checkpointing, VAE tiling, **precomputed latents** (decoding video is a CPU bottleneck you never want in the training loop), and bucketing by duration × resolution so batches are shape-stable. See [Datasets & Dataloaders](/posts/mlops/datasets-and-dataloaders) for why decode belongs off the GPU nodes.
-
----
-
-## Act VI: Evaluation, the Hardest Part
-
-A Feynman-style warning first: *a metric is a question you've decided to ask cheaply.* Every metric below is useful, and every one of them can be gamed or misread.
-
-### 6.1 MLLM evaluation
-
-| Benchmark family | Examples | What it measures |
-|---|---|---|
-| Broad expert knowledge | MMMU | College-level multi-discipline questions with images |
-| General perception | MMBench, MME, RealWorldQA | Recognition, attributes, spatial relations |
-| Vision-indispensable | MMStar | Questions that *can't* be answered from text alone |
-| Visual math | MathVista, MathVision | Diagrams, plots, geometry + reasoning |
-| Documents, OCR, charts | DocVQA, ChartQA, OCRBench, TextVQA | Reading and reasoning over text in images |
-| Hallucination | POPE, HallusionBench | Saying "no" when the object isn't there |
-| Video | Video-MME, MLVU | Short to hour-long video understanding |
-| Grounding and agents | RefCOCO, ScreenSpot, OSWorld-style | Boxes, points, clicking on UIs |
-
-Pitfalls every senior engineer should call out:
-
-- **Blind baselines.** Run the model with the image removed. If the score barely drops, the benchmark (or your RL gains) is measuring language priors. MMStar was created precisely because many questions in earlier benchmarks were answerable without looking.
-- **Contamination.** Benchmarks are on the web; the web is the training set.
-- **Prompt and parsing sensitivity.** Multiple-choice extraction, CoT on/off and answer-format quirks can move scores by several points. Compare only under identical harnesses.
-- **LLM/VLM judges** for open-ended answers are biased toward length, style and their own model family. Calibrate them against humans.
-
-### 6.2 Image generation evaluation
-
-| Metric | How it works | Watch out for |
-|---|---|---|
-| **FID** | Distance between Inception-feature Gaussians of real vs generated sets | Ignores the prompt; Inception features are dated; sensitive to sample size and preprocessing |
-| **CLIPScore** | Cosine similarity of image and prompt embeddings | Bag-of-words: weak on counting, relations, negation |
-| **GenEval** | Object detector checks objects, counts, colors, positions | Only what the detector can see; it's also an RL reward now, so it saturates |
-| **T2I-CompBench, DPG-Bench** | Compositional and dense-prompt alignment | Judge-model dependence |
-| **Preference models** (HPSv2, PickScore, ImageReward) | Predict human preference | Easily hacked when used as RL rewards |
-| **Human arenas / side-by-side** | Pairwise votes → Elo or Bradley–Terry ratings | Expensive, prompt-set dependent, but the closest thing to truth |
-
-### 6.3 Video generation evaluation
-
-- **FVD** (Fréchet Video Distance) is the video version of FID, with the same blind spots, plus a known bias toward per-frame quality over motion.
-- **VBench** decomposes quality into many dimensions (subject consistency, motion smoothness, dynamic degree, aesthetic and imaging quality, prompt alignment...).
-- **VBench-2.0** targets *intrinsic faithfulness*: 18 fine-grained capabilities grouped into **Human Fidelity, Controllability, Creativity, Physics and Commonsense**, scored with a mix of VLM/LLM judges and specialist detectors, validated against human annotations.
-- **Human side-by-side** on a fixed prompt set (Movie Gen published its prompt benchmark for this reason) remains the decision-maker.
-
-### 6.4 How teams actually decide
-
-In practice: automated metrics gate every checkpoint (catch regressions fast), a **golden prompt set** that represents *your* users gets judged by a calibrated VLM judge nightly, and **human side-by-side** decides launches. And the most valuable artifact isn't a score; it's the **failure taxonomy** ("fails on hands holding objects", "counts above five", "Hindi text") that turns into the next round of data collection. That's the dotted arrow in the Act 0 diagram.
-
----
-
-## Act VII: The End-to-End Picture
-
-Here's the whole field on one table. If you remember one thing from this post, make it this.
-
-| Stage | MLLM (Critic) | Text-to-Image (Painter) | Text-to-Video (Filmmaker) |
-|---|---|---|---|
-| **Visual tokens** | Semantic: SigLIP-style ViT, dynamic res, token merge | Reconstructive: image VAE (8×, 16+ ch) | Reconstructive: 3D causal VAE (4× time, 8–16× space) |
-| **Core model** | LLM decoder (dense/MoE) + connector | DiT / MMDiT | DiT with full 3D attention (sometimes MoE by noise level) |
-| **Pre-train objective** | Next-token prediction on text | Flow matching (velocity prediction) | Flow matching, joint with images |
-| **Pre-train data** | Captions, interleaved docs, OCR, grounding, video, *plus text-only* | Billions of re-captioned image–text pairs | ~100M-scale filtered clips + images, re-captioned with motion/camera language |
-| **Curriculum** | Connector-only → full → long context | 256 → 512 → 1024, aspect buckets | Images → short low-res video → longer, higher res |
-| **SFT** | Instruction + long-CoT data, distillation | Aesthetic quality-tuning on thousands of images | Cinematic, high-quality curated clips |
-| **Preference / RL** | DPO for hallucination; GRPO with verifiable rewards | Diffusion-DPO; Flow-GRPO/DanceGRPO with detectors, preference models, VLM judges | Same family with motion, alignment, physics rewards |
-| **Make it fast** | Quantization, token pruning, speculative decoding | Few-step distillation | Few-step + causal/streaming distillation |
-| **Evaluation** | MMMU, MMStar, DocVQA, Video-MME, POPE, blind baselines | FID, CLIPScore, GenEval, arenas | FVD, VBench / VBench-2.0, human side-by-side |
-| **Infra pain** | ViT/LLM load balance, packing variable-res images | Precomputing latents, high-res memory | 100K-token sequences, context parallelism, video decode |
-
----
-
-## Act VIII: The Convergence, Unified Models
-
-The Critic and the Painter are moving into the same body. Why? Because a model that *understands* "a red cube on top of a blue sphere" should be better at *drawing* it, and editing ("now make the cube green") needs both at once.
-
-The design space, in the language of Act I:
-
-- **All-discrete, all-autoregressive** (Chameleon, Emu3): images become codebook tokens; one next-token loss for everything. Simple, but quantization limits fidelity.
-- **One transformer, two losses** (Transfusion): next-token loss on text, diffusion/flow loss on continuous image patches, same weights.
-- **Decoupled eyes** (Janus): a semantic encoder for understanding and a separate VAE-style tokenizer for generation, sharing the transformer, because the two jobs want different tokens (the librarian vs the photocopier, again).
-- **Mixture-of-transformers** (BAGEL): separate expert weights for understanding and generation inside a shared attention space, pre-trained on huge interleaved data; it shows emergent editing and "world-navigation" style abilities.
-- **LLM + external diffusion head**: an MLLM plans and produces conditioning; a diffusion decoder paints.
-
-The honest status as of late 2026: unified models are improving fast and GPT-4o-style native generation proved the product value (especially for text rendering and multi-turn editing), but benchmarks like MME-Unify still show significant gaps, and recent work finds that forcing both objectives through exactly the same computation path can make one dominate the other. Expect the separate-tokens-shared-trunk designs to keep winning for a while.
-
----
-
-## Check Yourself
-
-<details>
-<summary><strong>Why can't you use a CLIP/SigLIP encoder as the latent space for an image generator?</strong></summary>
-
-Contrastive encoders are trained to keep information that distinguishes captions (semantics) and throw away the rest (exact texture, layout details). You can't reconstruct pixels from them faithfully. Generators need a reconstructive latent (a VAE), which preserves detail but is not semantically organized. That's the "two kinds of tokens" problem, and it's why unified models often use two tokenizers.
-
-</details>
-
-<details>
-<summary><strong>Why does MLLM pre-training start by training only the connector?</strong></summary>
-
-The ViT and LLM are expensive pre-trained models; a randomly initialized connector sends noisy gradients that would damage both. Training only the connector first aligns the vision features to the LLM's embedding space cheaply and safely; then everything is unfrozen.
-
-</details>
-
-<details>
-<summary><strong>Your VL model got worse at pure-text reasoning after multimodal training. What happened and how do you fix it?</strong></summary>
-
-Catastrophic forgetting from a data mix with too little high-quality text. Fix: include a meaningful share of text-only data (including reasoning and code) in every stage, monitor text benchmarks as a first-class regression gate, and consider lower LLM learning rates during early multimodal stages.
-
-</details>
-
-<details>
-<summary><strong>How does GRPO avoid a value model, and what's the multimodal-specific part?</strong></summary>
-
-It samples a group of answers per prompt and uses the group's mean and standard deviation to normalize rewards into advantages. The multimodal part is the rewards: exact match for visual math, IoU for grounding, edit distance for OCR, numeric tolerance for charts, plus format rewards. Open-ended tasks need reward models or VLM judges, which are hackable.
-
-</details>
-
-<details>
-<summary><strong>How would you check whether RL actually improved visual perception?</strong></summary>
-
-Run blind baselines (no image or a blank image) before and after RL; evaluate on vision-indispensable benchmarks like MMStar; test grounding with IoU-scored tasks; and inspect attention or use perturbation tests (mask the relevant region and check the answer changes).
-
-</details>
-
-<details>
-<summary><strong>Explain flow matching to a new hire in two sentences.</strong></summary>
-
-Draw a straight line from a clean image latent to pure noise, and train the network to predict the velocity along that line at any point. At inference, start from noise and follow the predicted velocities back to an image with an ODE solver; straighter paths mean fewer steps.
-
-</details>
-
-<details>
-<summary><strong>Why can't you apply GRPO directly to a flow-matching image model, and how does Flow-GRPO fix it?</strong></summary>
-
-The standard sampler is a deterministic ODE, so there's no stochastic policy with log-probabilities to optimize and limited exploration. Flow-GRPO converts the ODE into an SDE with the same marginals, making each step a Gaussian policy whose log-probability is computable, and trains on fewer denoising steps to cut cost.
-
-</details>
-
-<details>
-<summary><strong>Estimate the token count of a 5-second 720p video and explain what it implies.</strong></summary>
-
-121 frames → 31 latent frames with a 4× causal temporal VAE; 720×1280 → 90×160 with 8× spatial; 2×2 patches → 45×80 = 3,600 per latent frame; ×31 ≈ 111K tokens. Attention is quadratic, so this is roughly 750× the attention cost of a 1024² image. Implications: aggressive VAEs, context parallelism, low-resolution-first curricula and mandatory distillation for inference.
-
-</details>
-
-<details>
-<summary><strong>Why train video models on images first, and keep mixing images in later?</strong></summary>
-
-Images are cheap and teach appearance and concepts; video tokens are expensive and should be spent on motion. Mixing images throughout preserves concept coverage, since the curated video set is far smaller and less diverse than the image set. A causal VAE makes this natural because an image is a one-frame video.
-
-</details>
-
-<details>
-<summary><strong>What's wrong with FID as your main metric for a text-to-image model?</strong></summary>
-
-It ignores the prompt entirely, uses dated Inception features that don't match human perception of modern images, depends on sample size and preprocessing, and can improve while prompt adherence gets worse. Use it as a sanity check alongside compositional checkers (GenEval), preference models and human side-by-side evaluations.
-
-</details>
-
-<details>
-<summary><strong>Why is re-captioning so important, and what can go wrong?</strong></summary>
-
-Web alt-text describes context, not content, so the model never learns to follow detailed prompts. Dense synthetic captions teach exact attributes, counts, relations, camera and motion language. Risks: inheriting the captioner's hallucinations and biases, losing the ability to handle short user prompts (fix by mixing caption lengths), and homogenized "captioner style" language.
-
-</details>
-
-<details>
-<summary><strong>Name three approaches to unified understanding + generation models and the core tension between them.</strong></summary>
-
-All-discrete autoregressive (Chameleon/Emu3), one transformer with next-token + diffusion losses (Transfusion), and decoupled tokenizers or experts sharing attention (Janus, BAGEL). The tension: understanding wants semantic tokens and generation wants reconstructive tokens, and forcing both through identical computation tends to let one objective dominate.
-
-</details>
-
----
-
-## Course Slides, Lectures & Tutorials
-
-This post is the map. These are the best places I know to walk the territory, grouped by the Act they deepen. Everything below is free and from the original authors (slides and notes stay on their sites; I link rather than re-host).
-
-### Foundations of multimodal learning (Acts 0–I)
-
-| Resource | Format | Why it's worth your time |
-|---|---|---|
-| [CMU 11-777 Multimodal Machine Learning](https://multicomp.cs.cmu.edu/mmml-course/fall2023/) (Morency et al.) | University course | The vocabulary of the field: representation, alignment, reasoning, generation, transference, quantification. Pre-dates the LLM era but the framing still holds. |
-| [Stanford CS231n schedule](https://cs231n.stanford.edu/schedule.html) — lectures on *Vision and Language*, *Video Understanding*, *Self-Supervised Learning*, *Generative Models 1 & 2* | Lecture slides + videos | The cleanest classroom treatment of ViTs, contrastive learning, VAEs and diffusion in one place. |
-| Bordes et al., [An Introduction to Vision-Language Modeling](https://arxiv.org/abs/2405.17247) (Meta) | Long tutorial paper | Written as a primer: VLM families, how to train them, data, evaluation, and extension to video. The best single read after this post for Act III. |
-
-### MLLMs: architectures, training, post-training (Act III)
-
-| Resource | Format | Why it's worth your time |
-|---|---|---|
-| [CVPR 2025 Tutorial: Recent Advances in Vision Foundation Models](https://vlp-tutorial.github.io/) (Gan, Yang, Li, Yang et al.) | Slides (PDF per talk) | The longest-running tutorial series on VLMs (2020–2025 editions linked from the same site): multimodal understanding and generation, test-time scaling, multimodal agents. |
-| Li et al., [Multimodal Foundation Models: From Specialists to General-Purpose Assistants](https://arxiv.org/abs/2309.10020) | Survey "book" from the same tutorial team | Deep background on visual understanding, visual generation, and LLM-based assistants. |
-| Hugging Face, [Vision Language Models (Better, faster, stronger)](https://huggingface.co/blog/vlms-2025) | Blog | A practical 2025 tour: any-to-any models, reasoning VLMs, MoE decoders, video LMs, DPO for VLMs with TRL, new benchmarks. |
-| Raschka, [Understanding Multimodal LLMs](https://magazine.sebastianraschka.com/p/understanding-multimodal-llms) | Blog | The Method A vs Method B framing used in Act III, with walkthroughs of many open model papers. |
-| Lambert, [The RLHF Book](https://rlhfbook.com/) | Free online book | Instruction tuning, reward models, policy-gradient RL (PPO/GRPO), direct alignment (DPO), distillation, evaluation. The text-LLM foundations behind Act III's post-training section. |
-
-### Diffusion, flow matching, image and video generation (Acts IV–V)
-
-| Resource | Format | Why it's worth your time |
-|---|---|---|
-| [MIT 6.S184: Introduction to Flow Matching and Diffusion Models](https://diffusion.csail.mit.edu/2026/index.html) (Holderrieth & Erives) | Lecture notes, slides, labs | The best modern course on the math in Act IV: ODEs/SDEs, building the training target, and a lab where you build a latent diffusion model from scratch. Notes also on [arXiv](https://arxiv.org/abs/2506.02070). |
-| Lipman et al., [Flow Matching Guide and Code](https://arxiv.org/abs/2412.06264) (Meta) | Tutorial paper + PyTorch library | The authoritative reference for flow matching, with a reference implementation. |
-| [CVPR 2022 Tutorial: Denoising Diffusion-based Generative Modeling](https://cvpr2022-tutorial-diffusion-models.github.io/) (Kreis, Gao, Vahdat) | Slides + video | Still the best visual introduction to diffusion fundamentals: score functions, SDEs, guidance, applications. |
-| Weng, [What are Diffusion Models?](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/) and [Diffusion Models for Video Generation](https://lilianweng.github.io/posts/2024-04-12-diffusion-video/) | Blog | Dense, well-cited derivations. The video post is a great companion to Act V. |
-| [Hugging Face Diffusion Models Course](https://github.com/huggingface/diffusion-models-class) | Notebooks | Hands-on: train a diffusion model from scratch, fine-tune, guidance, and Stable Diffusion internals with `diffusers`. |
-
-### A suggested path
-
-- **One weekend:** this post → Bordes et al. (VLM primer) → Weng's video diffusion post.
-- **One week:** add MIT 6.S184 lectures + notes, the CVPR 2025 vision foundation model slides, and the RLHF Book chapters on reward models and policy gradients.
-- **One month:** do the 6.S184 labs and the Hugging Face diffusion notebooks, fine-tune a small open VLM with SFT then DPO, then read the Qwen3-VL, Movie Gen and Flow-GRPO papers in full and map each section back to the Act VII table.
-
----
-
-## Where to Go Next on This Site
-
-- **Generation deep dives:** [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines) → [U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit) → [Sampling & Guidance](/posts/generative-ai/sampling-guidance-diffusion-models) → [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals) → [Video Training Lifecycle](/posts/generative-ai/pre-training-post-training-video-diffusion) → [The Frontier](/posts/generative-ai/modern-video-models-sora-veo-opensora).
-- **Post-training:** [Modern Post-Training & PEFT](/posts/mlops/modern-post-training-peft-2026).
-- **The infrastructure underneath:** [Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production), [Datasets & Dataloaders](/posts/mlops/datasets-and-dataloaders), [Lance & LanceDB](/posts/mlops/lance-lancedb-data-layer-for-ml), [vLLM Trilogy](/posts/mlops/vllm-trilogy-of-modern-llm-scaling), [Training Frameworks: ZeRO & FSDP](/posts/mlops/hidden-engine-of-ai), [Life of a Tensor](/posts/mlops/life-of-a-tensor-production-inference).
-- **Foundations:** [Transformers & Attention](/posts/fundamentals/transformers-attention-mechanism), [Variational Autoencoders](/posts/fundamentals/variational-autoencoders-from-compression-to-creation), [Reinforcement Learning](/posts/fundamentals/reinforcement-learning-intuition-to-algorithms), [When AI Sees and Speaks (VLM intro)](/posts/computer-vision/vision-language-models-explained).
-- **Applications:** [Multimodal RAG in production](/posts/generative-ai/building-production-rag-opensearch), [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models), [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy), [Foundation Models in Autonomous Driving](/posts/robotics/autonomous-stack-module-9-foundation-models), [Agentic AI Design Patterns](/posts/agentic-ai/agentic-ai-design-patterns).
-
----
-
-## References and Further Reading
-
-**Surveys and courses**
-- Raschka, [Understanding Multimodal LLMs](https://magazine.sebastianraschka.com/p/understanding-multimodal-llms) (the Method A / Method B framing).
-- Yin et al., [A Survey on Multimodal Large Language Models](https://arxiv.org/abs/2306.13549).
-- [A Survey of State of the Art Large Vision Language Models: Alignment, Benchmark, Evaluations and Challenges](https://arxiv.org/abs/2501.02189).
-- CMU 11-777 Multimodal Machine Learning (Morency et al.): representation, alignment, fusion and co-learning foundations.
-
-**Vision encoders and MLLMs**
-- Radford et al., [CLIP](https://arxiv.org/abs/2103.00020); Zhai et al., [SigLIP](https://arxiv.org/abs/2303.15343).
-- Alayrac et al., [Flamingo](https://arxiv.org/abs/2204.14198); Li et al., [BLIP-2](https://arxiv.org/abs/2301.12597); Liu et al., [LLaVA](https://arxiv.org/abs/2304.08485).
-- Wang et al., [Qwen2-VL](https://arxiv.org/abs/2409.12191) (M-RoPE, dynamic resolution); [Qwen3-VL Technical Report](https://arxiv.org/abs/2511.21631).
-- Deitke et al., [Molmo and PixMo](https://arxiv.org/abs/2409.17146).
-- Shao et al., [DeepSeekMath](https://arxiv.org/abs/2402.03300) (GRPO).
-- [RL makes MLLMs see better than SFT](https://arxiv.org/abs/2510.16333).
-
-**Image generation**
-- Rombach et al., [Latent Diffusion](https://arxiv.org/abs/2112.10752); Peebles & Xie, [DiT](https://arxiv.org/abs/2212.09748).
-- Lipman et al., [Flow Matching](https://arxiv.org/abs/2210.02747); Liu et al., [Rectified Flow](https://arxiv.org/abs/2209.03003); Esser et al., [SD3 / Scaling Rectified Flow Transformers](https://arxiv.org/abs/2403.03206).
-- Betker et al., [Improving Image Generation with Better Captions (DALL·E 3)](https://cdn.openai.com/papers/dall-e-3.pdf).
-- Dai et al., [Emu: quality-tuning](https://arxiv.org/abs/2309.15807); Wallace et al., [Diffusion-DPO](https://arxiv.org/abs/2311.12908).
-- Liu et al., [Flow-GRPO](https://arxiv.org/abs/2505.05470); Xue et al., [DanceGRPO](https://arxiv.org/abs/2505.07818).
-
-**Video generation**
-- Polyak et al., [Movie Gen](https://arxiv.org/abs/2410.13720); Kong et al., [HunyuanVideo](https://arxiv.org/abs/2412.03603); [Wan](https://arxiv.org/abs/2503.20314); [Seedance 1.0](https://arxiv.org/abs/2506.09113); [LongCat-Video](https://arxiv.org/abs/2510.22200).
-
-**Unified models**
-- [Chameleon](https://arxiv.org/abs/2405.09818); Zhou et al., [Transfusion](https://arxiv.org/abs/2408.11039); [Janus](https://arxiv.org/abs/2410.13848); [BAGEL](https://arxiv.org/abs/2505.14683).
-
-**Evaluation**
-- Yue et al., [MMMU](https://arxiv.org/abs/2311.16502); Chen et al., [MMStar](https://arxiv.org/abs/2403.20330); Ghosh et al., [GenEval](https://arxiv.org/abs/2310.11513); Huang et al., [VBench](https://arxiv.org/abs/2311.17982); [VBench-2.0](https://arxiv.org/abs/2503.21755); [A Survey on Evaluation of MLLMs](https://arxiv.org/abs/2408.15769).
+1. If you had to describe the frisbee scene with only meaning tokens, what would a generator be unable to reproduce?
+2. Why would a VLM score well on a benchmark with the image removed, and what does that tell you about the benchmark?
+3. Where in your own work does the dotted arrow, failures turning into new data, actually happen?

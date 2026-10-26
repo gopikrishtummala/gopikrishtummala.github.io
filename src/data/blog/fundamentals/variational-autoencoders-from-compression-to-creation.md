@@ -620,4 +620,4 @@ From compression to creation, VAEs show how adding probability to neural network
 
 ---
 
-**Where this leads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#12-generation-tokens-the-photocopier) shows how VAEs (and VQ-VAEs) became the latent space of Stable Diffusion, FLUX and modern video models.
+**Where this leads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#two-kinds-of-visual-tokens) shows how VAEs (and VQ-VAEs) became the latent space of Stable Diffusion, FLUX and modern video models.

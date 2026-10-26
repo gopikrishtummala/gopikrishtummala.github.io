@@ -245,4 +245,4 @@ Parallel processing of long sequences underpins modern language models and broad
 
 ---
 
-**Where this leads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#13-token-arithmetic-why-video-is-the-hard-one) shows why attention's quadratic cost shapes every image and video model, and how cross-attention connects vision to language in MLLMs.
+**Where this leads:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#two-kinds-of-visual-tokens) shows why attention's quadratic cost shapes every image and video model, and how cross-attention connects vision to language in MLLMs.

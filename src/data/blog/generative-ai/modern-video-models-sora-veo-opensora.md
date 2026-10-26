@@ -165,4 +165,4 @@ $$ \mathcal{L}_{video} = \sum_{t, x, y} \| \epsilon - \epsilon_\theta(z_{noisy},
 
 ---
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-v-the-filmmaker-text-to-video) puts Sora, Veo, Movie Gen and Wan into one end-to-end picture, including RL post-training and [video evaluation](/posts/generative-ai/multimodal-foundation-models-end-to-end#63-video-generation-evaluation).
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#video-the-same-recipe-plus-time) puts Sora, Veo, Movie Gen and Wan into one end-to-end picture, including RL post-training and [video evaluation](/posts/generative-ai/multimodal-foundation-models-end-to-end#measuring-what-you-built).

@@ -281,4 +281,4 @@ Reinforcement learning teaches agents to make decisions by trying actions and re
 
 ---
 
-**Where this leads:** [GRPO for vision-language models](/posts/generative-ai/multimodal-foundation-models-end-to-end#34-post-training-an-mllm) and [Flow-GRPO for image generators](/posts/generative-ai/multimodal-foundation-models-end-to-end#45-post-training-from-knows-everything-to-looks-great-and-listens) in The Multimodal Atlas · [RLlib and RLHF systems on Ray](/posts/mlops/ray-field-guide-core-to-production#14-rllib-briefly).
+**Where this leads:** [GRPO for vision-language models](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-a-model-learns-to-see-and-talk) and [Flow-GRPO for image generators](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-an-image-generator-learns-to-paint) in The Multimodal Atlas · [RLlib and RLHF systems on Ray](/posts/mlops/ray-field-guide-core-to-production#14-rllib-briefly).

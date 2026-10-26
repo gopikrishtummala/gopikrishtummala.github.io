@@ -171,4 +171,4 @@ $$ \mathcal{L}_{total} = \mathcal{L}_{noise} + \lambda \cdot \| \text{Flow}(\hat
 
 ---
 
-**The big picture:** [The Multimodal Atlas: The Filmmaker](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-v-the-filmmaker-text-to-video) covers video token arithmetic, 3D causal VAEs, Wan 2.2's noise-level experts and the full training curriculum.
+**The big picture:** [The Multimodal Atlas: The Filmmaker](/posts/generative-ai/multimodal-foundation-models-end-to-end#video-the-same-recipe-plus-time) covers video token arithmetic, 3D causal VAEs, Wan 2.2's noise-level experts and the full training curriculum.

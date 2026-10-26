@@ -418,4 +418,4 @@ For a batch of 64 × 3 × 224 × 224 float32 images (~38.5 MB), that's ~4.8 ms v
 
 ---
 
-**Related deep dives:** [Ray Data vs. PyTorch DataLoader, stage by stage](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) shows what changes when decode moves off the trainer node · [Multimodal data curation and re-captioning](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-ii-data-the-real-moat) covers the data pipelines that feed image and video models.
+**Related deep dives:** [Ray Data vs. PyTorch DataLoader, stage by stage](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) shows what changes when decode moves off the trainer node · [Multimodal data curation and re-captioning](/posts/generative-ai/multimodal-foundation-models-end-to-end#most-of-the-work-is-data) covers the data pipelines that feed image and video models.

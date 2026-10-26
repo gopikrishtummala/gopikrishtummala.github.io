@@ -179,4 +179,4 @@ This loss ensures that the model learns to move in a **straight line** from nois
 
 ---
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#43-the-training-objective-flow-matching-in-one-picture) connects flow matching and classifier-free guidance to pre-training, RL post-training and evaluation of image and video models.
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-an-image-generator-learns-to-paint) connects flow matching and classifier-free guidance to pre-training, RL post-training and evaluation of image and video models.

@@ -179,4 +179,4 @@ $$ \mathcal{L}_{v} = \| v_t - \hat{v}_\theta(x_t, t) \|^2 $$
 
 ---
 
-**The big picture:** [The Multimodal Atlas: The Painter](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-iv-the-painter-text-to-image) covers how DiT/MMDiT models are trained end to end, from re-captioned data to Flow-GRPO and distillation.
+**The big picture:** [The Multimodal Atlas: The Painter](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-an-image-generator-learns-to-paint) covers how DiT/MMDiT models are trained end to end, from re-captioned data to Flow-GRPO and distillation.

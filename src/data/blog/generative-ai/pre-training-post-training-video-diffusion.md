@@ -165,4 +165,4 @@ $$ \mathcal{L}_{weighted} = \min(\text{SNR}(t), 5) \cdot \| \epsilon - \epsilon_
 
 ---
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#act-vii-the-end-to-end-picture) compares this lifecycle side by side with MLLMs and text-to-image models · [Ray Data](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) is a common engine for the video curation pipelines described here.
+**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#the-whole-lifecycle-side-by-side) compares this lifecycle side by side with MLLMs and text-to-image models · [Ray Data](/posts/mlops/ray-field-guide-core-to-production#10-ray-data-streaming-batch-processing) is a common engine for the video curation pipelines described here.
