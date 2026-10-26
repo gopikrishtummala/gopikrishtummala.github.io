@@ -305,4 +305,4 @@ Practice explaining the **"Why"** behind these hacks—that is what ultimately s
 
 ---
 
-**Related:** [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) covers how to practice with AI tools without losing these skills, and how to prepare for AI-enabled coding rounds.
+**Related:** [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) covers how to practice with AI tools without losing these skills, and [Preparing for AI-Enabled Coding Interviews](/posts/interview-prep/ai-enabled-coding-interviews) covers the new AI-enabled rounds.

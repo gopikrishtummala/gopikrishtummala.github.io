@@ -228,7 +228,7 @@ These sit alongside the numbered modules. Read them when the module they extend 
 | [Beyond Parquet: Lance & LanceDB](/posts/mlops/lance-lancedb-data-layer-for-ml) | Modules 1–2 | What changes when the file format is designed for random access, embeddings and versioned datasets |
 | [The Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production) | Modules 2, 3, 5, 8 | The distributed runtime under many of these systems: when a process pool is enough and when Ray earns its keep |
 | [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) | Modules 1–5 | The same stack applied to vision-language, image and video models |
-| [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) | All | How to use AI tools while learning this material, and how AI-enabled interviews work |
+| [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews) | All | How to use AI tools while learning this material without losing the skills; see also [AI-enabled interviews](/posts/interview-prep/ai-enabled-coding-interviews) |
 
 ---
 
