@@ -177,3 +177,23 @@
     }
   }
 }
+
+/* Inline code. Unlayered so it beats the typography plugin, which adds
+   literal backticks via ::before/::after and a heavy weight. */
+.app-prose :not(pre) > code {
+  @apply px-1.5 py-0.5 rounded-md bg-secondary border border-border/50;
+  /* accent tint, pulled toward the text color so it stays readable in light themes */
+  color: color-mix(in oklab, var(--accent) 60%, var(--foreground));
+  font-size: 0.875em;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.app-prose :not(pre) > code::before,
+.app-prose :not(pre) > code::after {
+  content: none;
+}
+
+.app-prose a > code {
+  color: inherit;
+}
