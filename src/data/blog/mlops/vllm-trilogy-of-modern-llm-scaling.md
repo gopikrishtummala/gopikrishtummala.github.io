@@ -35,7 +35,7 @@ Each conversation needs memory that grows with every token. Before vLLM, most se
 ## The idea in one picture
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph Before["Reserve the maximum"]
     R1["User A: 8K reserved,<br/>300 used"]
     R2["User B: 8K reserved,<br/>1K used"]
@@ -73,6 +73,29 @@ GPUs are efficient when they process many requests together. The old way, static
 
 Continuous batching schedules at every step instead. Each step, the server generates one token for every active conversation; finished conversations leave and waiting ones join immediately. Combined with paging, this is what lets a single GPU stay busy with dozens of conversations of very different lengths. The [Orca paper](https://www.usenix.org/conference/osdi22/presentation/yu) introduced the idea; vLLM and most modern servers use it.
 
+Put together, vLLM's engine separates the API from the GPU work. The API accepts requests, an async scheduler decides every step who runs and where their blocks live, and the GPU workers do the math:
+
+```mermaid
+flowchart TD
+  subgraph API["API layer"]
+    Req["User request"] --> OAI["OpenAI-compatible API"]
+  end
+  subgraph Engine["Async engine (scheduler)"]
+    Queue["Request queue"] --> CB["Continuous batcher<br/>schedules every token step"]
+    CB --> BT["Block table<br/>conversation to physical blocks"]
+  end
+  subgraph Worker["GPU worker"]
+    PA["PagedAttention kernels"] --> Model["The model<br/>e.g. Llama 3 70B"]
+    Model <--> KVC["Physical KV cache<br/>in fixed-size blocks"]
+  end
+  OAI --> Queue
+  BT --> PA
+  Model --> Res["Next token"]
+  Res --> OAI
+```
+
+*The block table is the piece that makes paging work: the scheduler hands the kernels a map from each conversation to wherever its blocks happen to be.*
+
 ## Two phases, two kinds of latency
 
 Every request goes through two phases that behave very differently:
@@ -96,6 +119,35 @@ Two more techniques show up in almost every deployment:
 - **Continuous batching keeps the GPU busy.** Requests join and leave at every step.
 - **Prefill and decode are different problems.** One sets time to first token, the other time between tokens.
 - **Throughput and latency trade off.** Pick a batch size that meets your latency target, then scale out.
+
+The whole module on one page:
+
+```mermaid
+mindmap
+  root((LLM serving))
+    KV cache
+      Grows with every token
+      2 x layers x KV heads x head size x bytes
+      GQA shrinks it
+    PagedAttention
+      Fixed-size blocks
+      Block table
+      Prefix sharing
+    Scheduling
+      Continuous batching
+      Chunked prefill
+      Preemption
+    Latency
+      TTFT is prefill
+      ITL is decode
+      Batch size trades them
+    Going faster
+      Speculative decoding
+      FP8 and INT4
+      Prefix caching
+```
+
+*TTFT is time to first token; ITL is inter-token latency, the time between tokens.*
 
 ## Where to go next
 

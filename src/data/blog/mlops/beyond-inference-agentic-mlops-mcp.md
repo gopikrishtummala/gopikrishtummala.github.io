@@ -58,6 +58,40 @@ The agent needs to reach the warehouse, a code runner and Slack. Writing a custo
 
 One detail matters for safety: the model never talks to the tool directly. The host application passes the tool descriptions to the model, the model replies with a structured request ("run this query"), and the host executes it through the client and feeds the result back. That middle step is where permissions are enforced.
 
+```mermaid
+flowchart TD
+  subgraph UserSpace["User"]
+    User["Why did signups drop?"]
+  end
+  subgraph Control["Control plane (host app)"]
+    Agent["Agent logic<br/>e.g. LangGraph"]
+    MCPC["MCP client"]
+  end
+  subgraph Brain["Model"]
+    LLM["Language model"]
+  end
+  subgraph Exec["Execution plane (sandbox)"]
+    SB["Sandbox<br/>Firecracker or gVisor"]
+    T1["Warehouse tool"]
+    T2["Python runner"]
+    T3["S3 data access"]
+  end
+  subgraph Obs["Observability"]
+    Trace["Distributed tracing<br/>e.g. LangSmith, Arize"]
+  end
+  User --> Agent
+  Agent <-->|"thinking"| LLM
+  Agent <--> MCPC
+  MCPC <-->|"MCP: request an action"| SB
+  SB --> T1
+  SB --> T2
+  SB --> T3
+  Agent --> Trace
+  SB --> Trace
+```
+
+*The model only ever talks to the agent logic. Every action goes through the MCP client into a sandbox, and both sides write traces.*
+
 MCP standardizes the connection; it doesn't make tools free. Every tool description sits in the model's context, and dozens of tools both cost tokens and make the model worse at picking the right one. Give an agent only the tools its task needs.
 
 ## A safe place to run generated code
@@ -95,6 +129,32 @@ Versioning is also different. A model is versioned by its weights. An agent's be
 - **Generated code runs in a real sandbox.** gVisor or microVMs, no standing credentials, limited network.
 - **Treat everything the agent reads as untrusted.** Least privilege per tool and human approval for irreversible actions.
 - **Trace every step and version the whole bundle.** Model, prompt, tools, loop settings and data access.
+
+The whole module on one page:
+
+```mermaid
+mindmap
+  root((Agentic MLOps))
+    The loop
+      Plan act observe
+      State and memory
+      Budgets and max turns
+    Tools via MCP
+      Servers expose tools
+      Host app mediates
+      Context cost of tools
+    Safety
+      Least privilege
+      Sandboxes gVisor Firecracker
+      Indirect prompt injection
+      Human approval for risky actions
+    Observability
+      Traces per step
+      Replay failures
+    Versioning and evals
+      Prompt plus tools plus model
+      Task success evals
+```
 
 ## Where to go next
 

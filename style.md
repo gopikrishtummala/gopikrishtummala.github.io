@@ -88,6 +88,7 @@ The running example, introduced.
 
 ## The idea in one picture
    One diagram or mind map, with a caption that states the takeaway.
+   Sections below can each have their own diagram (see "Working with diagrams").
 
 ## 3–5 sections, each one concept
    Each: intuition first, mechanism in a few sentences, a return to the running example,
@@ -184,13 +185,26 @@ A very short sentence on its own line ("It passed every test. Then real traffic 
 | **Bullets** | Only for things that are actually a list (steps, options, questions). Explanations are paragraphs. For a list of named parts, use the "**Term:** one-line definition" form, as the Google and Meta posts do. |
 | **Footnotes for data** | When a number comes from a specific measurement, say where and when ("measured on 8×H100, vLLM 0.x, October 2026") in a footnote or caption. |
 | **Tables** | Only for real comparisons (at least 3 rows and 3 columns). Never as a substitute for explaining. At most two per post. |
-| **Diagrams** | One "idea in one picture" diagram per post, plus at most one more if it earns its place. Every diagram gets a caption that states the takeaway. Keep labels short; diagrams must read in every site theme. |
-| **Mind maps** | Use one *instead of* the main diagram when the post is a map of several concepts (series overviews, roadmaps). Never both. |
+| **Diagrams** | Diagrams are one of the best things on this site; a reader skimming the pictures should get the map. Open with one "idea in one picture" diagram, then put a diagram in any section where a picture explains the mechanism faster than prose. No fixed cap. Each one sits next to the paragraph it explains and gets an italic caption that states the takeaway. See "Working with diagrams" below. |
+| **Mind maps** | A good opening picture for a post that is a map of several concepts (series overviews, roadmaps). Section diagrams can still follow it. |
 | **Code** | Short, labeled "simplified" or "illustrative" when it is. Use real APIs and check they run or match current docs. |
 | **Callouts / blockquotes** | Rare. For a real caveat or a quoted source, not for repeating the paragraph above. |
 | **Emoji** | None in headings, diagrams or body text. |
 | **Em-dashes** | Rare. Prefer a period or commas. |
 | **HTML banners** | None. Series navigation is one plain line (see below). |
+
+### Working with diagrams
+
+When cleaning up a post, **never delete a diagram to hit a style rule.** A diagram usually holds information the prose doesn't, so restyle it instead:
+
+- **Keep every fact.** If a node or edge carries information (a number, a name, a step, an arrow label), it stays, either in the diagram or moved into the caption or the paragraph next to it.
+- **Restyle the labels.** Short, plain words; no emoji; sentence case; use `<br/>` to break long labels instead of cutting content.
+- **Tie it to the running example** where it fits (relabel a generic "Request" as "the contract question"), but don't bend a diagram that's clearer generic.
+- **Place it where it's explained.** Move a diagram next to the section that discusses it, and add a one-line caption that states the takeaway.
+- **Merge, don't drop.** If two diagrams show the same thing, combine them into one that keeps the information from both.
+- **Split if it's a wall.** A diagram with more than about 15 nodes is usually two diagrams, or one diagram plus a short list.
+- **Keep it readable at page width.** A flowchart more than about five boxes wide shrinks its text; switch it to top-to-bottom, or add `direction TB` inside wide subgraphs.
+- **Keep it renderable.** Avoid colons and special characters in Gantt task names, quote labels with punctuation, and check it in every site theme (light, dark, cyber, academic).
 
 ### Series navigation
 
@@ -273,6 +287,7 @@ These are the tells that make writing read as machine-generated. Search for them
 - [ ] Terms are defined in plain words where they first appear.
 - [ ] There's one running example, and it comes back in most sections.
 - [ ] One "idea in one picture" diagram (or mind map) with a takeaway caption.
+- [ ] Every diagram from the old version is still there (restyled, merged or split, never silently dropped), next to the section it explains, with a caption.
 - [ ] 1,200–2,500 words; read time set honestly.
 - [ ] Headings are descriptive, with no "Act" numbering and no emoji.
 - [ ] At most one analogy, used for the hardest idea.
@@ -296,4 +311,5 @@ When we clean up existing posts, in this order:
 3. **Rewrite openings and endings** to the shapes in section 3.
 4. **Fact pass:** remove or source unsourced numbers; date fast-moving facts.
 5. **Voice pass:** search for the section 8 list and rewrite those sentences.
-6. **Interview material:** consolidate scattered self-checks and interview scenarios into dedicated interview-prep posts per series.
+6. **Diagram pass:** keep every existing diagram; restyle labels, add captions, and move each next to the section it explains (see "Working with diagrams").
+7. **Interview material:** consolidate scattered self-checks and interview scenarios into dedicated interview-prep posts per series.

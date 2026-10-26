@@ -42,10 +42,38 @@ Parquet can answer all three, but with workarounds: tar-file shards and approxim
 ## The idea in one picture
 
 ```mermaid
-flowchart TB
-  E["What you use<br/>PyTorch, Ray Data, DuckDB, LanceDB search"] --> T["Table format<br/>versions, fragments, indexes"]
-  T --> F["File format<br/>how each column sits on disk"]
-  F --> S["Storage<br/>S3, GCS or local NVMe"]
+flowchart TD
+  subgraph App["What you use"]
+    ENG["PyTorch, Ray Data, Spark,<br/>DuckDB, Polars"]
+    LDB["LanceDB<br/>vector, full-text and<br/>SQL-filter search"]
+  end
+  subgraph Table["Table format"]
+    MAN["Manifest per version<br/>schema, fragment list,<br/>index metadata"]
+    FRAG["Fragments<br/>horizontal slices of rows"]
+    IDX["Indexes<br/>vector, full-text, scalar"]
+  end
+  subgraph File["File format"]
+    MB["Mini-block encoding<br/>values under 128 bytes"]
+    FZ["Full-zip encoding<br/>values 128 bytes and up"]
+  end
+  subgraph Store["Storage"]
+    OBJ["S3 or GCS"]
+    NVME["Local NVMe"]
+  end
+  ENG --> MAN
+  LDB --> MAN
+  MAN --> FRAG
+  MAN --> IDX
+  FRAG --> MB
+  FRAG --> FZ
+  MB --> Store
+  FZ --> Store
+  classDef app fill:#6366f1,color:#fff,stroke:#4f46e5
+  classDef tbl fill:#f59e0b,color:#fff,stroke:#d97706
+  classDef fil fill:#10b981,color:#fff,stroke:#059669
+  class ENG,LDB app
+  class MAN,FRAG,IDX tbl
+  class MB,FZ fil
 ```
 
 *Lance is three layers. The file format makes single rows cheap to read, the table format makes new columns and versions cheap, and LanceDB adds search on top.*
@@ -98,6 +126,34 @@ ds.tags.create("run-v12", ds.version)                # pin this version for trai
 
 Deleting rows works the same way: removed rows are recorded in a small deletion file that readers skip, until compaction physically removes them. That's a cheap way to drop a mislabeled batch or data you no longer have rights to use. And because every commit is a version you can tag, a training run can name the exact data it used, which is the part of reproducibility that code and config alone can't give you.
 
+Here's what that looks like for our scenes table across three versions:
+
+```mermaid
+flowchart TD
+  subgraph V1["Version 1"]
+    A0["Fragment 0<br/>file A: id, frame, caption"]
+    A1["Fragment 1<br/>file B: id, frame, caption"]
+  end
+  subgraph V2["Version 2: add embedding column"]
+    B0["Fragment 0<br/>file A unchanged<br/>+ file C: embedding"]
+    B1["Fragment 1<br/>file B unchanged<br/>+ file D: embedding"]
+  end
+  subgraph V3["Version 3: remove bad rows"]
+    C0["Fragment 0<br/>files A, C<br/>+ deletion file"]
+    C1["Fragment 1<br/>files B, D"]
+  end
+  V1 --> V2
+  V2 --> V3
+  classDef v1 fill:#6366f1,color:#fff,stroke:#4f46e5
+  classDef v2 fill:#10b981,color:#fff,stroke:#059669
+  classDef v3 fill:#f59e0b,color:#fff,stroke:#d97706
+  class A0,A1 v1
+  class B0,B1 v2
+  class C0,C1 v3
+```
+
+*No existing file is ever rewritten. New columns are new files beside the old ones, deletions are a small file of row IDs, and every version stays readable.*
+
 The limit to know about: each version's manifest lists every fragment, so on very large tables, thousands of tiny commits each rewrite a lot of metadata. A [design proposal in the Lance repo](https://github.com/lance-format/lance/pull/9060) discusses changing that. Until then, batch your writes and plan for compaction.
 
 ## What doesn't change: object storage
@@ -109,6 +165,31 @@ What changes is the work around large-scale pre-training: fine-tuning sets, pref
 ## One table for search
 
 A retrieval system for these frames usually has three parts that must stay in sync: Parquet for metadata, a search cluster for keyword and vector search, and a blob store for the images. LanceDB keeps the metadata, caption, embedding and image in one versioned table, with vector, full-text and scalar indexes on it and [hybrid search](https://docs.lancedb.com/search/hybrid-search) that fuses the results. You still choose index types and trade recall for latency, as in the [multimodal RAG post](/posts/generative-ai/building-production-rag-opensearch), and a storage-native engine is a different operating point from a search cluster built for very high query rates.
+
+```mermaid
+flowchart TD
+  subgraph Before["Before: three systems, three copies"]
+    P["Parquet on S3<br/>metadata and labels"]
+    O["Search cluster<br/>BM25 and vector index"]
+    B["Blob store<br/>frames and video"]
+    SYNC["Sync jobs<br/>keep them consistent"]
+    P --- SYNC
+    O --- SYNC
+    B --- SYNC
+  end
+  subgraph After["After: one versioned Lance table"]
+    L["Row: id, metadata, caption,<br/>embedding, frame blob"]
+    LI["Vector, full-text and scalar<br/>indexes on the same table"]
+    L --> LI
+  end
+  Before -->|"consolidate"| After
+  classDef old fill:#f59e0b,color:#fff,stroke:#d97706
+  classDef new fill:#10b981,color:#fff,stroke:#059669
+  class P,O,B,SYNC old
+  class L,LI new
+```
+
+*The win isn't speed; it's deleting the sync jobs. One table, one version number, nothing to drift.*
 
 This shape is familiar from my own work. A Zoox patent, [US 12,668,281](https://patents.justia.com/patent/12668281), describes storing clusters of driving scenarios as encoded keys with associated prediction information for vehicles to look up. That's an embedding-keyed lookup over a large log corpus, the kind of workload vector-native tables are designed for. The patent doesn't involve Lance; I mention it for the pattern.
 
@@ -130,6 +211,33 @@ Numbers that range from 2× to 2,000× across write-ups are mostly explained by 
 - **Encoding by value width is the core idea.** Small values in chunks, large values individually addressable.
 - **The table format is the everyday win.** New columns without rewrites, cheap deletes, and versions you can pin a training run to.
 - **Object storage physics didn't change.** Keep Parquet for interchange and BI; use Lance where random access, evolving columns and retrieval dominate.
+
+The whole post on one page:
+
+```mermaid
+mindmap
+  root((Lance and LanceDB))
+    File format
+      Mini-block under 128 B
+      Full-zip 128 B and up
+      Few IOPS per random read
+    Table format
+      Add columns without rewrite
+      Deletion files
+      Versions to pin runs
+    Database
+      Vector indexes
+      Full-text and hybrid search
+      Blob columns
+    For ML
+      Random-access dataloaders
+      Embedding backfills
+      Scenario mining
+    Caveats
+      Vendor-authored benchmarks
+      NVMe not S3
+      Manifest growth
+```
 
 ## Where to go next
 

@@ -65,6 +65,30 @@ Parquet is optimized for storage. Once data is in memory, a different format is 
 
 Its most important property is that the layout is the same in every language. Python, C++, Rust, Java and GPU libraries can all read the same Arrow buffers without converting or copying them. That's why a pipeline can read Parquet with PyArrow, transform it in Polars, and hand it to PyTorch or Spark without paying a conversion cost at each step. Before formats like Arrow, a large share of data pipeline time went into serializing and deserializing data between tools.
 
+Put together, a production pipeline keeps data in columns from storage all the way to the GPU, and never unpacks it row by row:
+
+```mermaid
+flowchart TD
+  subgraph Storage["Storage (cloud)"]
+    S3["S3 bucket<br/>sharded Parquet files"] --> Z["Zstd or Snappy<br/>compression"]
+  end
+  subgraph Transport["Network"]
+    Flight["Arrow Flight<br/>zero-copy RPC"]
+  end
+  subgraph Compute["CPU and RAM"]
+    Mmap["Memory mapping"] --> Table["Arrow table<br/>ready for SIMD"]
+    Table --> Ops["Vectorized transforms<br/>map, filter"]
+  end
+  subgraph Training["GPU"]
+    Cudf["RAPIDS cuDF<br/>Arrow on the GPU"] --> Tensor["PyTorch or JAX"]
+  end
+  Z --> Flight
+  Flight --> Mmap
+  Ops -->|"direct buffer copy"| Cudf
+```
+
+*Storage to silicon: compressed columns at rest, Arrow buffers in flight and in memory, and a direct copy into GPU memory at the end.*
+
 Why not just store everything as Arrow? Because Arrow buffers are uncompressed so they can be used directly, and they lack Parquet's storage encodings. The same data as raw Arrow can be several times larger, which costs more to store and much more to move across a network. Hence the rule: store in Parquet, compute in Arrow.
 
 ## File layout is a performance setting
@@ -90,6 +114,33 @@ Moving our 10 TB table over a 10 Gbps link (about 1.25 GB/s) takes about 2.2 hou
 - **Skip what you don't need.** Read only the needed columns, and let min/max statistics skip chunks that can't match.
 - **Arrow's value is a shared layout.** Tools hand data to each other without converting it.
 - **Layout is a setting.** Compact small files, size row groups sensibly, and memory-map datasets larger than RAM.
+
+The whole module on one page:
+
+```mermaid
+mindmap
+  root((Data DNA))
+    Parquet at rest
+      Columnar layout
+      Compression Zstd Snappy
+      Row groups and stats
+      Predicate pushdown
+    Arrow in memory
+      Same layout in every language
+      Zero-copy sharing
+      SIMD vectorized ops
+      Memory mapping
+    Moving data
+      Arrow Flight
+      Compaction of small files
+      Multithreaded readers
+    Trade-offs
+      CPU decode vs disk IO
+      Row group size
+      Storage vs speed
+```
+
+*Predicate pushdown is the formal name for skipping chunks with min/max statistics.*
 
 ## Where to go next
 

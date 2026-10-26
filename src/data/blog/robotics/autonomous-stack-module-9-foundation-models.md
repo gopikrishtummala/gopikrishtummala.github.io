@@ -67,6 +67,34 @@ The next step is a single model that sees, reasons and acts, usually called a vi
 
 Robotics has pushed this furthest. Physical Intelligence's [π0](https://arxiv.org/abs/2410.24164) and NVIDIA's [GR00T N1](https://arxiv.org/abs/2503.14734) are trained on data from many different robots, on the bet that a model learns general physical common sense from all of them: objects fall, momentum carries, things collide. For driving, the hope is the same. A model that has learned how bodies move and interact in general should handle more rare situations without a rule for each one.
 
+```mermaid
+flowchart TD
+  subgraph In["Inputs, all as tokens"]
+    Video["Video<br/>360° surround or<br/>bimanual robot view"]
+    Nav["Instruction<br/>'turn left', 'fold the shirt'"]
+    State["State<br/>velocity, joint angles"]
+  end
+  subgraph Brain["The VLA model"]
+    Shared["Transformer layers<br/>shared across robot bodies"]
+    SA["Self-attention<br/>multi-step reasoning"]
+  end
+  subgraph Out["Outputs"]
+    Reason["Explanation<br/>'why I am braking'"]
+    Action["Action<br/>trajectory waypoints<br/>or joint torques"]
+  end
+  WM["World model, e.g. Cosmos<br/>predicts future video"]
+  Video --> Shared
+  Nav --> Shared
+  State --> Shared
+  Shared --> SA
+  SA --> Reason
+  SA --> Action
+  Action -.->|"imagine the result"| WM
+  WM -.->|"training data and checks"| Shared
+```
+
+*Everything in, everything out, as tokens. World models like Cosmos are usually separate models that imagine the consequences of actions, used for training and testing rather than in the driving loop itself.*
+
 ## Imagining the future before acting
 
 Another line of work trains **world models**: models that predict what the camera will see next, given an action. Wayve's [GAIA-1](https://arxiv.org/abs/2309.17080) and NVIDIA's [Cosmos](https://arxiv.org/abs/2501.03575) are examples. A world model can be used to generate rare, dangerous scenarios for training and testing without staging them on real roads, and, in principle, to let a planner imagine the result of an action before taking it. If the imagined future for "drive past the bus" contains a child stepping out, choose something else. The [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models) post covers why getting the physics right in those imagined futures is hard.

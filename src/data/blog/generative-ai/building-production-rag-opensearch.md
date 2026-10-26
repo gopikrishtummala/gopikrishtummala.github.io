@@ -36,14 +36,14 @@ The demo version also returns the fan replacement steps for the AX-450, misses t
 ## The idea in one picture
 
 ```mermaid
-flowchart LR
+flowchart TB
   Q["Question"] --> RW["Rewrite<br/>clean up the query"]
-  RW --> K["Keyword search<br/>exact terms"]
-  RW --> V["Vector search<br/>similar meaning"]
-  K --> F["Merge<br/>rank fusion"]
+  RW --> K["Keyword search, BM25<br/>exact terms, top 100"]
+  RW --> V["Vector search, HNSW<br/>similar meaning, top 100"]
+  K --> F["Merge<br/>reciprocal rank fusion"]
   V --> F
-  F --> RR["Rerank<br/>read query and passage together"]
-  RR --> C["Fetch full sections<br/>around the best passages"]
+  F --> RR["Rerank with a cross-encoder<br/>read query and passage together,<br/>keep the top 5"]
+  RR --> C["Fetch full sections<br/>from parent-document storage"]
   C --> G["Generate answer<br/>with citations"]
 ```
 

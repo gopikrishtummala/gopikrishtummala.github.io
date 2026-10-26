@@ -80,6 +80,30 @@ Everything in Ray, including its libraries, is built from three ideas.
 
 Under the hood, one head node runs a small control service that tracks the cluster, and every node runs a scheduler and an object store. The worker that creates an object is responsible for tracking it, which keeps the central service off the hot path. The trade-off is that if that worker dies, the objects it was tracking are lost and have to be recomputed.
 
+```mermaid
+flowchart LR
+  subgraph Head["Head node"]
+    GCS["GCS<br/>cluster metadata"]
+    Drv["Driver<br/>your script"]
+    R0["Raylet<br/>scheduler and object manager"]
+    S0[("Object store<br/>shared memory")]
+    DB["Dashboard and Jobs API"]
+  end
+  subgraph W1["Worker node"]
+    R1["Raylet"]
+    S1[("Object store")]
+    P1["Worker processes<br/>tasks and actors"]
+  end
+  Drv --> R0
+  R0 <--> GCS
+  R1 <--> GCS
+  R0 <-->|"object transfer"| R1
+  R1 --- P1
+  P1 --- S1
+```
+
+*The GCS is the control service; each node's raylet schedules work and moves objects. Data travels raylet to raylet, not through the head node.*
+
 Most of what goes wrong in Ray programs is a misuse of these three. Calling `ray.get` inside a loop makes everything sequential again. Passing a large array directly to a hundred tasks copies it a hundred times instead of storing it once with `ray.put` and passing the reference. Loading a model inside a task instead of an actor reloads it on every call.
 
 ## Putting work on the right hardware
@@ -100,6 +124,15 @@ ds.write_parquet("s3://bucket/embeddings/")
 ```
 
 *Simplified. `Embedder` is a class whose constructor loads the model once.*
+
+```mermaid
+flowchart LR
+  A["read_images<br/>CPU tasks"] --> B["map_batches: resize<br/>CPU tasks"]
+  B --> C["map_batches: Embedder<br/>GPU actor pool"]
+  C --> W["write_parquet<br/>CPU tasks"]
+```
+
+*Every stage runs at once on different blocks. The CPU stages can be on other machines; the GPU stage keeps its model loaded.*
 
 The useful comparison is with PyTorch's `DataLoader`. A `DataLoader` runs its worker processes on the same machine as the training process, so decoding is limited by that machine's CPUs. Ray Data can run decoding on CPU-only machines elsewhere in the cluster, and can put a GPU model in the middle of a pipeline, which a `DataLoader` can't. It also retries failed pieces instead of failing the whole job. Where the `DataLoader` wins is simplicity and exactness: on one machine with fast random access it gives a perfect shuffle, and with `torchdata`'s `StatefulDataLoader` it can resume a long run at the exact sample it stopped on. If your trainer's CPUs keep up, stay with the `DataLoader`. If GPUs sit idle waiting for decoding, or you're running batch inference over millions of files, Ray Data is the better tool. The [Dataloaders post](/posts/mlops/datasets-and-dataloaders) covers the single-machine side in depth.
 
@@ -142,6 +175,36 @@ When a job seems stuck, `ray status` is the first stop. It shows which resources
 - **Placement groups are gang scheduling.** All the GPUs a training job needs, or none.
 - **Ray Data's value is the mixed pipeline.** CPU decoding anywhere in the cluster feeding GPU steps, with bounded memory.
 - **Ray sits under your orchestrator, not instead of it.** It runs the compute; schedulers like Airflow decide when.
+
+The whole guide on one page:
+
+```mermaid
+mindmap
+  root((Ray))
+    Why Ray
+      Process pool is enough on one box
+      Many nodes and mixed CPU GPU
+      Stateful workers
+    Core
+      Tasks
+      Actors
+      Objects and ownership
+      Placement groups
+    Libraries
+      Data streaming
+      Train supervises DDP FSDP
+      Tune search and ASHA
+      Serve composition and batching
+    Production
+      KubeRay CRDs
+      Autoscaler on demand
+      Dashboard and ray status
+      Compiled graphs and RDT
+    Pitfalls
+      ray.get in a loop
+      Tiny tasks
+      Unbounded submission
+```
 
 ## Where to go next
 

@@ -78,6 +78,28 @@ Most of the time you shouldn't, at least not first. A reasonable order:
 
 Always start from a profile. Nsight Systems shows where time goes across kernels; Nsight Compute shows whether a kernel is limited by memory or compute. And remember that tuning is hardware-specific: tile sizes that are ideal on an A100 may be wrong on an H100, which is why Triton kernels usually include an autotuner that tries several configurations on the actual GPU.
 
+Here's what that path looks like for a Triton kernel, from Python down to the silicon:
+
+```mermaid
+flowchart TD
+  subgraph Python["Python"]
+    Mod["Model, e.g. a mixture-of-experts layer"] --> Tri["Triton kernel<br/>written in tiles"]
+  end
+  subgraph Compiler["Compiler (MLIR)"]
+    TC_["Triton compiler"] --> Opt["Autotuner<br/>tries tile sizes on this GPU"]
+  end
+  subgraph Hardware["GPU"]
+    HBM["HBM<br/>main memory, large, slow"] -->|"load tile"| SRAM["On-chip SRAM<br/>small, fast"]
+    SRAM -->|"compute"| TCores["Tensor cores"]
+    TCores -->|"accumulate"| SRAM
+    SRAM -->|"store tile"| HBM
+  end
+  Tri --> TC_
+  Opt --> SRAM
+```
+
+*You write the tile-level logic; the compiler and autotuner decide how tiles map onto this particular GPU. The loop at the bottom is the whole game: load once, compute a lot, store once.*
+
 ## What I'd remember
 
 - **Arithmetic is cheap; moving bytes is expensive.** Judge every operation by how much math it does per byte.
@@ -85,6 +107,33 @@ Always start from a profile. Nsight Systems shows where time goes across kernels
 - **FlashAttention is tiling plus an online softmax.** Exact attention without ever storing the full score matrix.
 - **Climb the ladder.** Libraries, then `torch.compile`, then Triton, then CUDA, guided by a profiler.
 - **Tune per GPU.** What's fast on one generation can be slow on the next.
+
+The whole module on one page:
+
+```mermaid
+mindmap
+  root((Custom kernels))
+    Memory wall
+      FLOPs are cheap
+      HBM bytes are expensive
+      Arithmetic intensity
+    Roofline
+      Ridge point
+      Memory-bound ops
+      Compute-bound matmuls
+    Techniques
+      Fusion
+      Tiling in SRAM
+      Recompute instead of store
+    Tools
+      torch.compile first
+      Triton
+      CUDA and CUTLASS
+    Famous kernels
+      FlashAttention
+      PagedAttention
+      MoE dispatch
+```
 
 ## Where to go next
 

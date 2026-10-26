@@ -48,7 +48,8 @@ flowchart TB
     H2["Callers that rely on current behavior"]
     H3["Rollout and rollback plan"]
     H4["Alerts and on-call load"]
-    H5["Who supports it next year"]
+    H5["Security, privacy and<br/>compliance review"]
+    H6["Who supports it next year"]
   end
   Visible -->|"one-click change"| Hidden
 ```
@@ -128,6 +129,30 @@ That makes the architect's work more visible, not less. Someone still decides wh
 
 Interfaces are what let walls fit together, much as studs let Lego pieces snap. A small, explicit interface with tests at the boundary lets you swap an AI-built implementation in and out safely. A vague one means every generated piece fits a little differently.
 
+```mermaid
+flowchart LR
+  subgraph You["Architect (you)"]
+    A1["Problem framing<br/>and non-goals"]
+    A2["Decomposition<br/>where the walls go"]
+    A3["Interfaces and contracts<br/>how walls connect"]
+    A4["Invariants and<br/>failure modes"]
+    A5["Non-functional needs<br/>latency, cost, privacy"]
+    A6["Evolution and<br/>ownership plan"]
+  end
+  subgraph AI["AI (prefab walls)"]
+    B1["Implement a module<br/>to a spec"]
+    B2["Tests from your cases"]
+    B3["Boilerplate, glue,<br/>migrations, scripts"]
+    B4["Alternatives and<br/>critique of designs"]
+  end
+  A3 -->|"spec"| B1
+  A4 -->|"test cases"| B2
+  B4 -.->|"options"| A2
+  B1 -->|"wall to inspect"| A4
+```
+
+*The left column is the job that didn't get cheaper. The arrows are the hand-offs: you send specs and test cases, and get back walls to inspect and options to choose from.*
+
 Here's what a spec for the retry wall looks like once the knowledge has been recovered:
 
 ```text
@@ -155,6 +180,20 @@ The working loop I use has six steps, and the AI drives one of them:
 4. **Verify:** give the assistant a check it can run (tests, a build, a script) and read the diff yourself.
 5. **Understand:** can I explain each part and why it's there?
 6. **Own:** simplify, rename, document and commit it as mine.
+
+```mermaid
+flowchart TB
+  T["1. Think<br/>what problem?<br/>what is done?"] --> S["2. Specify<br/>constraints, interfaces,<br/>tests, examples"]
+  S --> G["3. Generate small<br/>one function, one file,<br/>one step"]
+  G --> V["4. Verify<br/>run tests, read the diff,<br/>try edge cases"]
+  V --> U["5. Understand<br/>can I explain every line?<br/>why this approach?"]
+  U --> O["6. Own<br/>simplify, rename,<br/>document, commit"]
+  V -.->|"wrong or almost right"| S
+  U -.->|"don't understand"| A["Ask: explain, compare<br/>alternatives, cite docs"]
+  A --> U
+```
+
+*The two dashed loops are the point. "Almost right" goes back to the spec, not to another round of generating; confusion goes to questions, not to merging.*
 
 How much to hand off depends on two things: how risky the code is and how well I know the domain. Low-risk code in a familiar area (scripts, test scaffolding) I delegate freely. High-risk code in an unfamiliar area (auth, payments, concurrency, data pipelines) is where I slow down, learn first and write the core myself, using the AI as a reviewer. The retry change is high-risk, which is why the spec came before the code.
 
@@ -188,6 +227,34 @@ The habits that keep me sharp:
 - **Recover the story before you change behavior.** Use the assistant as an archaeologist, then confirm with the owner.
 - **Hold the map yourself.** What it does, roughly how, and how it fits. If nobody holds it, the code starts out decaying.
 - **Be the architect.** AI builds good walls to a spec. Deciding where the walls go and which are load-bearing is still your job.
+
+The whole post on one page:
+
+```mermaid
+mindmap
+  root((Coding with AI))
+    The hidden expert
+      Ownership and approvals
+      Contracts and Hyrum's Law
+      Readability and idioms
+      Why the fence is there
+      Operations and support
+    One-button changes
+      Clean diff
+      Hidden support cost
+      Recover knowledge first
+    Architect mindset
+      Mental map what how fit
+      Legos not bricks
+      Specs and interfaces
+    Conscious loop
+      Think specify generate
+      Verify understand own
+    Interviews
+      Read before prompting
+      Delegate small pieces
+      Narrate and verify
+```
 
 ## Where to go next
 

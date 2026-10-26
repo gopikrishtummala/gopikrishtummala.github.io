@@ -52,6 +52,25 @@ flowchart LR
 
 Each neuron takes a weighted sum of its inputs and passes it through an activation function, here the sigmoid $\sigma(z) = 1/(1+e^{-z})$, which squashes any number into the range 0 to 1.
 
+```mermaid
+flowchart LR
+  subgraph Prev["Layer l-1"]
+    A1["a₁ˡ⁻¹"]
+    A2["a₂ˡ⁻¹"]
+    A3["a₃ˡ⁻¹"]
+  end
+  subgraph Cur["Layer l, neuron i"]
+    Z["zᵢˡ = Σ wᵢⱼˡ·aⱼˡ⁻¹ + bᵢˡ"]
+    ACT["aᵢˡ = f(zᵢˡ)"]
+  end
+  A1 -->|"wᵢ₁ˡ"| Z
+  A2 -->|"wᵢ₂ˡ"| Z
+  A3 -->|"wᵢ₃ˡ"| Z
+  Z --> ACT
+```
+
+*Every neuron in every layer does the same two things: a weighted sum z, then an activation a. Our small network is this, three times.*
+
 With input $x = (1, 0)$:
 
 - Hidden neuron 1: $0.5 \times 1 + 0.4 \times 0 = 0.5$, and $\sigma(0.5) = 0.6225$.
@@ -78,6 +97,21 @@ $$\delta_{\text{out}} = (o - y)\, \sigma'(z) = (o - y)\, o\,(1 - o)$$
 
 $$\delta_i = \sigma'(z_i) \sum_k w_{ki}\, \delta_k$$
 
+```mermaid
+flowchart RL
+  subgraph Next["Layer l+1"]
+    D1["δ₁ˡ⁺¹"]
+    D2["δ₂ˡ⁺¹"]
+  end
+  subgraph Cur["Layer l"]
+    DI["δᵢˡ = f′(zᵢˡ) · Σ wₖᵢˡ⁺¹·δₖˡ⁺¹"]
+  end
+  D1 -->|"w₁ᵢˡ⁺¹"| DI
+  D2 -->|"w₂ᵢˡ⁺¹"| DI
+```
+
+*The same weights that carried signal forward carry blame backward, in the opposite direction.*
+
 That third equation is the "back" in backpropagation. Each layer's deltas are computed from the next layer's, so one pass from output to input gives every weight its gradient, at roughly the cost of one forward pass.
 
 ## Tracing the blame
@@ -90,6 +124,15 @@ Now apply the three equations to our network.
 
 - $h_1$: $0.6225 \times 0.3775 \times 0.7 \times (-0.0596) = -0.0098$
 - $h_2$: $0.5744 \times 0.4256 \times 0.8 \times (-0.0596) = -0.0117$
+
+```mermaid
+flowchart RL
+  E["Loss 0.042"] -->|"∂E/∂o"| DO["δ output = -0.0596"]
+  DO -->|"× v₁ × σ′"| DH1["δ h1 = -0.0098"]
+  DO -->|"× v₂ × σ′"| DH2["δ h2 = -0.0117"]
+```
+
+*The blame for our one mistake, flowing from the loss back to each hidden neuron.*
 
 **Gradients,** each delta times the input its weight saw:
 

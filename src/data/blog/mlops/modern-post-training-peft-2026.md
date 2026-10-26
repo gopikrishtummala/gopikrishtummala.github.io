@@ -39,11 +39,11 @@ Pre-training gave the model knowledge. Post-training gives it behavior: answer i
 
 ```mermaid
 flowchart LR
-  B["Base model<br/>knows SQL,<br/>doesn't follow instructions"] --> S["Supervised fine-tuning<br/>question and good SQL pairs"]
-  S --> P["Preference tuning<br/>better vs worse answers"]
-  P --> R["RL with checkable rewards<br/>run the query, compare results"]
-  R --> M["Ship, or merge with<br/>other fine-tunes"]
-  L["LoRA / QLoRA<br/>train small adapters,<br/>keep the base frozen"] -.-> S
+  B["Base model<br/>Llama, Mistral, Qwen<br/>knows SQL, doesn't<br/>follow instructions"] --> S["Supervised fine-tuning<br/>10K to 1M prompt and<br/>ideal-answer pairs"]
+  S --> P["Preference tuning<br/>DPO: better vs worse<br/>style, safety, correctness"]
+  P --> R["RL with checkable rewards<br/>GRPO: run the query,<br/>compare results"]
+  R --> M["Ship, or merge<br/>specialists with<br/>TIES or DARE"]
+  L["LoRA / QLoRA / DoRA<br/>train 0.1 to 1% of params,<br/>keep the base frozen"] -.-> S
   L -.-> P
   L -.-> R
 ```
@@ -62,9 +62,49 @@ Updating every weight of a large model needs enormous memory (see [Training Fram
 
 $$W = W_0 + BA$$
 
+```mermaid
+flowchart LR
+  X["x<br/>input"] --> W0["W0, d x k<br/>frozen weights"]
+  X --> A["A, r x k<br/>random init"]
+  A --> B["B, d x r<br/>zero init"]
+  B --> S["scale by alpha / r"]
+  W0 --> Add(("+"))
+  S --> Add
+  Add --> H["h = W0 x + BA x"]
+  classDef frozen fill:#6366f1,color:#fff,stroke:#4f46e5
+  classDef train fill:#10b981,color:#fff,stroke:#059669
+  class W0 frozen
+  class A,B,S train
+```
+
+*The frozen path (blue) is the original layer. The trainable path (green) is a thin detour through rank r; because B starts at zero, the detour adds nothing until training moves it.*
+
 If $W_0$ is $d \times k$, then $B$ is $d \times r$ and $A$ is $r \times k$, with a small rank $r$ like 16. For a 4096×4096 layer, that's about 131,000 trainable numbers instead of 16.8 million. $B$ starts at zero, so the model begins exactly where the base model was and drifts only as far as training pushes it. The adapter is a few hundred megabytes, so you can keep one per task and swap them.
 
-QLoRA goes further by storing the frozen base model in 4-bit precision while training the adapters in higher precision. That's what puts a 70B model on a single 80 GB GPU: about 35 GB for the 4-bit base, a few GB for adapters and their optimizer state, and the rest for activations. [DoRA](https://arxiv.org/abs/2402.09353) is a variant that learns the size and direction of each weight change separately and usually beats plain LoRA at the same rank.
+QLoRA goes further by storing the frozen base model in 4-bit precision while training the adapters in higher precision. That's what puts a 70B model on a single 80 GB GPU: about 35 GB for the 4-bit base, a few GB for adapters and their optimizer state, and the rest for activations.
+
+```mermaid
+flowchart TD
+  subgraph GPU["One 80 GB H100"]
+    QW["Base model in NF4, 4-bit<br/>about 35 GB for 70B, frozen"]
+    AB["LoRA A and B in BF16<br/>about 0.5 GB at r=16"]
+    DQ["Dequantize to BF16<br/>on the fly, per layer"]
+    Gr["BF16 gradients<br/>about 1 GB"]
+    Ac["Activations<br/>about 8 GB"]
+  end
+  subgraph CPU["CPU RAM"]
+    Opt["Adam state for adapters<br/>about 2 GB, paged out<br/>only under memory pressure"]
+  end
+  QW -->|"dequantize"| DQ
+  DQ --> Gr
+  DQ --> Ac
+  AB --> Gr
+  Gr -->|"page on demand"| Opt
+```
+
+*Approximate sizes. QLoRA's tricks: 4-bit NormalFloat for the frozen base, quantizing the quantization constants too, and paged optimizer state that spills to CPU memory during spikes instead of crashing.*
+
+ [DoRA](https://arxiv.org/abs/2402.09353) is a variant that learns the size and direction of each weight change separately and usually beats plain LoRA at the same rank.
 
 For the SQL assistant, a LoRA adapter trained on your question and query pairs is often all the training you need to start.
 
@@ -88,9 +128,40 @@ The model is then pushed toward its better-than-average answers and away from th
 
 The risk is reward hacking. If the reward only checks that the query runs, the model learns to write queries that run. Reward what you actually care about, the correct result, and keep a held-out set of questions people check by hand.
 
+The three ways to tune on preferences and rewards, side by side:
+
+```mermaid
+flowchart TD
+  subgraph RLHF["RLHF, classic"]
+    R1["Human preference pairs"] --> R2["Separate reward model"] --> R3["PPO loop with a critic<br/>unstable, memory hungry"] --> R4["Aligned model"]
+  end
+  subgraph DPO["DPO, 2023"]
+    D1["Same preference pairs"] --> D2["Closed-form loss<br/>no reward model"] --> D3["Aligned model"]
+  end
+  subgraph GRPO["GRPO, DeepSeekMath 2024 and R1 2025"]
+    G1["Batch of prompts"] --> G2["G answers per prompt"] --> G3["Score with a verifier<br/>rules or an LLM judge"] --> G4["Normalize within the group"] --> G5["Policy gradient<br/>no critic"] --> G6["Reasoning model"]
+  end
+```
+
+*Each newer method removes a moving part: DPO drops the reward model and RL loop, GRPO drops the critic by using the group as its own baseline.*
+
 ## Keeping what the model already knew
 
 Fine-tuning narrowly can cost general ability. After heavy SQL training, the assistant might get worse at explaining its queries in plain English, and preference tuning toward caution can make it refuse ordinary requests. Three practical defenses:
+
+```mermaid
+flowchart LR
+  Base["Base model<br/>capable, unaligned"] -->|"SFT only"| Under["Under-aligned<br/>wrong format,<br/>harmful outputs"]
+  Base -->|"heavy DPO, low beta,<br/>refusal-heavy data"| Over["Over-aligned<br/>refuses benign requests"]
+  Base -->|"SFT, no replay"| Forget["Capability collapse<br/>forgets math after<br/>medical SFT"]
+  Base -->|"SFT + DPO + replay<br/>+ the right beta"| Target["Capable and aligned"]
+  classDef good fill:#10b981,color:#fff,stroke:#059669
+  classDef bad fill:#ef4444,color:#fff,stroke:#dc2626
+  class Target good
+  class Under,Over,Forget bad
+```
+
+*Three common ways to land in the wrong place, and the recipe that usually avoids them.*
 
 - **Mix in general data.** A small share of general instruction data in each training stage reminds the model of everything else it should still do. InstructGPT applied the same idea during its RL phase by mixing in pre-training updates.
 - **Prefer a lower LoRA rank first.** A smaller adapter makes a smaller change. Raise the rank only if the task needs it.
@@ -103,6 +174,33 @@ Fine-tuning narrowly can cost general ability. After heavy SQL training, the ass
 - **Preferences are easier to give than perfect answers.** DPO learns directly from pairs; β is the leash to the starting model.
 - **If you can check answers, use reinforcement learning.** GRPO compares a group of attempts and needs no critic.
 - **Protect general ability.** Mix in general data, keep changes small, and evaluate on more than the target task.
+
+The whole module on one page:
+
+```mermaid
+mindmap
+  root((Post-training))
+    SFT
+      Loss on answer tokens only
+      Chat template must match
+      Quality over quantity
+    PEFT
+      LoRA trains r times d plus k
+      QLoRA NF4 base
+      DoRA magnitude and direction
+    Preference
+      DPO with no reward model
+      Beta is the leash
+      Reference log-probs
+    RL
+      PPO with a critic
+      GRPO group baseline
+      Verifiable rewards
+    Keep capabilities
+      Replay data
+      Merge with base
+      TIES and DARE
+```
 
 ## Where to go next
 

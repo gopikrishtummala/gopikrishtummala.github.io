@@ -38,12 +38,13 @@ These look like three different fields, and the papers use three different vocab
 ## The idea in one picture
 
 ```mermaid
-flowchart LR
-  D["Data<br/>collect, filter,<br/>re-caption"] --> T["Tokens<br/>pixels to vectors"]
+flowchart TB
+  D["Data<br/>crawl, filter,<br/>re-caption"] --> T["Tokens<br/>pixels to vectors<br/>ViT or VAE"]
   T --> P["Pre-train<br/>billions of noisy pairs"]
   P --> S["Fine-tune<br/>small, curated set"]
-  S --> R["Reward<br/>preferences and RL"]
-  R --> E["Evaluate<br/>benchmarks, judges,<br/>people"]
+  S --> R["Reward<br/>preferences and RL<br/>DPO, GRPO, reward models"]
+  R --> X["Distill and serve<br/>fewer steps,<br/>smaller models"]
+  X --> E["Evaluate<br/>benchmarks, judges,<br/>human arenas"]
   E -.->|"failures become<br/>new data"| D
 ```
 
@@ -72,11 +73,37 @@ Two practices fix most of that:
 - **Filtering in stages:** remove duplicates, unsafe content and low-quality images, then (for video) split clips at scene cuts and drop clips with no motion. For video it's normal to keep only a small fraction of the raw footage.
 - **Re-captioning:** use a captioning model to write a detailed description of every image or clip ("a golden retriever leaps to catch a red frisbee, wet sand, low sun behind it"). OpenAI's [DALL·E 3 report](https://cdn.openai.com/papers/dall-e-3.pdf) showed that training on detailed synthetic captions made image models follow prompts much better, and nearly every serious model since has done some version of it, usually mixing short and long captions so the model still handles lazy prompts.
 
+The full funnel, which every large pipeline follows in some form:
+
+```mermaid
+flowchart TD
+  A["Raw crawl or licensed pool<br/>billions of images, millions of hours"] --> B["Basic hygiene<br/>dedupe by perceptual hash, corrupt files,<br/>resolution and aspect filters"]
+  B --> C["Safety and legal<br/>NSFW, CSAM hash match, faces and PII policy,<br/>licenses and opt-out lists"]
+  C --> Q["Quality models<br/>aesthetic score, blur, watermarks,<br/>share of the image that is text"]
+  Q --> E["Video only<br/>split at shot boundaries, motion score from optical flow,<br/>drop shaky and static clips"]
+  E --> F["Semantic balancing<br/>cluster embeddings, cap common concepts,<br/>boost the long tail"]
+  F --> G["Re-captioning<br/>a VLM writes short and dense captions;<br/>for video, per shot with camera and motion terms"]
+  G --> H["Training buckets<br/>by resolution, aspect ratio,<br/>duration, quality tier"]
+```
+
+*Each stage throws data away. The ones near the bottom, balancing and re-captioning, are where a team's data quality really comes from.*
+
 The [Molmo and PixMo](https://arxiv.org/abs/2409.17146) work makes the same point from the other direction. Its authors wanted a strong open VLM without copying outputs from closed models, and the main thing that worked was better human data: annotators *spoke* detailed descriptions of images, because people say far more than they type. If a capability isn't in the data, no training trick will find it.
 
 ## How a model learns to see and talk
 
 Most VLMs are three parts glued together: a vision encoder that produces understanding tokens, a small connector that translates them into the language model's embedding space, and a language model that reads those tokens alongside your question. A few designs instead let the language model look at the image through cross-attention layers, and some newer models are trained on images and text together from the start.
+
+```mermaid
+flowchart LR
+  I["Image or video frames"] --> V["Vision encoder<br/>SigLIP-style ViT,<br/>dynamic resolution"]
+  V --> C["Connector<br/>MLP plus token merging,<br/>or Q-Former, or cross-attention"]
+  T["Text prompt"] --> L["Language model<br/>dense or mixture-of-experts"]
+  C --> L
+  L --> O["Text out"]
+```
+
+*The three parts of almost every VLM. The connector is small, but it's the piece trained first.*
 
 Training happens in stages, and the order matters. [Qwen3-VL's report](https://arxiv.org/abs/2511.21631) is a good recent example. First only the connector is trained, with the vision encoder and language model frozen, because a randomly initialized connector would otherwise send noisy updates into two expensive pre-trained models. Then everything is trained together on about a trillion tokens of mixed image, video and text data. Later stages extend the context so the model can handle long documents and hour-long video. Text-only data stays in the mix throughout; without it, the language model gets noticeably worse at plain reasoning.
 
@@ -96,6 +123,17 @@ $$x_t = (1-t)\,x_0 + t\,\epsilon,$$
 
 and teach the network to predict which way along that line to move at any point. At generation time you start from noise and follow those predictions back to an image. Straighter paths need fewer steps. The [Sampling and Guidance](/posts/generative-ai/sampling-guidance-diffusion-models) post covers the step-by-step side, including classifier-free guidance, the dial that trades variety for prompt-following.
 
+```mermaid
+flowchart LR
+  P["Prompt"] --> TE["Text encoders<br/>CLIP and T5, or an LLM or VLM"]
+  N["Noise in latent space"] --> DIT
+  TE --> DIT["Diffusion Transformer<br/>MMDiT: joint text and image attention,<br/>timestep via adaLN"]
+  DIT -->|"N sampling steps<br/>ODE solver"| Z["Clean latent"]
+  Z --> VD["VAE decoder"] --> IMG["Image"]
+```
+
+*A modern text-to-image model. The prompt is encoded once; the transformer runs once per sampling step; the VAE decoder turns the final latent into pixels.*
+
 Pre-training happens at low resolution first (where the model learns what a dog is and where frisbees go) and then at higher resolutions (where it learns fur and sand). Post-training then improves how the images look and how well they follow prompts:
 
 - **Quality tuning** on a few thousand hand-picked images. Meta's [Emu paper](https://arxiv.org/abs/2309.15807) showed this small step noticeably improves visual appeal.
@@ -114,6 +152,19 @@ Three choices shape most video models:
 - **Compress time as well as space.** A causal video VAE encodes the first frame on its own and then every four frames together, so a single image is just a one-frame video and the same model can train on both.
 - **Learn appearance from images first.** Meta's [Movie Gen](https://arxiv.org/abs/2410.13720) starts training on images only, then mixes in short, low-resolution clips, then longer and sharper ones. Images are cheap tokens for learning what things look like; expensive video tokens are saved for learning how things move.
 - **Split the work by noise level.** Wan 2.2 uses two expert networks: one for the early, very noisy steps that set layout and motion, and one for the late steps that add detail. Each step only runs one of them.
+
+The standard training curriculum for a video model, end to end:
+
+```mermaid
+flowchart LR
+  A["Text-to-image pre-train<br/>low res, images only"] --> B["Joint image and video<br/>low res, short clips"]
+  B --> C["Raise resolution<br/>and duration"]
+  C --> D["High-quality fine-tune<br/>curated, cinematic"]
+  D --> E["Preference and RL<br/>motion, alignment,<br/>text, physics rewards"]
+  E --> F["Distill<br/>few-step, causal,<br/>streaming"]
+```
+
+*Wan, HunyuanVideo, Seedance and others follow this skeleton with their own twists.*
 
 Video models still struggle with physics, objects that disappear when hidden, and keeping a face consistent over a minute. The [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models) post goes into that.
 
