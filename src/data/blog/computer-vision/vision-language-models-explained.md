@@ -97,6 +97,7 @@ VLMs are impressive and still unreliable in specific ways:
 
 - [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end), for how today's VLMs and image and video generators are trained end to end.
 - [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), for one modern open VLM followed from training to deployment.
+- [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), the next step: VLMs that act, for robots and cars.
 - [An Introduction to Vision-Language Modeling](https://arxiv.org/abs/2405.17247), a long tutorial from Meta.
 - The original papers linked above, especially CLIP and LLaVA, which are both readable.
 

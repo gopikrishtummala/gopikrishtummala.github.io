@@ -65,7 +65,7 @@ The fast path is a driving network that runs on every frame and handles lane kee
 
 The next step is a single model that sees, reasons and acts, usually called a vision-language-action (VLA) model. Camera frames, the navigation instruction and the vehicle's state all go in as tokens, the same way words go into a language model. What comes out is also tokens, but some of them are actions: steering and speed targets, trajectory waypoints, or, for a robot arm, joint commands.
 
-Robotics has pushed this furthest. Physical Intelligence's [π0](https://arxiv.org/abs/2410.24164) and NVIDIA's [GR00T N1](https://arxiv.org/abs/2503.14734) are trained on data from many different robots, on the bet that a model learns general physical common sense from all of them: objects fall, momentum carries, things collide. For driving, the hope is the same. A model that has learned how bodies move and interact in general should handle more rare situations without a rule for each one.
+Robotics has pushed this furthest. Physical Intelligence's [π0](https://arxiv.org/abs/2410.24164) and NVIDIA's [GR00T N1](https://arxiv.org/abs/2503.14734) are trained on data from many different robots, on the bet that a model learns general physical common sense from all of them: objects fall, momentum carries, things collide. For driving, the hope is the same. A model that has learned how bodies move and interact in general should handle more rare situations without a rule for each one. [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation) goes deeper on how these models are trained and evaluated.
 
 ```mermaid
 flowchart TD
@@ -115,6 +115,7 @@ Two other practical constraints shape these systems. Large models are too slow f
 
 ## Where to go next
 
+- [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), the deep dive: training data and how it's curated, action outputs, and evaluation, with Qwen-Drive and Alpamayo-R1 as driving examples.
 - [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end), for how the underlying vision-language and video models are built.
 - [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy), for generating trajectories with diffusion models.
 - Papers: [EMMA](https://arxiv.org/abs/2410.23262), [π0](https://arxiv.org/abs/2410.24164), [GR00T N1](https://arxiv.org/abs/2503.14734), [GAIA-1](https://arxiv.org/abs/2309.17080), [Cosmos](https://arxiv.org/abs/2501.03575).

@@ -202,6 +202,7 @@ For our support team, one or two GPUs are plenty; expert parallelism matters whe
 - [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-a-model-learns-to-see-and-talk), for VLM data and training alongside image and video generators.
 - [LLM Serving with vLLM](/posts/mlops/vllm-trilogy-of-modern-llm-scaling) and [Life of a Request](/posts/mlops/life-of-a-tensor-production-inference), for the serving side.
 - [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify), the next step for this team: faster replies without changing a word of them.
+- [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), for what happens when a model like this is taught to drive or move a robot.
 - Papers: [Qwen3-VL](https://arxiv.org/abs/2511.21631), [Qwen3](https://arxiv.org/abs/2505.09388), [Switch Transformer](https://arxiv.org/abs/2101.03961), [DeepSeek-V3](https://arxiv.org/abs/2412.19437), and the Qwen team's [global-batch balancing](https://arxiv.org/abs/2501.11873).
 
 **Questions to sit with**

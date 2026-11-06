@@ -207,6 +207,7 @@ On this site:
 - [Video Diffusion: The Fourth Dimension](/posts/generative-ai/video-diffusion-fundamentals) and [The Training Lifecycle](/posts/generative-ai/pre-training-post-training-video-diffusion).
 - [Post-Training Playbook](/posts/mlops/modern-post-training-peft-2026) for SFT, DPO and GRPO in text models.
 - [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), a gentler introduction to VLMs.
+- [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), for VLMs that output robot and driving actions.
 - [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), one VLM in depth, including how its mixture-of-experts router is trained and how it's deployed.
 
 Courses and tutorials:
