@@ -105,7 +105,7 @@ flowchart LR
 
 *The three parts of almost every VLM. The connector is small, but it's the piece trained first.*
 
-Training happens in stages, and the order matters. [Qwen3-VL's report](https://arxiv.org/abs/2511.21631) is a good recent example. First only the connector is trained, with the vision encoder and language model frozen, because a randomly initialized connector would otherwise send noisy updates into two expensive pre-trained models. Then everything is trained together on about a trillion tokens of mixed image, video and text data. Later stages extend the context so the model can handle long documents and hour-long video. Text-only data stays in the mix throughout; without it, the language model gets noticeably worse at plain reasoning.
+Training happens in stages, and the order matters. [Qwen3-VL's report](https://arxiv.org/abs/2511.21631) is a good recent example, walked through stage by stage in [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy). First only the connector is trained, with the vision encoder and language model frozen, because a randomly initialized connector would otherwise send noisy updates into two expensive pre-trained models. Then everything is trained together on about a trillion tokens of mixed image, video and text data. Later stages extend the context so the model can handle long documents and hour-long video. Text-only data stays in the mix throughout; without it, the language model gets noticeably worse at plain reasoning.
 
 After pre-training comes post-training, which shapes behavior:
 
@@ -207,6 +207,7 @@ On this site:
 - [Video Diffusion: The Fourth Dimension](/posts/generative-ai/video-diffusion-fundamentals) and [The Training Lifecycle](/posts/generative-ai/pre-training-post-training-video-diffusion).
 - [Post-Training Playbook](/posts/mlops/modern-post-training-peft-2026) for SFT, DPO and GRPO in text models.
 - [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), a gentler introduction to VLMs.
+- [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), one VLM in depth, including how its mixture-of-experts router is trained and how it's deployed.
 
 Courses and tutorials:
 

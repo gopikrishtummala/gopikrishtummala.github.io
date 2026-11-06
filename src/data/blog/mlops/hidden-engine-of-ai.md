@@ -169,7 +169,7 @@ flowchart TB
 - **Tensor parallelism** splits each large matrix multiplication across several GPUs. It needs communication inside every layer, so it only works over the very fast links within a single server, such as NVLink.
 - **Pipeline parallelism** puts different layers on different servers: the first quarter of the layers on one, the next quarter on another. Data flows through like an assembly line, split into micro-batches to keep every stage busy. The idle time at the start and end, called the pipeline bubble, shrinks as you use more micro-batches.
 
-A typical layout for our 70B model on 256 GPUs: 8-way tensor parallelism inside each 8-GPU server, 4-way pipeline parallelism across four servers, and 8 copies of that arrangement doing data parallelism. Combining all three is usually called 3D parallelism. The rule behind the layout is to put the most communication-hungry split on the fastest links.
+A typical layout for our 70B model on 256 GPUs: 8-way tensor parallelism inside each 8-GPU server, 4-way pipeline parallelism across four servers, and 8 copies of that arrangement doing data parallelism. Combining all three is usually called 3D parallelism. Mixture-of-experts models add a fourth, expert parallelism, which spreads experts across GPUs (see [how the router and experts learn](/posts/generative-ai/vlm-moe-qwen-train-to-deploy#how-the-router-and-experts-learn)). The rule behind the layout is to put the most communication-hungry split on the fastest links.
 
 ```mermaid
 flowchart TD

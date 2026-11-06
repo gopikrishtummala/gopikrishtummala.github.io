@@ -152,6 +152,7 @@ mindmap
 ## Where to go next
 
 - [Life of a Request](/posts/mlops/life-of-a-tensor-production-inference), the next module: everything around the GPU, from the network to streaming.
+- [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy#deploying-it), for serving mixture-of-experts and vision-language models, including expert parallelism.
 - The [vLLM paper](https://arxiv.org/abs/2309.06180) and [docs](https://docs.vllm.ai/).
 - Leviathan et al., [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192).
 

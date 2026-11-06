@@ -74,7 +74,7 @@ It worked far better than expected. A thin adapter, trained on the right convers
 
 ## Natively multimodal models
 
-The latest step removes the seams. Instead of attaching vision to a finished language model, models like Google's Gemini are trained on text, images, audio and video together from the start. Their internals are mostly not public, but the direction is clear: one model that treats every modality as a first-class input.
+The latest step removes the seams. Instead of attaching vision to a finished language model, models like Google's Gemini are trained on text, images, audio and video together from the start. Their internals are mostly not public, but the direction is clear: one model that treats every modality as a first-class input. Open models have moved fast too; [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy) walks through one of them, from how it reads a screenshot to how it's served.
 
 ## Where they still struggle
 
@@ -96,6 +96,7 @@ VLMs are impressive and still unreliable in specific ways:
 ## Where to go next
 
 - [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end), for how today's VLMs and image and video generators are trained end to end.
+- [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), for one modern open VLM followed from training to deployment.
 - [An Introduction to Vision-Language Modeling](https://arxiv.org/abs/2405.17247), a long tutorial from Meta.
 - The original papers linked above, especially CLIP and LLaVA, which are both readable.
 

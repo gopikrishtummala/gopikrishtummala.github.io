@@ -207,6 +207,7 @@ mindmap
 - Nathan Lambert's free [RLHF Book](https://rlhfbook.com/), the clearest longer treatment of everything here.
 - Papers: [LoRA](https://arxiv.org/abs/2106.09685), [QLoRA](https://arxiv.org/abs/2305.14314), [DPO](https://arxiv.org/abs/2305.18290), [DeepSeekMath (GRPO)](https://arxiv.org/abs/2402.03300).
 - [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end), for the same steps applied to vision-language and image models.
+- [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy#how-qwen3-vl-is-trained), for post-training one specific VLM, and why to be careful fine-tuning a mixture-of-experts router.
 - [LLM Serving with vLLM](/posts/mlops/vllm-trilogy-of-modern-llm-scaling), the next part of this series.
 
 Previous: [Training Frameworks](/posts/mlops/hidden-engine-of-ai). Next: [LLM Serving with vLLM](/posts/mlops/vllm-trilogy-of-modern-llm-scaling).
