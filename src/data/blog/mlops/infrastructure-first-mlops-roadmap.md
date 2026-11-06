@@ -108,7 +108,7 @@ flowchart BT
 
 *Read from the bottom up. A data format chosen in Module 1 decides whether the serving system in Module 5 can scale.*
 
-Two companion posts go deeper on pieces that span several modules: [Beyond Parquet: Lance](/posts/mlops/lance-lancedb-data-layer-for-ml), next to Modules 1 and 2, and [the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production), the distributed runtime under parts of Modules 2, 3, 5 and 8. [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) applies the same stack to vision and video models.
+Two companion posts go deeper on pieces that span several modules: [Beyond Parquet: Lance](/posts/mlops/lance-lancedb-data-layer-for-ml), next to Modules 1 and 2, and [the Ray Field Guide](/posts/mlops/ray-field-guide-core-to-production), the distributed runtime under parts of Modules 2, 3, 5 and 8. [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify) sits next to Module 5, and [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) and [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy) apply the same stack to vision-language models.
 
 ## Three ways through
 

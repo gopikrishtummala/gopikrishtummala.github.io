@@ -110,7 +110,7 @@ They interfere. A user who pastes a 30-page document triggers a long prefill tha
 Two more techniques show up in almost every deployment:
 
 - **Quantization** stores weights, and sometimes the KV cache, in 8 or 4 bits instead of 16. That's how our 70B model fits on one GPU at all. 8-bit is usually close to lossless; 4-bit methods like [AWQ](https://arxiv.org/abs/2306.00978) lose a little, depending on the task. Native 8-bit math needs Hopper-generation GPUs or newer.
-- **Speculative decoding** uses a small, fast draft model to guess the next several tokens, then has the big model check all of them in one step. Because decoding is memory-bound, checking several tokens costs about the same as generating one, and a careful acceptance rule guarantees the output is exactly what the big model would have produced. It helps most when the guesses are usually right and the batch is small.
+- **Speculative decoding** uses a small, fast draft model to guess the next several tokens, then has the big model check all of them in one step. Because decoding is memory-bound, checking several tokens costs about the same as generating one, and a careful acceptance rule guarantees the output is exactly what the big model would have produced. It helps most when the guesses are usually right and the batch is small; [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify) covers the methods and the limits.
 
 ## What I'd remember
 
@@ -152,6 +152,7 @@ mindmap
 ## Where to go next
 
 - [Life of a Request](/posts/mlops/life-of-a-tensor-production-inference), the next module: everything around the GPU, from the network to streaming.
+- [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify), for getting several tokens out of one decode step.
 - [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy#deploying-it), for serving mixture-of-experts and vision-language models, including expert parallelism.
 - The [vLLM paper](https://arxiv.org/abs/2309.06180) and [docs](https://docs.vllm.ai/).
 - Leviathan et al., [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192).

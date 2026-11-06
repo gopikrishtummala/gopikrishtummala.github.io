@@ -154,7 +154,7 @@ vllm serve Qwen/Qwen3-VL-30B-A3B-Instruct --max-model-len 32768
 
 Then they meet the things the model card doesn't emphasize.
 
-**Memory goes by total parameters, speed goes by active ones.** At 16 bits, 30B parameters are about 60 GB. On an 80 GB GPU that leaves little room for the KV cache, so the team either uses an 8-bit (FP8) version at about 30 GB or splits the model across two GPUs. Once loaded, though, generation feels like a much smaller model. As the [Life of a Request post](/posts/mlops/life-of-a-tensor-production-inference#on-the-gpu-two-very-different-phases) explains, decoding is limited by how many bytes of weights each step reads, and a single request only reads its 8 experts per layer. With a large batch the picture changes: different requests hit different experts, so each step ends up reading most of them, but it also serves many tokens at once.
+**Memory goes by total parameters, speed goes by active ones.** At 16 bits, 30B parameters are about 60 GB. On an 80 GB GPU that leaves little room for the KV cache, so the team either uses an 8-bit (FP8) version at about 30 GB or splits the model across two GPUs. Once loaded, though, generation feels like a much smaller model. As the [Life of a Request post](/posts/mlops/life-of-a-tensor-production-inference#on-the-gpu-two-very-different-phases) explains, decoding is limited by how many bytes of weights each step reads, and a single request only reads its 8 experts per layer. With a large batch the picture changes: different requests hit different experts, so each step ends up reading most of them, but it also serves many tokens at once. The same effect limits [speculative decoding](/posts/mlops/speculative-decoding-guess-and-verify#when-it-stops-helping) on MoE models, since checking several guessed tokens touches several sets of experts.
 
 **Images are the hidden prefill cost.** Our screenshot is about 900 tokens before the question is even read, and a phone screenshot at full resolution can be several thousand. Every image token goes through prefill, which sets the time to the first word. Capping the image size in the processor at what the task actually needs is usually the single biggest latency win. For billing dashboards, the team keeps enough resolution to read amounts and no more.
 
@@ -201,6 +201,7 @@ For our support team, one or two GPUs are plenty; expert parallelism matters whe
 - [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), for how VLMs got here, from CLIP to LLaVA.
 - [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-a-model-learns-to-see-and-talk), for VLM data and training alongside image and video generators.
 - [LLM Serving with vLLM](/posts/mlops/vllm-trilogy-of-modern-llm-scaling) and [Life of a Request](/posts/mlops/life-of-a-tensor-production-inference), for the serving side.
+- [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify), the next step for this team: faster replies without changing a word of them.
 - Papers: [Qwen3-VL](https://arxiv.org/abs/2511.21631), [Qwen3](https://arxiv.org/abs/2505.09388), [Switch Transformer](https://arxiv.org/abs/2101.03961), [DeepSeek-V3](https://arxiv.org/abs/2412.19437), and the Qwen team's [global-batch balancing](https://arxiv.org/abs/2501.11873).
 
 **Questions to sit with**

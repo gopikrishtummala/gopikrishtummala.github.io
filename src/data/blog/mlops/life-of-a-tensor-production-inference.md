@@ -155,6 +155,7 @@ One measurement to be careful with: the "GPU utilization" figure in `nvidia-smi`
 
 - [LLM Serving with vLLM](/posts/mlops/vllm-trilogy-of-modern-llm-scaling), for memory management and continuous batching in detail.
 - [Custom Kernels](/posts/mlops/custom-kernel-craze), the next module: why moving data dominates GPU time.
+- [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify), for using decode's idle compute to produce several tokens per step.
 - [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy#deploying-it), for what changes when the request carries an image and the model is a mixture of experts.
 - The [Orca paper](https://www.usenix.org/conference/osdi22/presentation/yu), which introduced continuous batching.
 
