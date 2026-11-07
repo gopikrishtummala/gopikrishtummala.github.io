@@ -165,7 +165,7 @@ Radar uses radio waves. Unlike lasers, radio waves go *through* rain and fog.
 
 There are currently two competing sensor suite architectures in the automotive industry.
 
-**1. The Redundant Suite (Waymo Gen 6, Zoox)**
+**1. The Redundant Suite (e.g., Waymo Gen 6)**
 *   **Design:** 13 Cameras, 6 Radars, 4 LiDARs, and Audio receivers.
 *   **Reasoning:** "Redundancy by Physics." If the sun blinds a camera, the LiDAR provides depth. If fog blinds the LiDAR, Radar tracks velocity. 
 *   **Trade-off:** High cost (thousands of dollars per car), massive data processing requirements, and complex calibration. However, it is the only architecture currently approved for driverless L4 operation.

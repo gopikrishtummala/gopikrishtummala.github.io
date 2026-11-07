@@ -191,7 +191,7 @@ flowchart TD
 
 *The win isn't speed; it's deleting the sync jobs. One table, one version number, nothing to drift.*
 
-This shape is familiar from my own work. A Zoox patent, [US 12,668,281](https://patents.justia.com/patent/12668281), describes storing clusters of driving scenarios as encoded keys with associated prediction information for vehicles to look up. That's an embedding-keyed lookup over a large log corpus, the kind of workload vector-native tables are designed for. The patent doesn't involve Lance; I mention it for the pattern.
+The same shape shows up in autonomous driving: store clusters of driving scenarios as encoded keys, with prediction information attached, for vehicles to look up. That's an embedding-keyed lookup over a large log corpus, the kind of workload vector-native tables are designed for.
 
 ## Reading the numbers honestly
 

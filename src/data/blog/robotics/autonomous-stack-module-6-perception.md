@@ -97,7 +97,7 @@ Instead of asking "Is this a car?", we ask: **"Is this voxel occupied, what is i
 *   **Temporal:** It was at $(x,y)$ and is now at $(x', y')$.
 
 #### 2. BEV Transformers (Mature Architecture)
-In production stacks (Waymo, Tesla, Zoox), the "gold standard" is the **BEV Transformer**.
+In production stacks (Waymo, Tesla and others), the "gold standard" is the **BEV Transformer**.
 
 ```mermaid
 graph TD

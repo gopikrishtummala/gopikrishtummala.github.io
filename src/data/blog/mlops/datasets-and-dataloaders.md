@@ -91,7 +91,7 @@ mindmap
 
 Your H100 can do roughly 1,000 TFLOPS of dense BF16 compute (about 2,000 with structured sparsity). A typical LLM forward pass on a 2048-token sequence at batch size 8 takes ~400ms of pure compute. If your dataloader takes 600ms to prepare the next batch, your **effective GPU utilization is 40%**. You are paying for a sports car and driving it in traffic.
 
-This is not theoretical. At Zoox, running distributed prediction model training across 32 A100s, our first profiling run showed 58% GPU utilization. The culprit: JPEG image decompression in Python workers, with a `num_workers` value set by someone who had never read the documentation.
+This is not theoretical. On one distributed prediction-model training job across 32 A100s, our first profiling run showed 58% GPU utilization. The culprit: JPEG image decompression in Python workers, with a `num_workers` value set by someone who had never read the documentation.
 
 The data pipeline is always the underdog of ML system design interviews. That's exactly why you should know it cold.
 
