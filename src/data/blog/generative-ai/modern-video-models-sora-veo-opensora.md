@@ -1,168 +1,123 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'The Frontier: Sora, Veo, and the Future of Video'
+modDatetime: 2026-11-08T00:00:00Z
+title: "Modern Video Models: What Sora, Veo, Movie Gen and the Open Models Show"
 slug: modern-video-models-sora-veo-opensora
 featured: true
 draft: false
 tags:
   - generative-ai
-  - video-diffusion
-  - sora
-  - world-models
-  - computer-vision
-description: 'Exploring the state-of-the-art in video generation. Learn how Sora and Veo use Spatiotemporal Transformers to simulate the physical world, and the challenges of achieving perfect motion fidelity.'
+  - diffusion-models
+  - video-generation
+description: "A tour of the video generators that defined the field and what each one revealed: Sora's spacetime patches, Movie Gen's fully published recipe, Veo's native audio, and open models like HunyuanVideo, CogVideoX, Wan and Open-Sora that brought the recipe to anyone with GPUs."
 track: GenAI Systems
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - Theory
   - System Design
-  - ML-Infra
-estimated_read_time: 45
+estimated_read_time: 9
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*A tour of the video generators that defined the field and what each one revealed: Sora's spacetime patches, Movie Gen's fully published recipe, Veo's native audio, and the open models that brought the recipe to anyone with GPUs.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series — The Generative Engine</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/generative-ai/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
-    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Architectures</a>
-    <a href="/posts/generative-ai/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
-    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Models</a>
-    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Training Lifecycle</a>
-    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Policy</a>
-    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 7: The Frontier</a>
-    <a href="/posts/generative-ai/physics-aware-video-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 8: Physics-Aware AI</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 7: The Frontier</strong> — Sora, Veo, and Beyond</div>
-</div>
+Part 7 of 8 in the [diffusion series](/posts/generative-ai/diffusion-from-molecules-to-machines). Previous: [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy). Next: [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models).
 
 ---
 
-### Act 0: Video Foundations in Plain English
+[Part 4](/posts/generative-ai/video-diffusion-fundamentals) explained how video diffusion works in general: a video VAE that compresses time, a transformer attending across space and time, and the whole clip denoised together. This part looks at the specific systems, because each major release taught the field something different, and the details they chose to publish, or not, shape what everyone else builds.
 
-Imagine you are trying to flip through a notebook to create a "flipbook" animation of a dancing man.
+Give each of them the same prompt, the red fox leaping into a snowbank from earlier parts, and they'd all produce something plausible. The differences are in what's underneath: how big the model is, what it was trained on, whether it makes sound, and whether you can download it.
 
-1.  **Image Diffusion:** Is like drawing one perfect page of the notebook.
-2.  **Video Diffusion:** Is like making sure that if the man's arm is up on Page 1, it's only *slightly* moved on Page 2, and not suddenly replaced by a leg.
-
-**Sora** and **Veo** are the ultimate flipbook artists. They don't just draw one page at a time; they treat the whole notebook as a single **3D block of paper**. They look at the height, the width, and the **Time** all at once. This allows them to "understand" that if a man walks behind a tree, he should reappear on the other side, not vanish into thin air.
-
----
-
-### Act I: Video as Spatiotemporal Patches
-
-The breakthrough of Sora (OpenAI 2024) was treating video like **patches in 3D space**.
-*   **Space:** The $X$ and $Y$ of the image.
-*   **Time:** The $T$ dimension (the sequence of frames).
-
-#### The Spatiotemporal Latent:
-We take a video and compress it using a **3D-VAE**. This turns a $1024 \times 1024 \times 60$ video into a compact "Brick" of latent tokens. Each token represents a small "Cube" of the video (e.g., $16 \times 16$ pixels over 4 frames).
-
----
-
-#### Act I.V: Mature Architecture — The World Simulator
-
-Modern video models use a **Spatiotemporal Transformer (ST-Transformer)**. It replaces the U-Net completely to handle the massive context of thousands of tokens.
-
-**The Video Generation Pipeline:**
+## The idea in one picture
 
 ```mermaid
-graph TD
-    subgraph "Video Compression"
-        Raw[Raw Video: HxWxT]
-        VAE3D[3D-VAE Encoder]
-        Latent[Latent Cube: h x w x t]
-    end
-
-    subgraph "The World Brain (ST-Transformer)"
-        Patch[3D Patch Embedding]
-        TempAttn[Temporal Attention: Flow & Physics]
-        SpatAttn[Spatial Attention: Detail & Texture]
-        Cond[Conditioning: Prompt + Image + Mask]
-    end
-
-    subgraph "The Generative Head"
-        Denoised[Denoised Cube]
-        VAE_Dec[3D-VAE Decoder]
-        Video[Final 4K Video]
-    end
-
-    Raw --> VAE3D
-    VAE3D --> Latent
-    Latent --> Patch
-    Patch --> TempAttn
-    TempAttn --> SpatAttn
-    SpatAttn --> Cond
-    Cond -->|Loop| Denoised
-    Denoised --> VAE_Dec
-    VAE_Dec --> Video
+flowchart TD
+  subgraph Comp["Compress"]
+    RAW["Training video"] --> ENC["3D VAE encoder<br/>time and space"] --> LAT["Latent block<br/>t x h x w"]
+  end
+  subgraph Core["Generate"]
+    PAT["Spacetime patches<br/>tokens"] --> DIT["Diffusion transformer<br/>attention over space and time"]
+    COND["Conditioning<br/>prompt, image, mask"] --> DIT
+  end
+  subgraph Dec["Decode"]
+    DEN["Denoised latent"] --> VD["3D VAE decoder"] --> VID["Video, and in newer<br/>models, audio"]
+  end
+  LAT --> PAT
+  DIT -->|"repeat for each step"| DEN
 ```
 
-##### 1. Temporal Attention
-This is the "Motion Engine." Each patch looks at the patches in the **same location** in previous and future frames. This ensures that a car moving at 60mph has a consistent velocity and doesn't "jitter."
+*Every system in this post follows this shape. They differ in scale, data, conditioning and what they release.*
 
-##### 2. Trade-offs & Reasoning
-*   **Joint Space-Time vs. Factorized:** Should we do one big attention pass ($O(N^2)$) or one Spatial pass and then one Temporal pass? *Trade-off:* Joint is more physically accurate but requires massive memory. Most open models (Open-Sora) use **Factorized Attention** to fit on consumer GPUs.
-*   **Autoregressive vs. Non-Autoregressive:** Non-autoregressive (Sora) generates the whole clip at once. *Trade-off:* It has better global consistency but is limited to short durations (e.g., 60s). Autoregressive models can generate "Infinite" video but slowly drift into "Dream Logic" where the world changes randomly.
+## Sora: video as patches, and the "world simulator" claim
 
----
+OpenAI's Sora report in February 2024, [Video generation models as world simulators](https://openai.com/index/video-generation-models-as-world-simulators/), was short on numbers but set the template. Its main ideas:
 
-### Act II: The Scorecard — Metrics & Fidelity
+- **Spacetime patches.** Compress video into a latent and cut it into patches that span space and time, the video equivalent of text tokens. A transformer handles them as one sequence.
+- **Train on video as it comes.** Rather than cropping everything to one size, train on varied durations, resolutions and aspect ratios, which improved framing and let one model produce widescreen and vertical video.
+- **Re-caption the data.** Apply the DALL·E 3 approach of detailed synthetic captions to video, which improved how well generated video follows the prompt.
 
-#### 1. The Metrics (The Cinematic KPI)
-*   **VBench Score:** A comprehensive suite measuring 16 dimensions like object occupancy, motion smoothness, and aesthetic quality.
-*   **FVD (Fréchet Video Distance):** Like FID, but for videos. It checks if the "Motion Distribution" matches real life.
-*   **Temporal Consistency:** Measuring the pixel-wise variance of an object's ID across 100 frames.
+The report argued that scaling video models is a path toward general-purpose simulators of the physical world, because generating consistent video requires modeling 3D space, object permanence and simple interactions. It also listed failures, such as glass that doesn't shatter correctly. That gap between looking right and being physically right is the subject of [Part 8](/posts/generative-ai/physics-aware-video-diffusion-models).
 
-#### 2. The Loss Function (3D Noise Prediction)
-We calculate the error across the entire spatiotemporal cube.
-$$ \mathcal{L}_{video} = \sum_{t, x, y} \| \epsilon - \epsilon_\theta(z_{noisy}, \text{prompt}) \|^2 $$
+## Movie Gen: the recipe, published in full
 
----
+Meta's [Movie Gen](https://arxiv.org/abs/2410.13720) (October 2024) is the most detailed public account of a frontier video model, which makes it the best one to learn from. Its largest video model is a 30B-parameter transformer that generates up to 16 seconds at 16 frames per second, with a context of up to 73,000 video tokens. The paper describes the whole lifecycle: data curation, training on images first and then video at rising resolution, a separate upsampler for higher resolution, and post-training.
 
-### Act III: System Design & Interview Scenarios
+It also went beyond plain generation. A separate 13B-parameter Movie Gen Audio model generates sound and music to match a video, and the system supports instruction-based editing ("make the fox's coat silver") and personalized video from a photo of a person. For anyone designing a video model, the paper is the closest thing to a manual.
 
-#### Scenario 1: The "Morphing" Problem
-*   **Question:** "Your model generates a person walking, but their clothes change color every 10 frames. How do you fix this?"
-*   **Answer:** This is a **Temporal Context** leak. You need to increase the **Temporal Attention window** or use **Long-Context Transformers** (like Ring Attention). You could also use a "Reference Frame" as a constant condition at every step.
+## Veo: sound becomes part of the video
 
-#### Scenario 2: Physical Plausibility
-*   **Question:** "In your generated video, a glass falls but instead of breaking, it melts into the table. Why?"
-*   **Answer:** The model lacks **Causal Physics**. It has learned visual patterns but not mass/collision rules. **The Fix:** Fine-tune the model on **Synthetic Physics Data** (from engines like Unreal Engine 5) where the "Ground Truth" physics are perfectly labeled.
+Google DeepMind's [Veo](https://deepmind.google/models/veo/) models are known mostly through product releases rather than full papers. Their notable step was generating audio natively with the video, so the fox's landing comes with the crunch of snow, rather than adding sound in a separate pass. Veo 3 and its successor Veo 3.1 generate the audio natively alongside the frames. Every Veo video is marked with Google's SynthID watermark, part of the provenance stage described in [Behind the Generate Button](/posts/generative-ai/multi-stage-generation-pipelines#stage-5-mark-where-it-came-from).
 
-#### Scenario 3: Inference Cost at Scale
-*   **Question:** "Generating 1 minute of video takes 1 hour on an H100. How do you make it 10x faster for a consumer app?"
-*   **Answer:** Discuss **Distillation** (Progressive Distillation, or causal few-step students like CausVid; see [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps#video-from-minutes-to-streaming)) and **Parallel Sampling**. Run multiple chunks of the video in parallel on different GPUs and use **Cross-Frame Blending** to stitch the edges smoothly.
+## The open models: the recipe spreads
 
----
+The most important change since Sora is that strong video models became downloadable:
 
-### Graduate Assignment: The World Simulator
+- **[HunyuanVideo](https://arxiv.org/abs/2412.03603)** (Tencent, December 2024) released code and weights for a model with over 13 billion parameters. Its transformer processes video and text tokens separately in early layers ("dual-stream") and together in later ones ("single-stream"), a design similar to FLUX's. It also ships a prompt rewrite model.
+- **[CogVideoX](https://arxiv.org/abs/2408.06072)** (Zhipu AI and Tsinghua) combines a 3D VAE with an "expert transformer" that uses separate adaptive normalization for text and video, and generates 10-second videos at 16 frames per second and 768×1360 resolution.
+- **[Wan](https://arxiv.org/abs/2503.20314)** (Alibaba, 2025) released 1.3B and 14B models under Apache 2.0. The 1.3B model needs only about 8 GB of GPU memory, putting video generation on consumer GPUs. [Wan 2.2](https://github.com/Wan-Video/Wan2.2) introduced a mixture of experts split by noise level: a high-noise expert for early steps that set layout and motion, and a low-noise expert for later steps that refine detail. Each is about 14B parameters, 27B in total, but only one runs at each step.
+- **[Open-Sora 2.0](https://arxiv.org/abs/2503.09642)** reported a model comparable to HunyuanVideo and Runway Gen-3 Alpha in its evaluations, trained for about $200,000 in rented GPU time, an estimated five to ten times less than comparable models.
 
-**Task:**
-1.  **Object Permanence:** Derive how **Self-Attention** allows a model to "remember" an object even when it is occluded by another object for 20 frames.
-2.  **Scale Analysis:** Calculate the VRAM requirement for a **Joint ST-Transformer** vs. a **Factorized Transformer** for a $1024 \times 1024 \times 120$ video.
-3.  **Generative Simulation:** Explain how an Autonomous Vehicle company could use Sora to generate "Accident Scenarios" that are too dangerous to film in real life.
+| Model | Open weights | Notable for |
+|---|---|---|
+| Sora | No | Spacetime patches, varied sizes, re-captioned video |
+| Movie Gen | No | 30B, fully documented recipe, audio and editing |
+| Veo 3 / 3.1 | No | Native audio, SynthID watermarking |
+| HunyuanVideo | Yes | 13B, dual- to single-stream transformer |
+| CogVideoX | Yes | 3D VAE, expert transformer, 10 s at 768×1360 |
+| Wan 2.1 / 2.2 | Yes, Apache 2.0 | 1.3B on consumer GPUs; noise-level experts |
+| Open-Sora 2.0 | Yes | Competitive quality for about $200K of training |
 
----
+## Where the field is heading
 
-**Further Reading:**
-*   *Sora: Creating Video from Text (OpenAI Technical Report 2024)*
-*   *Video Generation Models as World Simulators (2024)*
-*   *Open-Sora: Scaling Open-source Video Generation.*
+Across these releases, a few directions are clear:
 
----
+- **Sound with picture.** Native audio is becoming expected rather than special.
+- **Control beyond text.** Image-to-video, editing, camera control and personalization matter more to real users than pure text-to-video.
+- **Longer and faster.** Distilled, causal models stream video in real time ([Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps#video-from-minutes-to-streaming)), and extension techniques push past the length of a single clip.
+- **Systems, not models.** Products wrap these models in prompt rewriting, safety checks and agentic shot planning ([Behind the Generate Button](/posts/generative-ai/multi-stage-generation-pipelines)).
+- **Physics is still the weak point.** Fluids, collisions and objects that persist when hidden remain unreliable, as Sora's own report admitted.
 
-**Previous:** [Part 6 — Diffusion for Action: Trajectories and Policy](/posts/generative-ai/diffusion-for-action-trajectories-policy)
+## What I'd remember
 
-**Next:** [Part 8 — Physics-Aware Video Diffusion: From Pixels to Laws](/posts/generative-ai/physics-aware-video-diffusion-models)
+- **One recipe, many variations.** 3D VAE, spacetime patches, a diffusion transformer, re-captioned data.
+- **Sora set the template; Movie Gen published the manual.** Read Movie Gen to learn how it's actually done.
+- **Audio is joining video.** Veo 3 made native sound a baseline.
+- **Open models closed much of the gap.** HunyuanVideo, Wan and Open-Sora put strong video generation on downloadable weights.
+- **Physics is the frontier.** Plausible-looking isn't the same as physically right.
 
+## Where to go next
 
+- [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models), the final part.
+- [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#video-the-same-recipe-plus-time), for the shared video training recipe.
+- Papers and repos: [Movie Gen](https://arxiv.org/abs/2410.13720), [HunyuanVideo](https://arxiv.org/abs/2412.03603), [Wan](https://arxiv.org/abs/2503.20314), [Open-Sora 2.0](https://arxiv.org/abs/2503.09642).
 
----
+Previous: [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy). Next: [Physics-Aware Video Diffusion](/posts/generative-ai/physics-aware-video-diffusion-models).
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#video-the-same-recipe-plus-time) puts Sora, Veo, Movie Gen and Wan into one end-to-end picture, including RL post-training and [video evaluation](/posts/generative-ai/multimodal-foundation-models-end-to-end#measuring-what-you-built).
+**Questions to sit with**
+
+1. Why does training on varied durations and aspect ratios, rather than cropping, improve generated video?
+2. What does Wan 2.2 gain by splitting experts by noise level rather than by topic?
+3. Which would you choose for a product, a closed model with native audio or an open model you can fine-tune, and why?

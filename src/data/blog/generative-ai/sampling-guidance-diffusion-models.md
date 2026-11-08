@@ -1,8 +1,8 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'Sampling & Guidance: The Dialects of Noise'
+modDatetime: 2026-11-08T00:00:00Z
+title: "Sampling and Guidance: Turning a Trained Model Into Images"
 slug: sampling-guidance-diffusion-models
 featured: true
 draft: false
@@ -10,173 +10,112 @@ tags:
   - generative-ai
   - diffusion-models
   - computer-vision
-  - machine-learning
-  - inference
-  - optimization
-description: 'How to accelerate diffusion sampling and steer creativity. Learn the mechanics of DDIM, DPM-Solver, Classifier-Free Guidance (CFG), and the math of negative prompting.'
+description: "A trained diffusion model is a direction-finder, not an image generator. Samplers decide how to walk from noise to an image, and guidance decides how hard to steer toward the prompt. DDPM, DDIM, ODE solvers, classifier and classifier-free guidance, negative prompts, and the knobs that trade speed, variety and prompt-following."
 track: GenAI Systems
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - Theory
   - System Design
-  - ML-Infra
-estimated_read_time: 40
+estimated_read_time: 9
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*A trained diffusion model is a direction-finder, not an image generator. Samplers decide how to walk from noise to an image, and guidance decides how hard to steer toward the prompt.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series — The Generative Engine</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/generative-ai/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
-    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Architectures</a>
-    <a href="/posts/generative-ai/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 3: Sampling & Guidance</a>
-    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Models</a>
-    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Training Lifecycle</a>
-    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Policy</a>
-    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: The Frontier</a>
-    <a href="/posts/generative-ai/physics-aware-video-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 8: Physics-Aware AI</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 3: Sampling & Guidance</strong> — The Dialects of Noise</div>
-</div>
+Part 3 of 8 in the [diffusion series](/posts/generative-ai/diffusion-from-molecules-to-machines). Previous: [Image Diffusion: From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit). Next: [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals).
 
 ---
 
-### Act 0: Sampling & Guidance in Plain English
+Our model from Parts [1](/posts/generative-ai/diffusion-from-molecules-to-machines) and [2](/posts/generative-ai/image-diffusion-models-unet-to-dit) is trained. Give it a noisy latent and the prompt "a red fox in fresh snow, at night," and it says which way the noise lies. That's all it does. Turning that into a finished image involves two separate decisions, and they explain most of the knobs in any image generator's settings.
 
-Imagine you are in a dark, dense forest (The Noise). You want to get to a specific cabin (The Image).
+The first is the **sampler**: how big a step to take each time, how many steps, and whether to add fresh randomness along the way. The second is **guidance**: how strongly to push toward the prompt rather than toward any plausible image. Get the sampler wrong and the fox is blurry or noisy. Get guidance wrong and it's either a generic snowy scene or an oversaturated cartoon.
 
-1.  **DDPM (The Drunken Walk):** You take 1,000 tiny, random steps. You eventually get there, but it's exhausting and slow.
-2.  **DDIM (The Shortcut):** You realize the path is actually a straight line. You take 50 giant, deterministic leaps. You get to the cabin 20x faster.
-3.  **Flow Matching (The High-Speed Rail):** You draw a perfectly straight line from the forest edge to the cabin door and glide there in 4 steps.
-
-**Guidance** is like having a GPS. 
-*   **Without GPS:** You might end up at *any* realistic cabin.
-*   **With GPS (CFG):** A voice in your head says, "Make it 10x more likely that the cabin is made of candy." You steer your steps more aggressively toward the prompt.
-
----
-
-### Act I: The Sampling Bottleneck
-
-Standard diffusion (DDPM) is slow because it is **Markovian**—every step depends on the one before it and adds a fresh dose of randomness. 
-*   **The Math:** $ x_{t-1} = f(x_t, \epsilon_\theta) + \sigma_t z $. 
-*   **The Problem:** You can't parallelize it. To generate an image, you must run the model 1,000 times in a row.
-
----
-
-### Act II: Steering the Noise (CFG)
-
-**Classifier-Free Guidance (CFG)** is the secret sauce that makes AI follow prompts like "A cat in a top hat."
-
-#### The Logic:
-During each step, the model makes two guesses:
-1.  **Conditional Guess:** "What does a cat in a hat look like?"
-2.  **Unconditional Guess:** "What does a normal image look like?"
-
-The final direction is the **Unconditional guess** PLUS the **Difference** between the two, multiplied by a **Guidance Scale ($w$)**.
-$$ \hat{\epsilon} = \epsilon_{uncond} + w \cdot (\epsilon_{cond} - \epsilon_{uncond}) $$
-
----
-
-#### Act II.V: Mature Architecture — The Guidance Engine
-
-In production systems, we use a "Parallel Batching" trick to run CFG without doubling the latency.
-
-**The CFG Inference Pipeline:**
+## The idea in one picture
 
 ```mermaid
-graph LR
-    subgraph "Batch Construction"
-        P[Positive Prompt]
-        N[Negative Prompt / Empty]
-        Input[Noisy Latent z_t]
-    end
-
-    subgraph "The Model (DiT / U-Net)"
-        Concat[Concatenate Batch]
-        Exec[Single Forward Pass]
-        Split[Split Outputs]
-    end
-
-    subgraph "Guidance Logic"
-        Diff[Calculate Vector Delta]
-        Scale[Scale by w: 7.5]
-        Final[Steered Noise Estimate]
-    end
-
-    Input --> Concat
-    P & N --> Concat
-    Concat --> Exec
-    Exec --> Split
-    Split -->|Uncond| Diff
-    Split -->|Cond| Diff
-    Diff --> Scale
-    Scale --> Final
+flowchart LR
+  N["Random noise"] --> S["Sampler<br/>how far to step,<br/>how many steps"]
+  S --> M["Network, run twice:<br/>with the prompt,<br/>without it"]
+  M --> G["Guidance<br/>push further toward<br/>the prompt by w"]
+  G -->|"one step closer"| S
+  S -->|"after N steps"| I["Fox at night"]
 ```
 
-##### 1. Negative Prompting
-By setting the "Unconditional" part of CFG to a specific concept (e.g., "blurry, distorted"), the subtraction math effectively **pushes the model away** from those features.
+*Every step: ask the network, steer with guidance, move. The sampler sets the number and size of steps; guidance sets the direction's emphasis.*
 
-##### 2. Trade-offs & Reasoning
-*   **Guidance Scale vs. Artifacts:** Higher $w$ (e.g., 15) makes the prompt adherence perfect but causes "oversaturation" and "deep-fried" colors. Most production systems stay between **5.0 and 8.0**.
-*   **Sampler Step Trade-off:** Reducing steps from 50 to 20 saves 60% of GPU cost but can introduce "banding" or "noise grain" in flat textures (like skies).
-*   **Citations:** *Classifier-Free Diffusion Guidance (Ho & Salimans 2022)* and *DPM-Solver: A Fast ODE Solver for Diffusion Sampling (Lu et al. 2022)*.
+## Samplers: from 1,000 steps to a few dozen
 
----
+**DDPM sampling** follows the training process backward literally. At each step it removes the predicted noise and adds a bit of fresh random noise, a process called ancestral sampling. It works, but [DDPM](https://arxiv.org/abs/2006.11239) used 1,000 steps, run one after another; each depends on the last, so they can't be parallelized.
 
-### Act III: The Scorecard — Metrics & Performance
+**DDIM** ([Song et al., 2021](https://arxiv.org/abs/2010.02502)) showed that the same trained model admits a deterministic sampler that adds no fresh noise. That allows skipping: 50 steps instead of 1,000, with little loss in quality. Being deterministic has a useful side effect: the same starting noise always gives the same image, and you can run the process in reverse to find the noise that produces a given real photo. That "inversion" is the basis of many image-editing techniques.
 
-#### 1. The Metrics (Efficiency KPI)
-*   **Latency per Image (sec):** The critical business metric. 
-*   **CLIP Score Recall:** How many objects from the prompt actually appeared in the final image?
-*   **Sampling Variance:** How much does the image change if we change the sampler but keep the seed?
+**Viewing generation as a differential equation** made the next jump possible. [Song et al.](https://arxiv.org/abs/2011.13456) showed that sampling is equivalent to solving an ordinary differential equation from noise to data, so decades of numerical methods apply. Higher-order solvers like [DPM-Solver](https://arxiv.org/abs/2206.00927) and [DPM-Solver++](https://arxiv.org/abs/2211.01095) look at how the direction is changing, not just where it points, and produce good images in roughly 10 to 25 steps. [Karras et al. (2022)](https://arxiv.org/abs/2206.00364) mapped out the design choices, step-size schedules and solver order among them, and showed how much quality depended on them.
 
-#### 2. The Loss Function (Flow Matching)
-Instead of predicting "static," we predict the **optimal transport path**.
-$$ \mathcal{L}_{flow} = \| v_t - (x_1 - x_0) \|^2 $$
-This loss ensures that the model learns to move in a **straight line** from noise ($x_0$) to image ($x_1$).
+**Deterministic or stochastic?** Deterministic samplers are faster and reproducible. Adding a little noise back each step can correct accumulated errors and sometimes gives better detail at higher step counts. For our fox, a deterministic solver at 20 to 30 steps is the usual choice, and the step count is the main latency lever. Fewer steps save time but tend to show up as smeared fur or grainy skies. Going below about ten steps needs a [distilled model](/posts/generative-ai/diffusion-distillation-fewer-steps).
 
----
+Flow-matching models (Part 1) change this picture somewhat: their paths are straighter by construction, so simple solvers like Euler's method go further with fewer steps.
 
-### Act IV: System Design & Interview Scenarios
+## Guidance: following the prompt, on purpose
 
-#### Scenario 1: The "Drunken" Sampler
-*   **Question:** "Your model generates great images with 1000 steps but becomes blurry/abstract at 20 steps. How do you fix it without more training?"
-*   **Answer:** Change the **Scheduler**. Move from Euler (simple) to **DPM-Solver++** (high-order). These schedulers use physics math to "curve" the path, allowing for much larger steps without losing the trail.
+A conditional model trained on captioned images learns to generate images *plausible* for a caption. Left alone, "a red fox in fresh snow, at night" often produces something reasonable but generic: maybe dusk instead of night, maybe the fox is small and off to the side. Guidance sharpens the result toward what's distinctive about the prompt.
 
-#### Scenario 2: Prompt Adherence vs. Diversity
-*   **Question:** "Users say the model is too repetitive. Every 'City' image looks exactly the same. What's the plan?"
-*   **Answer:** Lower the **CFG Scale ($w$)**. High guidance kills diversity because it forces the model into the tiny "peak" of the probability distribution. Lowering $w$ to 3.0-4.0 allows the model to explore more diverse "plausible" cities.
+**Classifier guidance** came first. [Dhariwal and Nichol (2021)](https://arxiv.org/abs/2105.05233), in the paper that showed diffusion beating GANs, trained a separate classifier on noisy images and used its gradient to push samples toward a class. It worked, but needed an extra noise-aware classifier.
 
-#### Scenario 3: Real-Time Editing
-*   **Question:** "You need to update an image in <500ms based on a user's brushstroke. Standard diffusion is too slow. What's the SOTA?"
-*   **Answer:** Discuss **LCM (Latent Consistency Models)**, which uses consistency distillation, or **SDXL-Turbo**, which uses **Adversarial Distillation**. Both "collapse" the ~50 steps into 1 to 4. See [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps) for how each works.
+**Classifier-free guidance** ([Ho and Salimans, 2022](https://arxiv.org/abs/2207.12598)) removed the classifier. During training, the prompt is randomly dropped some of the time, so a single model learns both the conditional prediction (with the prompt) and the unconditional one (without it). At sampling time, run both and extrapolate past the conditional prediction, away from the unconditional one:
 
----
+$$\hat{\epsilon} = \epsilon_{\text{uncond}} + w\,(\epsilon_{\text{cond}} - \epsilon_{\text{uncond}})$$
 
-### Graduate Assignment: The ODE Solver
+The difference between the two predictions is "what the prompt adds." Scaling it by $w$ greater than 1 exaggerates it. (The original paper writes this with $1 + w$ in place of $w$; it's the same rule with the scale shifted by one, so check which convention a codebase uses.)
 
-**Task:**
-1.  **Deterministic Mapping:** Explain why **DDIM** allows you to "Invert" an image back to its exact original noise seed (Look up **Diffusion Inversion**).
-2.  **Velocity Fields:** If the velocity field $v_\theta$ is non-linear, why does the generation take more steps? 
-3.  **Scheduler Analysis:** Compare **Ancestral Sampling** (adds noise back) vs. **Deterministic Sampling**. When would you use one over the other for a "Video" product?
+```mermaid
+flowchart TB
+  subgraph Batch["One batched forward pass"]
+    P["Prompt<br/>'red fox, fresh snow, night'"]
+    NP["Empty or negative prompt<br/>'blurry, daytime'"]
+    Z["Noisy latent, copied twice"]
+  end
+  subgraph Model["Network"]
+    F["Same weights,<br/>batch of 2"]
+  end
+  subgraph Guide["Guidance"]
+    D["Difference:<br/>cond minus uncond"] --> W["Scale by w,<br/>e.g. 7.5"] --> E["Steered prediction"]
+  end
+  P --> F
+  NP --> F
+  Z --> F
+  F -->|"uncond"| D
+  F -->|"cond"| D
+```
 
----
+*Running both predictions as a batch of two hides most of the latency, but it still doubles the compute per step, which is why guidance distillation exists.*
 
-**Further Reading:**
-*   *Denoising Diffusion Implicit Models (Song et al. 2020)*
-*   *DPM-Solver++: Fast ODE Solver (2022)*
-*   *Flow Matching for Generative Modeling (Lipman et al. 2023)*
+Three practical consequences:
 
----
+- **Negative prompts** replace the empty, unconditional prompt with one describing what you don't want, "blurry, daytime." The extrapolation then pushes away from those features specifically.
+- **The scale trades variety for adherence.** Low $w$ gives diverse, sometimes off-prompt images. Higher values follow the prompt closely but narrow the variety, and very high values oversaturate colors and over-sharpen. Stable Diffusion's common default of 7.5 sits in the middle. If every "fox in snow" looks the same, lower the scale before blaming the model.
+- **Guidance doesn't have to apply everywhere.** Fixes for oversaturation include rescaling the guided prediction ([Lin et al., 2024](https://arxiv.org/abs/2305.08891)) and applying guidance only in the middle range of noise levels, which [Kynkäänniemi et al. (2024)](https://arxiv.org/abs/2404.07724) found improves both quality and variety.
 
-**Previous:** [Part 2 — Image Diffusion: From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit)
+Guidance costs a second network pass every step. [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps#family-1-follow-the-teachers-path) explains how guidance distillation folds both passes into one, and the loss it uses.
 
-**Next:** [Part 4 — Video Diffusion: The Fourth Dimension](/posts/generative-ai/video-diffusion-fundamentals)
+## What I'd remember
 
+- **The model gives directions; the sampler walks.** Step count and step rule are inference choices, not training ones.
+- **Deterministic samplers enable fewer steps and inversion.** DDIM opened the door; ODE solvers took it to 10 to 25 steps.
+- **Classifier-free guidance extrapolates from unconditional to conditional.** One model, trained with the prompt sometimes dropped.
+- **Guidance scale trades variety for prompt-following.** Too high oversaturates; rescaling and limiting where guidance applies help.
+- **Guidance doubles the cost per step.** Batching hides latency, not compute.
 
----
+## Where to go next
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-an-image-generator-learns-to-paint) connects flow matching and classifier-free guidance to pre-training, RL post-training and evaluation of image and video models.
+- [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals), the next part.
+- [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps), for going from dozens of steps to a few.
+- Papers: [DDIM](https://arxiv.org/abs/2010.02502), [Classifier-Free Guidance](https://arxiv.org/abs/2207.12598), [DPM-Solver](https://arxiv.org/abs/2206.00927), [Elucidating the Design Space (EDM)](https://arxiv.org/abs/2206.00364).
+
+Previous: [Image Diffusion: From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit). Next: [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals).
+
+**Questions to sit with**
+
+1. Why does a deterministic sampler make image editing by inversion possible?
+2. What happens to the variety of fox images as the guidance scale rises, and why?
+3. If guidance is batched into one forward pass, why is it still expensive?

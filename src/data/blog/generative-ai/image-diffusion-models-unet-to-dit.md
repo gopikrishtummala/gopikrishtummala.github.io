@@ -1,182 +1,144 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'Image Diffusion Models: From U-Net to DiT'
+modDatetime: 2026-11-08T00:00:00Z
+title: "Image Diffusion: From U-Net to DiT"
 slug: image-diffusion-models-unet-to-dit
 featured: true
 draft: false
 tags:
   - generative-ai
   - diffusion-models
-  - computer-vision
   - transformers
-  - machine-learning
-  - deep-learning
-description: 'The evolution of image diffusion architectures. Learn how we moved from convolutional U-Nets to scalable Diffusion Transformers (DiT), and why treating images like language changed everything.'
+  - computer-vision
+description: "The network inside the denoising loop. Why diffusion started with convolutional U-Nets, why it moved to Diffusion Transformers, and how a transformer is told the noise level, the prompt and where each patch sits. U-Net, DiT, adaLN-Zero, cross-attention versus MMDiT, and the prediction targets."
 track: GenAI Systems
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - Theory
   - System Design
-  - ML-Infra
-estimated_read_time: 40
+estimated_read_time: 9
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*The network inside the denoising loop. Why diffusion started with convolutional U-Nets, why it moved to Diffusion Transformers, and how a transformer is told the noise level, the prompt and where each patch sits.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series — The Generative Engine</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/generative-ai/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
-    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 2: Architectures</a>
-    <a href="/posts/generative-ai/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
-    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Models</a>
-    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Training Lifecycle</a>
-    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Policy</a>
-    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: The Frontier</a>
-    <a href="/posts/generative-ai/physics-aware-video-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 8: Physics-Aware AI</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 2: Architectures</strong> — From U-Net to DiT</div>
-</div>
+Part 2 of 8 in the [diffusion series](/posts/generative-ai/diffusion-from-molecules-to-machines). Previous: [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines). Next: [Sampling and Guidance](/posts/generative-ai/sampling-guidance-diffusion-models).
 
 ---
 
-### Act 0: Image Architectures in Plain English
+In [Part 1](/posts/generative-ai/diffusion-from-molecules-to-machines), a network looked at a noisy picture of a red fox in snow and predicted the noise to remove, dozens of times. This post is about that network. Its job is unusual: at a very noisy step it has to decide the overall layout, fox on the left, horizon a third of the way up, and at a nearly clean step it has to get individual hairs right. And it has to do both while following the prompt.
 
-Imagine you are trying to describe a photo of a crowded city street to an artist.
+Two designs have done this job. Convolutional U-Nets powered the first wave, including Stable Diffusion 1 and 2 and SDXL. Diffusion Transformers (DiTs) power nearly everything since, including Stable Diffusion 3, FLUX, and the large video models.
 
-1.  **The U-Net Approach (Convolutional):** You give the artist a magnifying glass. He looks at tiny sections of the photo—a tire, a brick, a shoelace—and tries to piece them together. He's great at textures, but he might accidentally draw a car with five wheels because he forgot what the first wheel looked like by the time he got to the back of the car.
-2.  **The DiT Approach (Transformer):** You give the artist the whole photo at once. He chops it into "Puzzle Pieces" (Patches) and lays them all out on a table. He can see how the shoelace on the left relates to the skyscraper on the right instantly. He treats the image like a **sentence**, where every patch is a word.
-
-**U-Nets** were the kings of 2022. **Transformers (DiT)** are the kings of 2025 because they can "see" the big picture much better, which is essential for consistent physics and high resolution.
-
----
-
-### Act I: The U-Net Era (Convolutional Foundations)
-
-For years, the **U-Net** was the only choice for diffusion. Its hourglass shape is mathematically elegant for denoising:
-*   **Encoder:** Zooms out to see the "Big Picture" (Semantic content).
-*   **Decoder:** Zooms in to restore the "Fine Details" (Edges, textures).
-*   **Skip Connections:** The "Highways" that carry sharp details directly from the beginning to the end, preventing them from being lost in the middle.
-
-#### Why it peaked:
-U-Nets are incredibly efficient at small resolutions ($512 \times 512$). But as we moved to $1024 \times 1024$ and beyond, the "magnifying glass" became too heavy. We needed a global perspective.
-
----
-
-### Act II: The DiT Revolution (Images as Language)
-
-**Diffusion Transformers (DiT)** changed the game by applying the same math that powers ChatGPT to images.
-
-#### The Patchification Trick
-Instead of looking at pixels, we chop the image into $16 \times 16$ squares called **Patches**. We treat these patches as **Tokens**. 
-*   **The Benefit:** The model uses **Self-Attention** to calculate the relationship between *every* patch and *every other* patch. A shadow in the corner "attends" to the lamp in the center.
-
----
-
-#### Act II.V: Mature Architecture — The DiT Pipeline
-
-In a modern 2025 stack (Flux, Sora, SD3), we use a unified Transformer backbone that can handle images, videos, and text in the same latent space.
-
-**The DiT Generation Pipeline:**
+## The idea in one picture
 
 ```mermaid
-graph TD
-    subgraph "The Input"
-        Latent[Noisy Latent: 64x64x4]
-        Text[Text Tokens: 'A cyberpunk city']
-    end
-
-    subgraph "The DiT Backbone"
-        Patch[Patch Embedding: Linear Projection]
-        Pos[Positional Encoding: 2D RoPE]
-        
-        subgraph "Transformer Block x24"
-            SelfAttn[Self-Attention: Global Context]
-            AdaLN[AdaLN-Zero: Time & Text Conditioning]
-            FFN[Feed Forward Network]
-        end
-    end
-
-    subgraph "The Output"
-        Denoised[Refined Latent]
-        VAE[VAE Decoder]
-        Image[Final 1024x1024 Image]
-    end
-
-    Latent --> Patch
-    Patch --> Pos
-    Pos --> AdaLN
-    Text --> AdaLN
-    AdaLN --> SelfAttn
-    SelfAttn --> FFN
-    FFN -->|Iterative Loop| Denoised
-    Denoised --> VAE
-    VAE --> Image
+flowchart LR
+  subgraph UNet["U-Net"]
+    U1["Shrink the image<br/>to see the big picture"] --> U2["Process at<br/>low resolution"] --> U3["Grow it back<br/>to full detail"]
+    U1 -.->|"skip connections<br/>carry fine detail"| U3
+  end
+  subgraph DiT["Diffusion Transformer"]
+    D1["Cut the latent<br/>into patches"] --> D2["Every patch attends<br/>to every other patch"] --> D3["Patches back<br/>into a latent"]
+  end
+  UNet -->|"scales better<br/>with compute"| DiT
 ```
 
-##### 1. RoPE: Rotational Positional Embeddings
-In DiT, the model needs to know *where* each patch is. Modern models use **RoPE**, which allows them to handle any aspect ratio (Landscape, Portrait, Square) without being retrained.
+*A U-Net builds global understanding by shrinking the image. A transformer gets it directly, because every patch can look at every other patch.*
 
-##### 2. AdaLN-Zero: The Conditioning Secret
-How do we tell a Transformer what time step $t$ we are at? We use **Adaptive Layer Norm (AdaLN)**. It "shifts" and "scales" the neural signals based on the time and the text prompt, effectively steering the denoising process at every layer.
+## The U-Net: an hourglass with shortcuts
 
----
+The U-Net was designed in 2015 for segmenting medical images and turned out to suit denoising well. It has an hourglass shape:
 
-### Act III: The Scorecard — Metrics & Losses
+- **The encoder** repeatedly downsamples, so later layers see larger regions. By the bottom of the hourglass, each position summarizes a big chunk of the image: "fox here, snow there."
+- **The decoder** upsamples back to full resolution, adding detail.
+- **Skip connections** pass the encoder's high-resolution features straight across to the decoder, so fine detail isn't lost on the way through the narrow middle.
 
-#### 1. The Metrics (The Quality KPI)
-*   **HPS (Human Preference Score):** Since FID can be "gamed," we use models trained on human votes to see which image looks "better."
-*   **CLIP Directional Similarity:** Measures if the difference between two images matches the difference between two text prompts (e.g., "A cat" $\to$ "A blue cat").
-*   **V-Prediction Variance:** Measures how stable the model's predictions are across time steps.
+Convolutions have a built-in bias toward local patterns, which makes U-Nets data-efficient and good at texture. DDPM's U-Net added self-attention layers at low resolutions for global context. Stable Diffusion added cross-attention layers, where image positions look up the relevant words of the prompt, which is how "red" ends up on the fox and not the snow.
 
-#### 2. The Loss Function (V-Prediction)
-Older models predicted "Noise" ($\epsilon$). Modern ones predict the **Velocity** ($v$) of the change.
-$$ \mathcal{L}_{v} = \| v_t - \hat{v}_\theta(x_t, t) \|^2 $$
-*   **Why?** $v$-prediction is more stable at high noise levels and allows for fewer sampling steps (Flow Matching).
+The limits showed at scale. Global reasoning only happens where the image is small enough for attention, and growing a U-Net means many hand-tuned decisions about channels, resolutions and where attention goes.
 
----
+## The Diffusion Transformer: images as sequences
 
-### Act IV: System Design & Interview Scenarios
+[DiT](https://arxiv.org/abs/2212.09748) (Peebles and Xie, 2023) replaced the U-Net with a plain vision transformer working on the latent from [latent diffusion](/posts/generative-ai/diffusion-from-molecules-to-machines#latent-diffusion-dont-denoise-every-pixel). The latent grid is cut into small patches, 2×2 latent cells in the best DiT models, each turned into a token. A 256×256 image becomes a 32×32 latent, which becomes 256 tokens. Every token can attend to every other, so the patch with the fox's tail and the patch with its head can coordinate at every layer, not just at the bottom of an hourglass.
 
-#### Scenario 1: Scaling to 4K
-*   **Question:** "You want to generate 4K images. Your VRAM usage is exploding. What's the fix?"
-*   **Answer:** Discuss **Tiled VAE Decoding**. The Diffusion model works in latent space (small), but the VAE decoder needs a lot of memory for 4K. **The Fix:** Decode the image in small overlapping tiles and stitch them together. Also, mention **FlashAttention-3** to handle the long token sequences.
+The main finding was about scaling. DiT's image quality improved steadily as compute per image grew, whether from a bigger model or more, smaller patches, the same kind of predictable scaling language models show. Its largest model reached an FID of 2.27 on class-conditional ImageNet at 256×256, the best result at the time. Predictable scaling is what made labs willing to train much larger versions.
 
-#### Scenario 2: Aspect Ratio Bucketing
-*   **Question:** "Your model was trained on squares, but it generates 'two-headed' people when asked for a wide landscape. Why?"
-*   **Answer:** This is **Convolutional Bias** (if U-Net) or **Positional Bias** (if DiT). **The Fix:** Use **Aspect Ratio Bucketing** during training—group images of similar shapes into the same batch and use **2D RoPE** so the model learns that "coordinates" are relative, not fixed.
+The cost is attention's quadratic growth. Doubling an image's width and height quadruples the tokens and multiplies attention cost by about sixteen. That's why diffusion transformers work in compressed latents, and why efficient attention kernels matter so much for high-resolution images and video (see [Custom Kernels](/posts/mlops/custom-kernel-craze#flashattention-tiling-applied-to-attention)).
 
-#### Scenario 3: CNN vs. Transformer Trade-offs
-*   **Question:** "When would you still choose a U-Net over a DiT?"
-*   **Answer:** For **Medical Imaging** or **Satellite Data** where local texture and exact pixel alignment are more important than global "creativity." U-Nets have a built-in "inductive bias" for local patterns that Transformers have to learn from scratch.
+## Telling the transformer what it needs to know
 
----
+A diffusion network needs three things besides the noisy image: the noise level, the prompt, and the position of each patch.
 
-### Graduate Assignment: The Transformer Scaling Law
+```mermaid
+flowchart TD
+  subgraph In["Inputs"]
+    L["Noisy latent<br/>64 x 64 x 4"]
+    T["Prompt tokens<br/>'a red fox in fresh snow'"]
+    S["Noise level t"]
+  end
+  subgraph Back["DiT backbone"]
+    PE["Patch embedding<br/>linear projection"] --> POS["Positions<br/>2D RoPE"]
+    subgraph Block["Transformer block, repeated"]
+      ADA["adaLN-Zero<br/>scale and shift from t"]
+      ATT["Attention<br/>cross-attention to text,<br/>or joint attention in MMDiT"]
+      FFN["Feed-forward"]
+    end
+  end
+  subgraph Out["Output"]
+    OUT["Predicted noise<br/>or velocity"] --> LOOP["Back to the sampler,<br/>then the VAE decoder"]
+  end
+  L --> PE
+  POS --> ADA
+  S --> ADA
+  ADA --> ATT
+  T --> ATT
+  ATT --> FFN
+  FFN --> OUT
+```
 
-**Task:**
-1.  **Compute Math:** If you double the number of patches (going from $512 \to 1024$ resolution), how does the compute cost of the **Self-Attention** layer change? (Hint: It's $O(N^2)$).
-2.  **The Bottleneck:** Explain how **Latent Diffusion** moves this $N^2$ bottleneck from pixel-space to a much smaller latent-space.
-3.  **The Solution:** Describe how **Linear Attention** or **FlashAttention** allows us to generate long videos without hitting the memory wall.
+*The noise level steers every layer through adaLN-Zero; the prompt enters through attention; positions come from rotary embeddings.*
 
----
+**The noise level, through adaLN-Zero.** DiT compared several ways to inject the timestep and found the best was to let it control each layer's normalization: an embedding of $t$ produces a scale and a shift for every block. "Zero" means each block is initialized to do nothing at first, which made very deep models train stably. In effect the noise level tells every layer whether to think about layout or about fur.
 
-**Further Reading:**
-*   *Scalable Diffusion Models with Transformers (Peebles & Xie 2023)*
-*   *Stable Diffusion 3: Scaling Rectified Flow Transformers (Stability AI 2024)*
-*   *Flux: The Black Forest Labs Architecture.*
+**The prompt, through attention.** The original DiT handled only class labels. Text-to-image transformers add the prompt one of two ways. Cross-attention, used by models like [PixArt-α](https://arxiv.org/abs/2310.00426), adds layers where image tokens look up text tokens, as in the U-Net. Stable Diffusion 3's [MMDiT](https://arxiv.org/abs/2403.03206) instead puts text and image tokens into one shared attention, with separate weights for each, so information flows both ways: the image tokens read the prompt, and the prompt's representation adapts to the image. FLUX builds on the same joint-attention design.
 
----
+**Positions, through rotary embeddings.** Rotary position embeddings (RoPE), extended to two dimensions, encode where each patch sits by relative position. Combined with training on images grouped by aspect ratio ("bucketing"), this lets one model generate tall, wide and square images. Without it, models trained on squares tend to repeat content at unfamiliar shapes, the classic two-headed person in a wide image.
 
-**Previous:** [Part 1 — Foundations: From Molecules to Machines](/posts/generative-ai/diffusion-from-molecules-to-machines)
+## What the network predicts
 
-**Next:** [Part 3 — Sampling & Guidance: The Dialects of Noise](/posts/generative-ai/sampling-guidance-diffusion-models)
+Part 1 described predicting the noise. Modern models often predict something else, and the names get confused:
 
+- **Noise ($\epsilon$-prediction):** DDPM's original target.
+- **v-prediction:** a blend of noise and clean image, introduced by [Salimans and Ho](https://arxiv.org/abs/2202.00512) in their distillation work. It stays well-behaved at the very noisiest steps, where predicting noise tells you almost nothing about the image.
+- **Velocity, in flow matching:** the direction from noise to image along a straight path, used by Stable Diffusion 3, FLUX and most recent models. It looks similar to v-prediction but comes from a different formulation.
 
----
+All three are trained with a squared error, and each can be converted to the others. The choice mostly affects training stability and how many sampling steps work well.
 
-**The big picture:** [The Multimodal Atlas: The Painter](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-an-image-generator-learns-to-paint) covers how DiT/MMDiT models are trained end to end, from re-captioned data to Flow-GRPO and distillation.
+## When a U-Net is still the right call
+
+DiTs win at large scale, but the U-Net's local bias is an advantage when data is limited or exact pixel alignment matters more than global composition: medical imaging, satellite imagery, and super-resolution stages that only add detail. Many diffusion systems for those domains still use U-Nets.
+
+## What I'd remember
+
+- **The network has two jobs.** Layout at high noise, detail at low noise, with the prompt throughout.
+- **U-Nets shrink to see globally; transformers attend globally.** Transformers scale more predictably.
+- **DiT works on latent patches.** Small patches, many tokens, and attention cost that grows with the square of the token count.
+- **Three inputs, three mechanisms.** adaLN-Zero for the noise level, attention for the prompt, 2D RoPE for position.
+- **Noise, v and velocity are different targets.** All squared errors; the choice affects stability and step count.
+
+## Where to go next
+
+- [Sampling and Guidance](/posts/generative-ai/sampling-guidance-diffusion-models), the next part: how this network is used to generate.
+- [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#how-an-image-generator-learns-to-paint), for how MMDiT-style models are trained end to end.
+- Papers: [DiT](https://arxiv.org/abs/2212.09748), [Stable Diffusion 3 (MMDiT)](https://arxiv.org/abs/2403.03206), [Latent Diffusion](https://arxiv.org/abs/2112.10752).
+
+Previous: [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines). Next: [Sampling and Guidance](/posts/generative-ai/sampling-guidance-diffusion-models).
+
+**Questions to sit with**
+
+1. If you double the resolution of the fox image, how many more tokens does a DiT process, and how much more attention compute?
+2. Why might joint attention follow a complicated prompt better than cross-attention?
+3. Why is predicting noise a poor target at the very noisiest step?

@@ -1,168 +1,120 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'The Training Lifecycle: From Noise to Nuance'
+modDatetime: 2026-11-08T00:00:00Z
+title: "The Training Lifecycle: Data, Pre-Training and Post-Training for Diffusion Models"
 slug: pre-training-post-training-video-diffusion
 featured: true
 draft: false
 tags:
   - generative-ai
   - diffusion-models
-  - training
-  - fine-tuning
-  - computer-vision
-description: 'How to train a world-class diffusion model. Covers the complete lifecycle: from large-scale pre-training on noisy web data to specialized post-training, alignment, and aesthetic fine-tuning.'
+  - video-generation
+  - post-training
+description: "How an image or video diffusion model goes from raw web data to a product: curating and re-captioning data, pre-training from low to high resolution, weighting noise levels, then quality tuning, preference tuning and reinforcement learning. Plus the training-health signals worth watching."
 track: GenAI Systems
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - Theory
   - System Design
   - ML-Infra
-estimated_read_time: 45
+estimated_read_time: 9
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*How an image or video diffusion model goes from raw web data to a product: curating and re-captioning data, pre-training from low to high resolution, then quality tuning, preference tuning and reinforcement learning.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series — The Generative Engine</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/generative-ai/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
-    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Architectures</a>
-    <a href="/posts/generative-ai/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
-    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Models</a>
-    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 5: Training Lifecycle</a>
-    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Policy</a>
-    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: The Frontier</a>
-    <a href="/posts/generative-ai/physics-aware-video-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 8: Physics-Aware AI</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 5: Training Lifecycle</strong> — Pre-Training & Post-Training</div>
-</div>
+Part 5 of 8 in the [diffusion series](/posts/generative-ai/diffusion-from-molecules-to-machines). Previous: [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals). Next: [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy).
 
 ---
 
-### Act 0: Training Lifecycle in Plain English
+The first four parts explained what a diffusion model is and how it generates. None of that produces a good fox picture without the right training. A model trained only on raw web images with their raw captions can draw a fox, but it may not put it in snow when asked, may make it look like a stock photo from 2009, and may fail entirely at "at night."
 
-Imagine you are training a world-class painter.
+Training happens in three phases that improve different things. **Data preparation** decides what the model can know. **Pre-training** teaches it what the world looks like. **Post-training** teaches it what people want. This post walks through each, with the techniques that labs have published.
 
-1.  **Phase 1: Pre-Training (The Schooling):** You take the student to every museum in the world. They look at 10 billion images—Renaissance, cartoons, blueprints, and photos. They learn what a "Face" is and how "Light" works. At this stage, they are messy but they understand everything.
-2.  **Phase 2: Post-Training (The Specialization):** You sit the student down and say, "Now, forget the ugly blueprints. Focus on making things beautiful and following my specific instructions." You give them 10,000 perfect, high-quality photos with descriptions.
-3.  **Phase 3: Alignment (The Polish):** You show the student two of their own paintings and say, "This one is too dark, this one is perfect." They learn your personal taste.
-
-**Pre-training** gives the model "Capabilities." **Post-training** gives it "Utility and Aesthetics."
-
----
-
-### Act I: Pre-Training at Planet Scale
-
-Diffusion models are data-hungry beasts. To build a model like Stable Diffusion or Sora, you need a **Curriculum Learning** strategy.
-
-#### 1. Stage 1: Low-Res, High Volume
-We start by training on $256 \times 256$ images. Why? Because it's 16x faster than $1024 \times 1024$. The model learns the basics of shapes and colors here.
-#### 2. Stage 2: Resolution Upscaling
-Once the model is stable, we increase the resolution to $512 \times 512$ and finally $1024 \times 1024$. We use **Noise Offset** training to ensure the model doesn't become biased toward a specific brightness level.
-
----
-
-#### Act I.V: Mature Architecture — The Training Pipeline
-
-In a 2025 production stack, we use a "Data Flywheel" that continuously improves the model based on synthetic and real feedback.
-
-**The Training Lifecycle Pipeline:**
+## The idea in one picture
 
 ```mermaid
-graph TD
-    subgraph "Phase 1: Knowledge Acquisition (Pre-Training)"
-        WebData[5B Image-Text Pairs: LAION]
-        Captions[Auto-Captioner: LLaVA/Gemini]
-        PreTrain[Massive GPU Cluster: H100s]
-    end
-
-    subgraph "Phase 2: Aesthetic Refinement (SFT)"
-        HQData[100k High-Quality Curated Images]
-        Aesth[Aesthetic Scorer: MLP Head]
-        SFT[Supervised Fine-Tuning]
-    end
-
-    subgraph "Phase 3: Alignment & Safety (RLHF/DPO)"
-        PrefData[Human Preference: Chosen vs Rejected]
-        DPO[Direct Policy Optimization]
-        Safe[Safety Filters: NSFW/Bias Check]
-    end
-
-    WebData --> Captions
-    Captions --> PreTrain
-    PreTrain --> HQData
-    HQData --> Aesth
-    Aesth --> SFT
-    SFT --> PrefData
-    PrefData --> DPO
-    DPO --> Safe
-    Safe --> FinalModel[Production Model]
+flowchart TD
+  subgraph Data["Data: what the model can know"]
+    W["Billions of web images<br/>and video clips"] --> F["Filter<br/>safety, quality, duplicates"]
+    F --> C["Re-caption<br/>a VLM writes detailed captions"]
+  end
+  subgraph Pre["Pre-training: what the world looks like"]
+    LR["Low resolution, huge volume"] --> HR["Higher resolution,<br/>more selective data"]
+  end
+  subgraph Post["Post-training: what people want"]
+    Q["Quality tuning<br/>thousands of excellent images"] --> P["Preference tuning<br/>better vs worse pairs"]
+    P --> R["Reinforcement learning<br/>against reward models and checkers"]
+  end
+  C --> LR
+  HR --> Q
+  R -.->|"failures and user feedback<br/>become new data"| W
 ```
 
-##### 1. Auto-Captioning: The Secret Sauce
-Web data often has terrible captions (e.g., "IMG_452.jpg"). Modern models use a **VLM (Vision-Language Model)** to rewrite every caption in the dataset, providing the diffusion model with rich, descriptive text like *"A golden retriever puppy wearing a blue bowtie sitting on a porch."*
+*Each phase uses less data than the one before and changes the model less, but post-training is often what users notice most.*
 
-##### 2. Trade-offs & Reasoning
-*   **Synthetic vs. Real Data:** Training on too much AI-generated data can cause "Model Collapse"—where the AI's mistakes reinforce themselves. *Trade-off:* We use 90% real data for pre-training and 10% high-quality synthetic data for post-training to fix specific flaws (like fingers or text).
-*   **Checkpointing Strategy:** Saving a 100GB model takes time. We use **Distributed Checkpointing** to save shards of the model across the cluster, ensuring we don't lose days of work if a node fails.
-*   **Citations:** *LAION-5B: An Open Large-scale Dataset for Training Image-to-Text Generative Models (2022)* and *Common Crawl: The foundation of modern pre-training.*
+## Data: most of the work
 
----
+Image models were first trained on web-scale image-text pairs. [LAION-5B](https://arxiv.org/abs/2210.08402), with 5.85 billion pairs scraped from the web, made open models like Stable Diffusion possible. It also showed the risks of scale: in December 2023 it was taken offline after researchers found links to child sexual abuse material, and it was re-released in 2024 as a cleaned version, Re-LAION-5B. Filtering isn't a nicety.
 
-### Act II: The Scorecard — Metrics & Training Health
+Two practices now define a good data pipeline.
 
-#### 1. The Metrics (The Engineer's KPI)
-*   **Loss Curve Smoothing:** We monitor the Exponential Moving Average (EMA) of the loss. If it spikes, the model is "diverging" (exploding).
-*   **Gradient Norm:** Measures how much the model's weights change per step. Too high = unstable; too low = not learning.
-*   **Validation FID:** Every 5,000 steps, we generate 1,000 images and check their quality against a golden set.
+**Filtering in stages.** Remove unsafe content, duplicates, tiny or corrupt images, and low-quality ones using learned aesthetic and quality scores. Google's [Imagen 3 paper](https://arxiv.org/abs/2408.07009) also removes AI-generated images, so the model doesn't learn their artifacts. For video, add scene-cut splitting, motion scoring and removal of static clips; [Stable Video Diffusion](https://arxiv.org/abs/2311.15127) showed that a carefully curated video set beat simply using more video.
 
-#### 2. The Loss Function (Min-SNR Weighting)
-Not all noise levels are equally hard to learn. We use **Min-SNR Weighting** to prioritize the "Middle" noise levels, where the most important structural learning happens.
-$$ \mathcal{L}_{weighted} = \min(\text{SNR}(t), 5) \cdot \| \epsilon - \epsilon_\theta \|^2 $$
+**Re-captioning.** Web captions are short, wrong or empty: a fox photo might be labeled "IMG_4521.jpg." OpenAI's [DALL·E 3 report](https://cdn.openai.com/papers/dall-e-3.pdf) showed that replacing them with detailed synthetic captions from a captioning model sharply improved how well the model follows prompts. Now nearly every lab uses a vision-language model to write a detailed caption, often several of different lengths, for every training image or clip. That's also why production systems [rewrite short user prompts](/posts/generative-ai/multi-stage-generation-pipelines#stage-2-rewrite-and-expand-the-prompt) before generation: to match the long captions the model was trained on.
 
----
+The [Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#most-of-the-work-is-data) covers these data pipelines in more detail.
 
-### Act III: System Design & Interview Scenarios
+## Pre-training: low resolution first
 
-#### Scenario 1: Training Stability
-*   **Question:** "Your training loss suddenly goes to NaN (Not a Number) after 100,000 steps. What do you do?"
-*   **Answer:** This is a **Gradient Explosion**. **The Fix:** Use **Gradient Clipping** to cap the maximum weight change. Also, check if your **Learning Rate Scheduler** is too aggressive. You may need to "Warm-up" the learning rate more slowly.
+Pre-training is where the model learns what foxes, snow and night look like, and how text maps to them. Two choices shape it.
 
-#### Scenario 2: Data Quality over Quantity
-*   **Question:** "You have 1 billion blurry images and 1 million 4K perfect images. How do you combine them?"
-*   **Answer:** Use a **Multi-Stage Curriculum**. Train on the 1 billion blurry images first to learn "Concepts." Then, perform a "Finishing Pass" on the 1 million 4K images to learn "Aesthetics."
+**A resolution curriculum.** Training starts at low resolution, often 256×256, which has a sixteenth of the pixels of 1024×1024 and so is far cheaper per image. Composition and concepts are learned there, on huge volumes of data. Later stages raise the resolution on smaller, more selective data, where the model learns fur and snow texture. Video models add a step before that: train on images first, then mix in short low-resolution clips, then longer and sharper ones, as Meta's [Movie Gen](https://arxiv.org/abs/2410.13720) describes.
 
-#### Scenario 3: Fine-tuning for a Specific Brand
-*   **Question:** "A fashion brand wants a model that only generates images in their specific 'Look'. How do you do it cheaply?"
-*   **Answer:** Discuss **LoRA (Low-Rank Adaptation)**. Instead of training the whole model, train a tiny "Adapter" (100MB) that sits on top of the base model. It can be trained on 50 images in 30 minutes.
+**Weighting noise levels.** Every training example uses a randomly chosen noise level, and how those levels are weighted matters. Very noisy steps are nearly impossible to learn from, and nearly clean ones are trivially easy; the middle carries most of the useful signal. [Min-SNR weighting](https://arxiv.org/abs/2303.09556) (Hang et al., 2023) caps how much the easy, low-noise steps can dominate the loss, which they found made training converge several times faster. Stable Diffusion 3's [rectified flow work](https://arxiv.org/abs/2403.03206) similarly samples middle noise levels more often. A related fix from [Part 1](/posts/generative-ai/diffusion-from-molecules-to-machines#the-noise-schedule-matters-more-than-it-looks) ensures the last step is pure noise, so the model can make a fox truly at night.
 
----
+Large runs also use the infrastructure covered in the MLOps series: sharded training ([Training Frameworks](/posts/mlops/hidden-engine-of-ai)), streaming data pipelines ([Ray Data](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) is common for video curation), and frequent checkpoints.
 
-### Graduate Assignment: The Training Architect
+## Post-training: from capable to good
 
-**Task:**
-1.  **Exponential Moving Average (EMA):** Derive why using an **EMA Checkpoint** for inference is better than using the raw weights from the last training step.
-2.  **Dataset Balancing:** If you have 90% "Cat" images and 10% "Dog" images, how do you prevent the model from becoming a "Cat-only" generator? (Look up **Class-Balanced Sampling**).
-3.  **Cross-GPU Communication:** Explain how **All-Reduce** allows 1,000 GPUs to stay in sync during a single training step.
+A pre-trained model knows a lot but has no particular taste. Post-training typically has three steps.
 
----
+**Quality tuning.** Fine-tune on a small set of exceptional images. Meta's [Emu](https://arxiv.org/abs/2309.15807) found that a few thousand carefully selected, highly aesthetic images noticeably improved visual appeal while keeping the model's range. It's the diffusion equivalent of supervised fine-tuning: a little very good data goes a long way.
 
-**Further Reading:**
-*   *HuggingFace Accelerate: Scaling training to multi-node clusters.*
-*   *DDP: Distributed Data Parallel in PyTorch.*
-*   *ZeRO: Memory Optimizations for Training Trillion Parameter Models.*
+**Preference tuning.** People find it easier to say which of two images is better than to describe a perfect one. [Diffusion-DPO](https://arxiv.org/abs/2311.12908) (Wallace et al., 2023) adapted Direct Preference Optimization, from language models, to diffusion. It trains on pairs of images for the same prompt where people preferred one, without a separate reward model. It used the Pick-a-Pic dataset of human preferences, and fine-tuning SDXL with it improved both visual appeal and prompt-following in human evaluations.
 
----
+**Reinforcement learning against rewards.** When a quality can be scored automatically, the model can optimize it directly. [DDPO](https://arxiv.org/abs/2305.13301) (Black et al., 2023) treated each denoising step as an action and optimized rewards like aesthetic scores and prompt alignment. [Flow-GRPO](https://arxiv.org/abs/2505.05470) applied the group-relative approach from language models, explained in [Post-Training](/posts/mlops/modern-post-training-peft-2026#reinforcement-learning-with-rewards-you-can-check), to flow-matching models, using checkers like object detectors that can verify "one fox, in snow." Reward models trained on human ratings, such as [ImageReward](https://arxiv.org/abs/2304.05977), are common signals.
 
-**Previous:** [Part 4 — Video Models: Video Diffusion Fundamentals](/posts/generative-ai/video-diffusion-fundamentals)
+The danger in this last step is reward hacking. Optimize a single aesthetic score and every fox comes out oversaturated and glossy. Teams use several rewards at once, keep the model close to where it started, and check samples by eye.
 
-**Next:** [Part 6 — Diffusion for Action: Trajectories and Policy](/posts/generative-ai/diffusion-for-action-trajectories-policy)
+## Watching training health
 
+A few signals catch most problems early:
 
----
+- **Loss and gradient norm.** A sudden spike usually means instability. Gradient clipping, a learning-rate warmup and lower learning rates are the standard responses.
+- **EMA weights.** Most diffusion models generate from an exponential moving average of the weights rather than the latest weights, which gives smoother, better samples. Evaluate the EMA model, not the raw one.
+- **Fixed-prompt samples.** Generate the same prompts and seeds at regular checkpoints and look at them. Automated metrics like FID move slowly; a sudden shift in color or composition is visible immediately.
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#the-whole-lifecycle-side-by-side) compares this lifecycle side by side with MLLMs and text-to-image models · [Ray Data](/posts/mlops/ray-field-guide-core-to-production#ray-data-streaming-the-pipeline) is a common engine for the video curation pipelines described here.
+## What I'd remember
+
+- **Data decides what's possible.** Filter hard, and re-caption everything with a VLM.
+- **Pre-train cheap, then sharp.** Low resolution and huge volume first, then higher resolution on better data; images before video.
+- **Weight the useful noise levels.** Min-SNR and middle-heavy sampling speed up training.
+- **Post-train in three steps.** Quality tuning, preference tuning, then reinforcement learning against rewards.
+- **Beware reward hacking.** Several rewards, a leash to the original model, and human spot checks.
+
+## Where to go next
+
+- [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy), the next part: the same recipe applied to robot motion.
+- [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end#the-whole-lifecycle-side-by-side), for this lifecycle next to those of vision-language and video models.
+- Papers: [Emu](https://arxiv.org/abs/2309.15807), [Diffusion-DPO](https://arxiv.org/abs/2311.12908), [DDPO](https://arxiv.org/abs/2305.13301), [Min-SNR](https://arxiv.org/abs/2303.09556).
+
+Previous: [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals). Next: [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy).
+
+**Questions to sit with**
+
+1. Why does re-captioning training data change what a user's prompt needs to look like?
+2. Why might a few thousand curated images change a model more visibly than a billion more web images?
+3. If every image starts looking glossy and oversaturated after RL, what went wrong, and what would you change?

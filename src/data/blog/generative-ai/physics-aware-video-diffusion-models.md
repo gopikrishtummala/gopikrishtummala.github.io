@@ -1,176 +1,145 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-20T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'Physics-Aware Video Diffusion: From Pixels to Laws'
+modDatetime: 2026-11-08T00:00:00Z
+title: "Physics-Aware Video Diffusion: Looking Right Versus Being Right"
 slug: physics-aware-video-diffusion-models
 featured: true
 draft: false
 tags:
-  - video-generation
+  - generative-ai
   - diffusion-models
-  - physics-simulation
-  - computer-vision
-  - machine-learning
-  - deep-learning
+  - video-generation
+  - world-models
   - robotics
-description: 'How to move from visual imitation to law-governed motion. Deep dive into injecting PDEs into neural networks, implicit physics extraction, and LLM-guided physical reasoning.'
+description: "Video models produce motion that looks right far more often than motion that is physically right. What the research shows about how much physics they actually learn, the four ways people are adding it (physics losses, simulators in the loop, post-training on simulated data, and world foundation models), and how physical plausibility is measured."
 track: GenAI Systems
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - Theory
   - System Design
-estimated_read_time: 40
+estimated_read_time: 10
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*Video models produce motion that looks right far more often than motion that is physically right. What the research shows about how much physics they learn, the four ways people are adding it, and how physical plausibility is measured.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Diffusion Models Series — The Generative Engine</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/generative-ai/diffusion-from-molecules-to-machines" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 1: Foundations</a>
-    <a href="/posts/generative-ai/image-diffusion-models-unet-to-dit" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 2: Architectures</a>
-    <a href="/posts/generative-ai/sampling-guidance-diffusion-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 3: Sampling & Guidance</a>
-    <a href="/posts/generative-ai/video-diffusion-fundamentals" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 4: Video Models</a>
-    <a href="/posts/generative-ai/pre-training-post-training-video-diffusion" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 5: Training Lifecycle</a>
-    <a href="/posts/generative-ai/diffusion-for-action-trajectories-policy" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 6: Diffusion for Policy</a>
-    <a href="/posts/generative-ai/modern-video-models-sora-veo-opensora" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Part 7: The Frontier</a>
-    <a href="/posts/generative-ai/physics-aware-video-diffusion-models" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Part 8: Physics-Aware AI</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Part 8: Physics-Aware AI</strong> — From Pixels to Laws</div>
-</div>
+Part 8 of 8 in the [diffusion series](/posts/generative-ai/diffusion-from-molecules-to-machines). Previous: [Modern Video Models](/posts/generative-ai/modern-video-models-sora-veo-opensora).
 
 ---
 
-### Act 0: Physics-Aware AI in Plain English
+Watch the fox from the earlier parts leap into the snowbank and it looks convincing. Look closer and things may be off: the arc of the jump flattens halfway through as if the fox briefly hovered, the snow barely moves where it lands, and a pine cone it brushed past is gone when the camera pans back. None of these break the illusion at a glance. All of them would matter if you wanted to use the video for anything other than watching.
 
-Imagine you are watching a video of a glass falling off a table.
+That's the difference this post is about. A video model learns what motion usually looks like in its training data. Physics is a stricter standard: falling things accelerate, mass doesn't appear or vanish, hidden objects still exist. For entertainment, looking right is often enough. For training robots or testing self-driving software in generated scenes, a model that gets physics wrong teaches the wrong lessons.
 
-1.  **Standard Video AI:** Is like a child who has watched thousands of movies. He draws the glass falling because that's what usually happens in movies. But sometimes, he accidentally draws the glass floating upward or disappearing because he doesn't *really* know why it's falling.
-2.  **Physics-Aware AI:** Is like a scientist with a sketchbook. As he draws the glass falling, he is constantly checking his math: "Wait, gravity is $9.8 m/s^2$, so this glass should be moving faster in Frame 5 than in Frame 2." 
-
-If the drawing violates the laws of physics, the scientist erases it and redraws it until the **math and the art match**. This is the key to moving from "Fake Videos" to "World Simulators" that can train robots and autonomous cars.
-
----
-
-### Act I: The Shift from Imitation to Causal Motion
-
-Standard video models (Pixels) excel at **Imitation**. They roll a rock down a hill by statistical pattern-matching.
-**Physics-Aware Models (Dynamics)** excel at **Causality**. They roll the rock by understanding gravity and conservation of energy.
-
-#### Why it matters:
-In robotics, if your "imagined" video shows a falling object floating like a balloon, you can't use that video to train a robot's perception. It would learn the wrong physics.
-
----
-
-### Act II: Three Pillars of Neural Physics
-
-Research has coalesced around three ways to "teach" a model the laws of nature.
-
-#### 1. Explicit Physics (The PDE Loss)
-We add a mathematical constraint directly into the training loop.
-*   **The Math:** $\mathcal{L}_{total} = \mathcal{L}_{denoise} + \lambda \cdot \| \mathcal{F}(\hat{x}) \|^2$.
-*   **How it works:** If $\mathcal{F}$ is the Navier-Stokes equation (fluid dynamics), the model is penalized if the generated fluid "hallucinates" more mass out of nowhere.
-
-#### 2. Implicit Control (Mask Driving)
-We don't give the model equations; we give it a "steering wheel."
-*   **Innovation:** Using models like **InterDyn**, we provide a sparse trajectory (a line showing where the ball should go). The model fills in the tumbling, friction, and collisions based on its pre-trained visual knowledge.
-
----
-
-#### Act II.V: Mature Architecture — The Physics-Informed Pipeline
-
-In a 2025 production stack (like **NVIDIA Cosmos**), physics isn't an afterthought—it's an integrated "Internal Critic."
-
-**The Physics-Aware Generation Pipeline:**
+## The idea in one picture
 
 ```mermaid
-graph TD
-    subgraph "The Generative Loop"
-        Latent[Noisy Latent Cube]
-        DiT[Diffusion Transformer]
-        Denoised[Clean Latent Estimate]
-    end
-
-    subgraph "The Internal Critic (The Laws)"
-        PDE[PDE Residual Solver: Gravity/Fluid]
-        Cons[Conservation Checker: Mass/Energy]
-        Geom[Geometric Consistency: Depth/Flow]
-    end
-
-    subgraph "The Feedback Head"
-        PhyLoss[Physics Gradient: dL/dx]
-        Update[Corrected Denoising Path]
-    end
-
-    Latent --> DiT
-    DiT --> Denoised
-    Denoised --> PDE & Cons & Geom
-    PDE & Cons & Geom -->|Violations| PhyLoss
-    PhyLoss --> Update
-    Update -->|Feedback| DiT
-    Denoised --> Video[Final Physics-Correct Video]
+flowchart TD
+  G["Video diffusion model<br/>learns what motion looks like"] --> Q{"Is it physically right?"}
+  Q --> A1["1. Physics loss<br/>penalize violations of known<br/>equations during training"]
+  Q --> A2["2. Simulator in the loop<br/>a physics engine decides motion,<br/>the model renders it"]
+  Q --> A3["3. Post-train on simulation<br/>fine-tune on simulated physics,<br/>reward physical accuracy"]
+  Q --> A4["4. World foundation models<br/>train at scale for physical AI,<br/>then specialize"]
+  A1 --> M["Measure with physics benchmarks<br/>Physics-IQ, VideoPhy, VBench-2.0"]
+  A2 --> M
+  A3 --> M
+  A4 --> M
 ```
 
-##### 1. Differentiable Physics Operators
-To train this model, the physics laws themselves must be written in a way the neural network can understand (Differentiable). We use libraries like **NVIDIA Warp** or **JAX** to calculate the "Physics Gradient."
+*Four approaches, from most explicit (write the equations in) to most implicit (learn from much more of the right data). Every one needs a benchmark to tell whether it worked.*
 
-##### 2. Trade-offs & Reasoning
-*   **Accuracy vs. Latency:** Calculating PDE residuals for every frame makes generation 5x slower. *Trade-off:* For scientific simulation (weather, aero), we pay the cost. For creative video (Sora), we use the faster **LLM-Guided Guidance** instead.
-*   **Pixel vs. Latent Physics:** Enforcing physics in pixel-space is expensive. Modern research (2026) is moving toward **Latent Physics**, where the model learns a "Physics Manifold" in compressed space.
-*   **Citations:** *Physics-Informed Diffusion Models (Bastek et al. 2024)* and *PISA: Post-training for Improved Physical Consistency (ICML 2025)*.
+## How much physics do video models learn?
 
----
+Less than their visual quality suggests, according to several careful studies.
 
-### Act III: The Scorecard — Metrics & Fidelity
+- **[Physics-IQ](https://arxiv.org/abs/2501.09038)** (Motamed et al., 2025) tested models including Sora, Runway, Pika, Lumiere and Stable Video Diffusion on scenarios covering fluids, optics, solid mechanics, magnetism and heat. Its conclusion: physical understanding is "severely limited, and unrelated to visual realism." A model can produce beautiful video and still get the physics badly wrong.
+- **[Kang et al. (2024)](https://arxiv.org/abs/2411.02385)** trained diffusion models on a simple 2D simulator of moving and colliding objects, where the true laws are known. Within the range of situations seen in training, the models generalized almost without error. Outside it, they failed. Rather than learning the laws, they showed "case-based" behavior, imitating the most similar training example, and they matched on surface features in a revealing order: color first, then size, then velocity, then shape. Their conclusion was that scaling alone isn't enough.
+- **[VideoPhy](https://arxiv.org/abs/2406.03520)** asked people to judge whether generated videos of everyday activities followed the prompt and physical commonsense. The best model at the time, CogVideoX-5B, did both in only 39.6 percent of cases.
 
-#### 1. The Metrics (The Scientist's KPI)
-*   **Energy Variance:** Measuring how much total energy $(1/2 mv^2)$ fluctuates. In a perfect world, it should be constant.
-*   **Collision Consistency Score:** Does the object deform exactly where the contact happens?
-*   **VideoPhy Benchmark:** A 2025 standard that ranks models based on 10 specific physical tasks (falling, sliding, fluid flow).
+For our fox, case-based generalization explains the hovering arc. The model has seen many animals jumping, but not this particular jump, so it blends the nearest examples it knows rather than computing a trajectory.
 
-#### 2. The Loss Function (ORO: Object Reward Optimization)
-We use a reward function based on **Optical Flow** and **Depth** to force the model to learn specific constants (like $g \approx 9.8 m/s^2$).
-$$ \mathcal{L}_{ORO} = \| \text{Acceleration}(\hat{x}) - g \|^2 $$
+## Approach 1: put the physics in the loss
 
----
+If you know the equations, you can penalize violations of them during training. [Physics-informed diffusion models](https://arxiv.org/abs/2403.14404) (Bastek, Sun and Kochmann) add a loss term that measures how far a generated sample is from satisfying the governing equations, reducing that error by up to two orders of magnitude in their experiments.
 
-### Act IV: System Design & Interview Scenarios
+The catch is scope. Their test cases were a fluid-flow problem and structural design, scientific fields where the equations are known and the data is the physical quantity itself. Natural video is different: you don't directly observe velocity, mass or force in pixels, and no single equation describes a fox landing in snow. This approach is strong for scientific and engineering generation and hard to apply to everyday video.
 
-#### Scenario 1: The "Balloon" Rock
-*   **Question:** "Your model generates a rock falling, but it falls too slowly, like it's in water. How do you fix the gravity?"
-*   **Answer:** This is a **Mass-Prior** failure. **The Fix:** Fine-tune the model on a **Synthetic Dataset** (from Unreal Engine or MuJoCo) where the gravity is accurately simulated. Use **Reward-Weighted Regression** to favor samples that match the correct falling velocity.
+## Approach 2: let a simulator decide the motion
 
-#### Scenario 2: Fluid Disappearance
-*   **Question:** "Water splashes out of a cup in your video, but the total volume of water seems to decrease. What's the engineering fix?"
-*   **Answer:** Implement a **Divergence-Free Constraint** ($\nabla \cdot u = 0$) as a residual loss. This forces the model's velocity field to preserve the volume of the "fluid" tokens in the latent space.
+Another option is not to ask the video model to get physics right at all. Let a physics engine compute the motion, and let the generative model make it look real.
 
-#### Scenario 3: Real-Time Robotics Training
-*   **Question:** "Can we use a Video Diffusion model to train a robot to catch a ball?"
-*   **Answer:** Yes, this is **Visual Foresight**. The robot generates 100 "Future Dreams" of its own hand moving. It picks the dream where it successfully catches the ball and then executes the first action from that dream. This is **Generative Model Predictive Control (MPC)**.
+[PhysGen](https://arxiv.org/abs/2409.18964) does this for single images: it estimates the objects and their properties in a photo, runs a rigid-body simulation given an applied force, and uses a diffusion model to render and refine the resulting video. The motion is physically correct by construction.
 
----
+A lighter version gives the model a physically meaningful control signal instead of a full simulation. [InterDyn](https://arxiv.org/abs/2412.11785) fine-tunes Stable Video Diffusion to take a mask showing how a driving object, usually a hand, moves. Notably, the object being pushed gets no control signal at all; the model has to infer how it responds, which tests and uses the physics it has absorbed. The trade-off across this family is generality: simulators cover the physics they implement, rigid bodies in PhysGen's case, and nothing else.
 
-### Graduate Assignment: The Newton Transformer
+## Approach 3: post-train on simulated physics
 
-**Task:**
-1.  **Conservation of Momentum:** Derive how to add a "Collision Reward" to a DiT backbone using **Cross-Attention** between two interacting object tokens.
-2.  **PDE Integration:** Explain the difference between **Hard Constraints** (clipping the signal) and **Soft Constraints** (adding to the loss function). Which is better for training stability?
-3.  **The Sim-to-Real Gap:** How does a model trained on "Perfect" physics in a simulator adapt to the "Messy" physics of wind and friction in the real world?
+The third approach treats physics like any other skill: show the model correct examples and reward accuracy. [PISA](https://arxiv.org/abs/2503.09595) studied the simplest possible case, objects dropping. Pretrained video models consistently failed at it, often leaving objects static or even moving them upward. Fine-tuning Open-Sora on a relatively small set of simulated drop videos, about 5,000 samples, was enough to produce realistic falling. The authors then added Object Reward Optimization, rewards computed from segmentation, optical flow and depth that score whether objects move as they should.
 
----
+```mermaid
+flowchart TB
+  subgraph Gen["Generation"]
+    P["Pretrained video model"] --> V["Generated video<br/>of a drop"]
+  end
+  subgraph Rew["Physics rewards"]
+    S["Segmentation<br/>where is the object"]
+    F["Optical flow<br/>how it moves"]
+    D["Depth<br/>where it is in 3D"]
+  end
+  V --> S
+  V --> F
+  V --> D
+  S --> R["Reward:<br/>does motion match<br/>simulated physics?"]
+  F --> R
+  D --> R
+  R -->|"update the model"| P
+  SIM["Simulated drop videos<br/>about 5,000 for fine-tuning"] -->|"supervised first"| P
+```
 
-**Further Reading:**
-*   *Cosmos: NVIDIA's Open World Model (2026).*
-*   *InterDyn: Controllable Interactive Dynamics (CVPR 2025).*
-**Previous:** [Part 7 — The Frontier: Sora, Veo, and the Future of Video](/posts/generative-ai/modern-video-models-sora-veo-opensora)
+*Fine-tune on simulated examples, then refine with rewards that measure object motion. The same post-training pattern as aesthetics and prompt-following, applied to physics.*
 
-*This concludes the Diffusion Models Series. From pixels to physics, the journey of generative AI is just beginning.*
+The limits match Kang et al.'s findings: the model improved inside the kind of scenarios it was trained on and degraded outside them. It's the same reinforcement learning pattern described in [The Training Lifecycle](/posts/generative-ai/pre-training-post-training-video-diffusion#post-training-from-capable-to-good), with physics as the reward.
 
+## Approach 4: world foundation models
 
+The broadest approach is to build models specifically for physical AI and train them on far more relevant video. NVIDIA's [Cosmos](https://arxiv.org/abs/2501.03575) platform curated about 100 million clips from roughly 20 million hours of raw video, and trained both diffusion and autoregressive world models on them. They're meant as starting points: pre-trained on general physical scenes, then post-trained for specific uses such as camera control, robotic manipulation and autonomous driving.
 
----
+This is where physics-aware video meets robotics and driving. A world model that predicts what the camera will see next, given an action, can generate rare training scenarios or let a planner imagine consequences before acting, as described in [Module 9](/posts/robotics/autonomous-stack-module-9-foundation-models#imagining-the-future-before-acting) and the closed-loop simulation section of [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation#evaluation-the-hard-part). The bar there is high. A driving simulator whose generated pedestrians move implausibly will train and test the car on the wrong world.
 
-**The big picture:** [The Multimodal Atlas](/posts/generative-ai/multimodal-foundation-models-end-to-end) covers the whole stack around these models, including [where video models still fail](/posts/generative-ai/multimodal-foundation-models-end-to-end#video-the-same-recipe-plus-time) and how VBench-2.0 measures physics and commonsense.
+## Measuring physical plausibility
+
+Physics needs its own benchmarks, because standard video metrics reward appearance:
+
+- **[Physics-IQ](https://arxiv.org/abs/2501.09038)** compares generated continuations with real recorded outcomes across physical principles.
+- **[VideoPhy](https://arxiv.org/abs/2406.03520)** uses human judgments of physical commonsense in everyday activities, with an automatic evaluator trained to approximate them.
+- **[VBench-2.0](https://arxiv.org/abs/2503.21755)** extends the VBench suite from Part 4 with dimensions for physics and commonsense, alongside human fidelity, controllability and creativity.
+
+Each is partial. The most reliable test is still the one closest to the use: if the video will train a robot, measure whether the robot trained on it works.
+
+## Where the series ends
+
+Across eight parts, the same idea, add noise and learn to remove it, went from painting a fox to filming it, to moving a robot arm, to simulating the world. The last step is the least finished. Diffusion models are excellent at looking right. Making them reliably right about physics is an open problem, and the four approaches here are best seen as complementary: equations where they're known, simulators where they're cheap, post-training where data can be generated, and scale for everything else.
+
+## What I'd remember
+
+- **Looking right isn't being right.** Visual realism and physical understanding are largely unrelated in current models.
+- **Models generalize by case, not by law.** Inside the training distribution they're accurate; outside, they imitate the nearest example.
+- **Four ways to add physics.** Physics losses, simulators in the loop, post-training with physics rewards, and world foundation models.
+- **Small amounts of simulated data help.** PISA needed about 5,000 simulated drops to fix falling objects.
+- **Measure physics directly, ideally by downstream use.** Appearance metrics won't catch it.
+
+## Where to go next
+
+- [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines), the start of the series, with the full list of parts.
+- [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), for where world models and closed-loop simulation meet robot and driving policies.
+- Papers: [Physics-IQ](https://arxiv.org/abs/2501.09038), [How Far is Video Generation from World Model](https://arxiv.org/abs/2411.02385), [PISA](https://arxiv.org/abs/2503.09595), [Cosmos](https://arxiv.org/abs/2501.03575).
+
+Previous: [Modern Video Models](/posts/generative-ai/modern-video-models-sora-veo-opensora). Back to the start: [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines).
+
+**Questions to sit with**
+
+1. If a video model reproduces training scenarios accurately but fails on new ones, how would you tell whether it learned physics?
+2. When is a simulator in the loop worth giving up generality?
+3. For a driving simulator built on a world model, what physical errors would worry you most, and how would you test for them?
