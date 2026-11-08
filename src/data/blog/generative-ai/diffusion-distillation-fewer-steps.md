@@ -92,9 +92,17 @@ flowchart LR
 
 ## Family 1: follow the teacher's path
 
-**Progressive distillation** was the first method that worked at scale. [Salimans and Ho (2022)](https://arxiv.org/abs/2202.00512) trained a student to match two teacher steps with one, then made that student the new teacher and repeated, halving the step count each round. Starting from samplers that took as many as 8,192 steps, they got down to 4 "without losing much perceptual quality."
+It helps to remember what the original model was trained on. In [DDPM](https://arxiv.org/abs/2006.11239) (Ho et al., 2020), the network sees a noisy image $z_t$ and learns to predict the noise that was added, with a plain squared error: $\lVert \epsilon - \epsilon_\theta(z_t, t) \rVert^2$. Most path-following distillation keeps that same kind of regression loss and changes only the target. Instead of the true noise, the student is asked to match something the teacher computed.
 
-**Guidance distillation** removes the other multiplier. Classifier-free guidance runs the model with and without the prompt and extrapolates between them, so every step costs two passes. [Meng et al.](https://arxiv.org/abs/2210.03142) trained a single model to produce the guided output in one pass, then progressively distilled it, reaching 1 to 4 steps for latent text-to-image models. For our mug app, this alone halves the cost before any step reduction.
+**Progressive distillation** was the first method that worked at scale. [Salimans and Ho (2022)](https://arxiv.org/abs/2202.00512) start from a noisy image, let the teacher take two small deterministic sampling steps, and record where it lands. The student is trained, with a squared-error loss, to land in the same place in one step. That student then becomes the next teacher, and the step count halves every round. Starting from samplers that took as many as 8,192 steps, they got down to 4 "without losing much perceptual quality."
+
+**Guidance distillation** removes the other multiplier. [Classifier-free guidance](https://arxiv.org/abs/2207.12598) (Ho and Salimans, 2022) runs the model twice per step, once with the prompt $c$ and once without, and pushes the prediction further in the direction the prompt points: $\tilde{\epsilon} = (1+w)\,\epsilon_\theta(z_t, c) - w\,\epsilon_\theta(z_t)$. Here $w$ is the guidance strength, the knob that trades variety for prompt-following. That's two passes per step.
+
+[Meng et al.](https://arxiv.org/abs/2210.03142) train a student that produces the guided result in one pass. The student takes the guidance strength $w$ as an extra input, and its loss is a squared error against the teacher's two-pass guided prediction, averaged over random noise levels and random values of $w$:
+
+$$\mathcal{L} = \mathbb{E}_{t,\,w}\Big[\big\lVert \hat{x}_{\text{student}}(z_t, w) - \big((1+w)\,\hat{x}_\theta(z_t, c) - w\,\hat{x}_\theta(z_t)\big) \big\rVert^2\Big]$$
+
+The paper writes it in terms of the predicted clean image $\hat{x}$ rather than the noise, with a weighting by noise level that's omitted here. Nothing about the loss is new; what's new is the target. Training over many values of $w$ keeps the guidance knob usable at inference, even though it now costs one pass. They then apply progressive distillation to this one-pass model, reaching 1 to 4 steps for latent text-to-image models. For our mug app, the guidance stage alone halves the cost before any step reduction.
 
 **Consistency models** change the question. Instead of "where do I go next?", a [consistency model](https://arxiv.org/abs/2303.01469) learns "where does this path end?" from any point along it. Every point on the same noise-to-image trajectory should map to the same final image:
 
