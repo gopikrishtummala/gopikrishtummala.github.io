@@ -137,7 +137,7 @@ $$ \mathcal{L}_{video} = \sum_{t, x, y} \| \epsilon - \epsilon_\theta(z_{noisy},
 
 #### Scenario 3: Inference Cost at Scale
 *   **Question:** "Generating 1 minute of video takes 1 hour on an H100. How do you make it 10x faster for a consumer app?"
-*   **Answer:** Discuss **Distillation** (Progressive Distillation) and **Parallel Sampling**. Run multiple chunks of the video in parallel on different GPUs and use **Cross-Frame Blending** to stitch the edges smoothly.
+*   **Answer:** Discuss **Distillation** (Progressive Distillation, or causal few-step students like CausVid; see [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps#video-from-minutes-to-streaming)) and **Parallel Sampling**. Run multiple chunks of the video in parallel on different GPUs and use **Cross-Frame Blending** to stitch the edges smoothly.
 
 ---
 

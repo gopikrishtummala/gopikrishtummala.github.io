@@ -139,7 +139,7 @@ Pre-training happens at low resolution first (where the model learns what a dog 
 - **Quality tuning** on a few thousand hand-picked images. Meta's [Emu paper](https://arxiv.org/abs/2309.15807) showed this small step noticeably improves visual appeal.
 - **Preference tuning** on pairs of images people ranked for the same prompt.
 - **Reinforcement learning against checkers.** An object detector can check whether the image really contains one dog and one red frisbee. Using checks like that as rewards, [Flow-GRPO](https://arxiv.org/abs/2505.05470) raised Stable Diffusion 3.5 Medium's score on the GenEval compositional benchmark from 63% to 95%.
-- **Distillation**, which teaches a student model to produce in 1–8 steps what the original needed 30–50 for.
+- **Distillation**, which teaches a student model to produce in 1–8 steps what the original needed 30–50 for ([Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps) covers how).
 
 The risk with rewards is reward hacking: optimize a single aesthetic score and every image comes out oversaturated and similar. Multiple rewards, staying close to the original model and human spot checks keep it in bounds.
 
@@ -209,6 +209,7 @@ On this site:
 - [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), a gentler introduction to VLMs.
 - [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), for VLMs that output robot and driving actions.
 - [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), one VLM in depth, including how its mixture-of-experts router is trained and how it's deployed.
+- [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps) and [Behind the Generate Button](/posts/generative-ai/multi-stage-generation-pipelines), for making generators fast and the production pipeline around them.
 
 Courses and tutorials:
 

@@ -160,6 +160,7 @@ mindmap
 
 - The [Model Context Protocol docs](https://modelcontextprotocol.io/).
 - [Agentic AI Design Patterns](/posts/agentic-ai/agentic-ai-design-patterns), for the design side of agents.
+- [Behind the Generate Button](/posts/generative-ai/multi-stage-generation-pipelines#from-a-pipeline-to-an-agent), for agents that orchestrate image and video models as tools.
 - [Coding With AI Without Losing Your Edge](/posts/interview-prep/ai-assisted-coding-conscious-practice-and-interviews), for working alongside coding agents.
 
 Previous: [Custom Kernels](/posts/mlops/custom-kernel-craze). Next: [Pipeline Orchestration](/posts/mlops/ml-pipeline-orchestration-layers).

@@ -148,6 +148,7 @@ For the support team, n-gram lookup is the natural first try. Their replies quot
 - [LLM Serving with vLLM](/posts/mlops/vllm-trilogy-of-modern-llm-scaling) and [Life of a Request](/posts/mlops/life-of-a-tensor-production-inference), for why decode is memory-bound.
 - [Qwen3-VL and Mixture of Experts](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), for the model this post speeds up.
 - [Custom Kernels](/posts/mlops/custom-kernel-craze), for why reading bytes, not doing math, sets the pace.
+- [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps), the image and video version of the same goal: fewer expensive passes per output.
 - Papers: [Leviathan et al.](https://arxiv.org/abs/2211.17192), [Chen et al.](https://arxiv.org/abs/2302.01318), [Medusa](https://arxiv.org/abs/2401.10774), [EAGLE-3](https://arxiv.org/abs/2503.01840).
 
 **Questions to sit with**

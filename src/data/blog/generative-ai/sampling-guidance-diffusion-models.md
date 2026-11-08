@@ -152,7 +152,7 @@ This loss ensures that the model learns to move in a **straight line** from nois
 
 #### Scenario 3: Real-Time Editing
 *   **Question:** "You need to update an image in <500ms based on a user's brushstroke. Standard diffusion is too slow. What's the SOTA?"
-*   **Answer:** Discuss **LCM (Latent Consistency Models)** or **SDXL-Turbo**. These use **Adversarial Distillation** to "collapse" the 50 steps into a single 1-step calculation.
+*   **Answer:** Discuss **LCM (Latent Consistency Models)**, which uses consistency distillation, or **SDXL-Turbo**, which uses **Adversarial Distillation**. Both "collapse" the ~50 steps into 1 to 4. See [Diffusion Distillation](/posts/generative-ai/diffusion-distillation-fewer-steps) for how each works.
 
 ---
 
