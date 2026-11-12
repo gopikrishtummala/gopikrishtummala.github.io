@@ -1,239 +1,144 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-25T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'Module 08: The Chess Master — The Art of Planning'
+modDatetime: 2026-11-11T00:00:00Z
+title: "Module 8: Planning, Deciding What to Do Next"
 slug: autonomous-stack-module-8-planning
 featured: true
 draft: false
 tags:
   - autonomous-vehicles
   - robotics
-  - planning
-  - game-theory
-  - control-systems
-  - reinforcement-learning
-  - mpc
-description: 'From perception to action: How autonomous vehicles make decisions. Covers cost functions, game-theoretic planning, MPC, and the "End-to-End" debate.'
+  - motion-planning
+  - imitation-learning
+description: "Planning turns everything the car knows into a decision: go now, wait, or creep forward. How planners balance safety, legality, comfort and progress; how classical search and optimization work; why learning to plan from human driving is harder than it looks; why a simple rule-based planner once beat the learned ones; and where hybrid planners stand now."
 track: Robotics
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - System Design
   - Theory
-  - ML-Infra
-estimated_read_time: 45
+estimated_read_time: 10
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*Planning turns everything the car knows into a decision: go now, wait, or creep forward. How planners balance competing goals, why learning to plan from human driving is harder than it looks, and where hybrid planners stand now.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">The Ghost in the Machine — Building an Autonomous Stack</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/robotics/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Architecture</a>
-    <a href="/posts/robotics/autonomous-stack-module-2-sensors" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 2: Sensors</a>
-    <a href="/posts/robotics/autonomous-stack-module-3-calibration" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 3: Calibration</a>
-    <a href="/posts/robotics/autonomous-stack-module-4-localization" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 4: Localization</a>
-    <a href="/posts/robotics/autonomous-stack-module-5-mapping" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 5: Mapping</a>
-    <a href="/posts/robotics/autonomous-stack-module-6-perception" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 6: Perception</a>
-    <a href="/posts/robotics/autonomous-stack-module-7-prediction" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 7: Prediction</a>
-    <a href="/posts/robotics/autonomous-stack-module-8-planning" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Module 8: Planning</a>
-    <a href="/posts/robotics/autonomous-stack-module-9-foundation-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 9: Foundation Models</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Module 8: The Chess Master</strong> — The Art of Planning</div>
-</div>
+Module 8 of 9 in the [autonomous stack series](/posts/robotics/autonomous-stack-module-1-architecture). Previous: [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction). Next: [Module 9: Foundation Models](/posts/robotics/autonomous-stack-module-9-foundation-models).
 
 ---
 
-### Act 0: Planning in Plain English
+Everything so far has led to one decision. Our car is in the intersection, waiting to turn left. It knows where it is (Module 4), the layout of the road (Module 5), what's around it (Module 6), and a set of possible futures for the oncoming car, the cyclist and the pedestrian (Module 7). Now it has to choose: turn now, wait for the next gap, or creep forward to see past the van and signal that it intends to go.
 
-Imagine you are playing a high-stakes game of Chess while riding a bicycle through a busy market. 
+Waiting forever is safe in the narrowest sense and useless in every other: the light will change, and a car stuck in the middle of an intersection is a hazard of its own. Going too eagerly risks the hidden cyclist. Good planning is finding the decision a careful, confident human would make, many times a second, in every situation the car meets.
 
-*   **Perception** tells you where the other people and obstacles are. 
-*   **Prediction** tells you where they are *going* to be in 3 seconds. 
-*   **Planning** is the "Grandmaster" in your head deciding, "Should I swerve left to avoid the cart, or slow down and wait for the lady with the groceries to pass?"
-
-The Planner has to balance four conflicting goals:
-1.  **Safety:** Don't hit anything. (Priority #1)
-2.  **Legality:** Follow the rules (Stop at red lights).
-3.  **Comfort:** Don't slam the brakes or jerk the wheel.
-4.  **Progress:** Actually get to the destination.
-
-If the Planner is too "scared," the car never moves. If it's too "aggressive," it drives like a maniac. The "Art of Planning" is finding the perfect middle ground.
-
----
-
-### Act I: The Cost Function (How Robots Think)
-
-Humans drive on intuition; robots drive on **Cost Functions**. Imagine the road is covered in "invisible hills" (high cost) and "valleys" (low cost).
-
-*   **High Cost (The Hills):** Hitting a pedestrian (Infinite cost), driving over a curb, jerky steering.
-*   **Low Cost (The Valleys):** Staying in the center of the lane, maintaining speed, smooth braking.
-
-The Planner's job is to roll a "marble" (the car) through the deepest valleys.
-$$J_{total} = w_1(\text{Safety}) + w_2(\text{Comfort}) + w_3(\text{Progress}) + w_4(\text{Legality})$$
-
-> **Interview Pro-Tip:** If an interviewer asks how to handle a "stalled vehicle on a double-yellow line," talk about **Cost Relaxation**. The cost of crossing a double-yellow is high, but the cost of "infinite wait" (zero progress) eventually becomes higher. The car "decides" to break a small rule to satisfy a larger goal.
-
----
-
-### Act II: Classical Planning (MPC & Lattice)
-
-#### 1. Model Predictive Control (MPC)
-MPC is like a "rolling window" of decisions. 
-1.  Look ahead 5 seconds.
-2.  Find the best path for those 5 seconds.
-3.  Execute only the *first* 100ms.
-4.  Repeat.
-This allows the car to constantly adjust to new information.
-
-#### 2. Frenet Lattice Planning
-Instead of $(x, y)$ coordinates, we use **$s$** (distance along the road) and **$d$** (lateral offset from center). 
-*   *Pros:* Simplifies the math. "Stay in lane" just means $d=0$.
-*   *Cons:* Fails in intersections or parking lots where there is no "center line."
-
----
-
-#### Act II.V: Mature Architecture — The Neural Planner
-
-In modern end-to-end and hybrid stacks (Tesla FSD v12, Wayve), planning has evolved from a series of "If-Then" rules to **Learned Differentiable Planners**. These architectures use **World Models** to simulate outcomes before taking action.
-
-**The Planning Pipeline (Mature Architecture):**
+## The idea in one picture
 
 ```mermaid
-graph TD
-    subgraph "Perception/Prediction Latent"
-        Scene[Scene Embeddings]
-        Agents[Agent Intent Tokens]
-    end
-
-    subgraph "The World Model"
-        W_Model[Predictive World Model: Differentiable Simulator]
-        Future[Hallucinated Future States]
-    end
-
-    subgraph "The Transformer Planner"
-        Queries[Trajectory Queries]
-        X_Attn[Cross-Attention: Querying the World Model]
-        S_Attn[Self-Attention: Trajectory Refinement]
-    end
-
-    subgraph "Final Actuation"
-        Traj[Optimal Trajectory]
-        Cost[Cost Refinement/Guardrails]
-        Control[Brake/Steer/Throttle]
-    end
-
-    Scene --> W_Model
-    Agents --> W_Model
-    W_Model --> Future
-    
-    Future --> X_Attn
-    Queries --> X_Attn
-    X_Attn --> S_Attn
-    S_Attn --> Traj
-    Traj --> Cost
-    Cost --> Control
+flowchart TD
+  subgraph In["What the planner knows"]
+    SC["Scene and map"]
+    FUT["Predicted futures<br/>for every agent"]
+  end
+  subgraph Gen["1. Propose"]
+    CAND["Candidate trajectories<br/>go now, wait, creep,<br/>several speeds and paths"]
+  end
+  subgraph Eval["2. Evaluate against each future"]
+    COST["Score each candidate<br/>safety, rules, comfort, progress"]
+  end
+  subgraph Safe["3. Check and act"]
+    GUARD["Safety check<br/>collision, rules"]
+    CTRL["Steer, brake, throttle"]
+  end
+  SC --> CAND
+  FUT --> COST
+  CAND --> COST
+  COST --> GUARD
+  GUARD --> CTRL
+  CTRL -.->|"replan many times<br/>a second"| SC
 ```
 
-##### 1. Querying the Future
-How does a neural network "decide" where to go? 
-*   **The Mechanism:** The planner generates a set of "Trajectory Queries"—potential paths the car could take. 
-*   **Cross-Attention:** These queries attend to the **World Model's** predicted future. Each query "asks": *"If I take this path, how likely am I to collide with the hallucinated pedestrian in 2 seconds?"*
-*   **The Selection:** The model weights the trajectories based on safety and progress, selecting the "cleanest" path through the latent space.
+*Propose options, score them against the possible futures, check the winner, act on the first part of it, and repeat with fresh information.*
 
-##### 2. Differentiable Cost Functions
-Unlike old-school planners where we hand-tuned weights, mature architectures use **Learned Cost Functions**. 
-*   The model is trained on millions of hours of expert human driving. It "learns" the cost of discomfort or illegality by trying to minimize the difference between its chosen path and the human's path (**Imitation Learning**).
+## Four goals that pull against each other
 
-##### 3. Trade-offs & Reasoning
-*   **Hand-Tuned Rules vs. Imitation Learning:** A classic C++ planner requires thousands of "If-Else" rules (e.g., *If pedestrian distance < 5m, brake*). *Trade-off:* It is perfectly interpretable and debuggable, but it fails in complex, unscripted situations (like a 4-way stop with aggressive drivers). Neural Planners (Imitation Learning) scale naturally with data and handle complex interactions smoothly. *Trade-off:* They act as "Black Boxes" and can suffer from the "Causal Confusion" problem—learning the wrong correlation (e.g., "always slow down near tall buildings" instead of "slow down because tall buildings hide pedestrians").
-*   **Citations:** *ChauffeurNet: Learning to Drive by Imitating the Best and Synthesizing the Worst (Waymo 2019)* and *Planning-oriented Autonomous Driving (UniAD CVPR 2023)*.
+Every planner, rule-based or learned, balances the same four things:
 
----
+- **Safety:** don't collide, and keep margins against things that might happen.
+- **Legality:** obey signals, right of way and lane markings.
+- **Comfort:** no sudden braking or jerky steering.
+- **Progress:** actually get where you're going.
 
-### Act II.VII: The Scorecard — Planning Metrics & Costs
+They conflict constantly. A parked delivery truck blocking the lane can only be passed by crossing a double yellow line: legality against progress. Waiting at our left turn until no car is visible for a kilometer is safe and makes no progress. Classical planners encode this balance as a **cost function**, a score where collisions are effectively forbidden, rule violations are expensive, and discomfort and lost time cost a little. Picture terrain where risky options are hills and good ones are valleys, and the planner rolls toward the lowest valley it can find.
 
-In planning, we don't just care about getting to the destination; we care about **how** we get there. We measure performance using a mix of distance metrics and safety/comfort violations.
+Tuning that balance is most of the work. Weights that make a car cautious in one situation make it timid in another, which is a big reason the field turned to learning.
 
-#### 1. The Metrics (The Planner's KPI)
-*   **Progress (m):** How many meters did the car successfully travel toward its goal?
-*   **SR (Success Rate):** The percentage of scenarios completed without any collisions or hard safety interventions.
-*   **CR (Collision Rate):** The number of collisions per 1,000 miles driven. In 2026, the industry goal is "Better than Human" (approx. 1 fatality per 100 million miles).
-*   **Comfort (Jerk & Accel):** Measured in $m/s^3$. We track the "Maximum Jerk" to ensure the car doesn't make passengers motion sick.
+## How classical planners search
 
-#### 2. The Loss Functions (How the Planner Learns)
-*   **Imitation Loss (MSE):** Used in "Behavioral Cloning." We minimize the L2 distance between the AI's proposed path and a human expert's actual path.
-    $$\mathcal{L}_{BC} = \| \mathbf{T}_{ai} - \mathbf{T}_{human} \|^2$$
-*   **Collision Penalty:** A non-differentiable "Hard Cost." If a proposed trajectory hits an object in the World Model, that path is given an infinite cost and discarded.
-*   **RL Reward Design:** In Reinforcement Learning, the loss is the inverse of the **Reward ($R$)**. A typical 2026 reward function looks like:
-    $$R = w_1(\text{Progress}) - w_2(\text{Collision}) - w_3(\text{Jerk}) - w_4(\text{Rule Violation})$$
+Two families of method dominated for a decade:
 
----
+- **Sampling.** Generate many candidate trajectories, for example by varying how far to drift from the lane center and how fast to go, score each, and keep the best. Describing positions as distance along the lane and offset from its center (a "Frenet" frame, popularized for driving by Werling et al. in 2010) makes "stay in the lane" and "change lanes" simple to express. It works well on structured roads and poorly in parking lots or intersections without clear lanes.
+- **Optimization.** Start from a rough path and adjust it smoothly to lower the cost while respecting the car's physical limits. **Model predictive control** applies this in a rolling loop: plan the next several seconds, execute only the first fraction of a second, then replan from the new position. The constant replanning is what lets a planner react when the cyclist suddenly appears.
 
-### Act III: The Great Divergence (Modular vs. End-to-End)
+Above these, many stacks have a **behavior layer**, often a state machine, that picks the high-level maneuver: follow the lane, yield, turn, change lanes. Our left turn is a sequence of such decisions: approach, stop at the line or in the box, wait for a gap, commit, complete the turn.
 
-There is a philosophical war in AV right now.
+## Learning to plan from human driving
 
-#### Team Modular (Waymo, Aurora)
-**Philosophy:** "Explainable AI."
-*   *How:* Separate boxes for Perception → Prediction → Planning.
-*   *Pros:* If it makes a mistake, you know exactly why. Easy to "fix" a specific rule.
+Hand-tuned rules and costs struggle with the endless variety of real traffic, so the obvious alternative is to learn from people: show a network millions of examples of how humans drove and train it to do the same. This is **imitation learning**, or behavior cloning.
 
-#### Team End-to-End (Tesla FSD v12, Wayve)
-**Philosophy:** "Muscle Memory."
-*   *How:* One giant Neural Network. Pixels in → Steering out.
-*   *Pros:* Feels very human. Can handle weird scenarios (like a man in a chicken suit) that programmers didn't write rules for.
-*   *Cons:* "Black Box." If it fails, you can't "patch" it; you have to find more training data.
+It's harder than it looks, for reasons Waymo's [ChauffeurNet](https://arxiv.org/abs/1812.03079) (2018) laid out clearly:
 
----
+- **Small errors compound.** A cloned policy that drifts slightly off the human path ends up in situations no human example covers, and drifts further. ChauffeurNet added synthesized perturbations, deliberately pushing the car off course in training, so the model learned to recover.
+- **Confusing correlation with cause.** A model that learns "the car slows when the car ahead slows" may also learn "the car slows when its own brake lights are on," which is true in the data and useless for deciding.
+- **Rare dangers are rare in the data.** Expert drivers almost never crash, so the model sees few examples of what not to do.
 
-### Act IV: 2025 Trends — LLMs & World Models
+## The surprise: open loop versus closed loop
 
-#### 1. Chain-of-Thought Planning
-Modern planners are using **Large Language Models (LLMs)** to "think out loud" before acting. 
-*   *Example:* "I see a ball roll into the street. A ball implies a child. I will slow down now even though I don't see the child yet." 
+Learned planners were usually evaluated open-loop: given a logged scene, how close is the planned path to what the human actually did? That's easy to compute and turned out to be misleading. In 2023, [Dauner et al.](https://arxiv.org/abs/2306.07962) evaluated planners on the [nuPlan](https://arxiv.org/abs/2106.11810) benchmark in closed-loop simulation, where the planner's choices actually move the car and other agents react. A rule-based baseline from over twenty years ago beat all the state-of-the-art learned planners on closed-loop metrics, and their simple extension of it, PDM-Closed, scored far higher still. Their conclusion: open-loop and closed-loop evaluation are misaligned. Learned planners were good at forecasting what the human would do, and worse at producing plans that were safe when they had to live with the consequences.
 
-#### 2. Differentiable World Models
-Companies like **Wayve** and **Tesla** are building "simulators inside the car's brain." The planner "hallucinates" 1,000 possible futures and picks the one where it doesn't crash.
+That finding reshaped the field's evaluation. Closed-loop and pseudo-closed-loop benchmarks like NAVSIM, and closed-loop simulation in general, became the standard for judging planners (see the evaluation section of [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation#evaluation-the-hard-part)).
 
----
+## Where planning is now: learned proposals, checked choices
 
-### Act V: System Design & Interview Scenarios
+The field has largely converged on hybrids that use learning where it's strong and explicit checks where they're needed:
 
-#### Scenario 1: The "Frozen Robot" Problem
-*   **Question:** "Your car is at a 4-way stop. It's your turn, but an aggressive human driver keeps inching forward. Your car is stuck. How do you fix this?"
-*   **Answer:** Mention **Nudging & Intent Signaling**. The planner shouldn't just wait; it should slowly "creep" forward to signal its intention to take the right-of-way. This is a "Game Theory" problem.
+- **Learned proposals.** A network, often trained end to end with perception and prediction as in UniAD, proposes a handful of good candidate trajectories, capturing the nuance of human driving.
+- **Explicit scoring.** Candidates are scored against the predicted futures for safety margins, rules and comfort, the classical cost function reborn as a referee rather than the only source of behavior.
+- **A safety layer.** A simple, verifiable check vetoes anything that would collide or break a hard rule.
+- **Reinforcement learning in simulation**, increasingly, to improve beyond imitation by rewarding safe progress rather than closeness to a human.
 
-#### Scenario 2: Ethics vs. Safety (The Trolley Problem)
-*   **Question:** "The car must choose between hitting a dog or swerving into a parked car. What do you do?"
-*   **Answer:** **Avoid the "Ethics Trap."** In real engineering, we use **Hierarchical Costs**. Collision with a moving object (dog) is high cost, but "unpredictable swerving" into a fixed object is also high risk. We prioritize **Predictability**. The safest move is usually to brake hard in your own lane.
+Fully end-to-end systems sit at one end of this range. Tesla's FSD v12 replaced large amounts of hand-written code with neural networks trained on fleet data, and [Module 9](/posts/robotics/autonomous-stack-module-9-foundation-models) covers foundation models that plan with language-model reasoning.
 
-#### Scenario 3: Validation
-*   **Question:** "How do you prove an End-to-End planner is safe for public roads?"
-*   **Answer:** Discuss **Shadow Mode** (running the model in the background without it controlling the car) and **Formal Verification** (checking if the neural network's outputs ever violate hard safety "guardrails" written in C++).
+## Planning as negotiation
 
----
+Our left turn shows the part of planning that's hardest to formalize: other drivers react to us. If the robotaxi waits motionless behind the line, the oncoming driver has no reason to yield. If it creeps forward a little, it signals intent and gets a better view past the van. Planners that only react to predictions can freeze, never finding a gap they're sure of. Planners that condition predictions on their own actions ("if I creep, the oncoming car will likely slow") can negotiate. This is why prediction and planning are merging, and why [closed-loop reasoning](/posts/robotics/behavior-prediction-closed-loop-driving) matters.
 
-### Graduate Assignment: The Merging Challenge
+## Measuring a planner
 
-**Task:**
-You are merging onto a 65mph highway from an on-ramp. 
-1.  **The Interaction:** If you speed up to match a gap, the car in that gap might speed up too (the "Gap Closer"). How do you model this **Interaction** in your cost function?
-2.  **The Logic:** Draw a state machine for "Merging." Include states for "Gap Selection," "Alignment," and "Abort."
-3.  **The Edge Case:** What if the on-ramp is too short to reach 65mph? How do you balance the "Comfort" cost vs. the "Safety" cost of merging slowly?
+- **Collisions and near misses** per distance, in closed-loop simulation and on the road.
+- **Rule compliance:** signals, stop lines, right of way, staying in drivable space.
+- **Progress:** route completion and not getting stuck.
+- **Comfort:** peak acceleration and jerk, the rate of change of acceleration that passengers feel.
+- **Human-likeness**, carefully: useful for comfort and predictability, but closeness to a logged human path is not the same as a good plan.
 
----
+## What I'd remember
 
-**Further Reading:**
-*   *Optimal Trajectory Generation for Dynamic Street Scenarios (ICRA 2010)*
-*   *Model Predictive Control: Theory and Practice (Tutorial)*
-*   *Learning to Drive in a Day (Wayve, 2018)*
-*   *Tesla AI Day 2022: Motion Planning*
+- **Four goals in tension.** Safety, legality, comfort and progress; planning is the balance.
+- **Plan, act a little, replan.** Rolling replanning lets the car react to new information.
+- **Imitation is harder than it looks.** Compounding errors, false correlations and rare dangers.
+- **Judge planners in closed loop.** Open-loop scores misled the field until 2023.
+- **Hybrids lead.** Learned proposals, explicit scoring, and a safety layer that can veto.
 
----
+## Where to go next
 
-**Previous:** [Module 7 — Prediction](/posts/robotics/autonomous-stack-module-7-prediction)
+- [Module 9: Foundation Models](/posts/robotics/autonomous-stack-module-9-foundation-models), the final module.
+- [The Role of Predictions in Closed-Loop Driving](/posts/robotics/behavior-prediction-closed-loop-driving), on planning as a feedback loop.
+- Papers: [ChauffeurNet](https://arxiv.org/abs/1812.03079), [Parting with Misconceptions about Learning-based Vehicle Motion Planning](https://arxiv.org/abs/2306.07962), [UniAD](https://arxiv.org/abs/2212.10156).
 
-**Next:** [Module 9 — Foundation Models](/posts/robotics/autonomous-stack-module-9-foundation-models)
+Previous: [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction). Next: [Module 9: Foundation Models](/posts/robotics/autonomous-stack-module-9-foundation-models).
+
+**Questions to sit with**
+
+1. At the left turn, what would make "wait for the next gap" the wrong decision?
+2. Why could a planner that matches human paths closely still drive badly when it has to live with its choices?
+3. How would you stop a planner from freezing when no gap is ever certain?

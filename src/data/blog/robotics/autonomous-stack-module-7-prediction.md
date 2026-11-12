@@ -1,242 +1,135 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2025-01-24T00:00:00Z
-modDatetime: 2025-02-28T00:00:00Z
-title: 'Module 07: The Fortune Teller — The Evolution of Prediction'
+modDatetime: 2026-11-11T00:00:00Z
+title: "Module 7: Prediction, Guessing What Everyone Else Will Do"
 slug: autonomous-stack-module-7-prediction
 featured: true
 draft: false
 tags:
   - autonomous-vehicles
   - robotics
-  - prediction
-  - machine-learning
-  - generative-ai
-  - transformers
-  - diffusion-models
-  - joint-prediction
-description: 'The hardest problem in AV: predicting human irrationality. From physics-based Kalman Filters to Joint Autoregressive Distributions, Generative Motion Diffusion, and World State Propagations.'
+  - motion-forecasting
+  - behavior-prediction
+description: "A self-driving car has to guess what every car, cyclist and pedestrian nearby will do in the next several seconds, knowing there's usually more than one plausible answer. How prediction grew from physics to learned models that read the map, why it outputs several futures with probabilities, why predicting agents one at a time breaks down, and how the field measures success."
 track: Robotics
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - System Design
   - Theory
-  - ML-Infra
-estimated_read_time: 60
+estimated_read_time: 10
 ---
 
 *By Gopi Krishna Tummala*
 
----
+*A self-driving car has to guess what everyone nearby will do in the next several seconds, knowing there's usually more than one plausible answer. How prediction grew from physics to models that read the map and reason about interactions.*
 
-<div class="series-nav" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-  <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">The Ghost in the Machine — Building an Autonomous Stack</div>
-  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    <a href="/posts/robotics/autonomous-stack-module-1-architecture" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 1: Architecture</a>
-    <a href="/posts/robotics/autonomous-stack-module-2-sensors" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 2: Sensors</a>
-    <a href="/posts/robotics/autonomous-stack-module-3-calibration" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 3: Calibration</a>
-    <a href="/posts/robotics/autonomous-stack-module-4-localization" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 4: Localization</a>
-    <a href="/posts/robotics/autonomous-stack-module-5-mapping" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 5: Mapping</a>
-    <a href="/posts/robotics/autonomous-stack-module-6-perception" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 6: Perception</a>
-    <a href="/posts/robotics/autonomous-stack-module-7-prediction" style="background: rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600; border: 2px solid rgba(255,255,255,0.5);">Module 7: Prediction</a>
-    <a href="/posts/robotics/autonomous-stack-module-8-planning" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 8: Planning</a>
-    <a href="/posts/robotics/autonomous-stack-module-9-foundation-models" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; opacity: 0.9;">Module 9: Foundation Models</a>
-  </div>
-  <div style="margin-top: 0.75rem; font-size: 0.875rem; opacity: 0.8;">📖 You are reading <strong>Module 7: The Fortune Teller</strong> — The Evolution of Prediction</div>
-</div>
+Module 7 of 9 in the [autonomous stack series](/posts/robotics/autonomous-stack-module-1-architecture). Previous: [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception). Next: [Module 8: Planning](/posts/robotics/autonomous-stack-module-8-planning).
 
 ---
 
-### Act 0: Prediction in Plain English
+Perception has told our car what's at the intersection right now: an oncoming car approaching at 40 kilometers per hour, a cyclist behind the waiting van, a pedestrian at the far crosswalk looking at a phone. To decide whether to turn, the car needs to know what each of them will do over the next few seconds.
 
-Imagine you are standing at a busy crosswalk. You see a teenager looking at their phone, a cyclist pedaling hard toward a yellow light, and an elderly man waiting patiently. 
+The oncoming car might keep going or slow down to let the robotaxi turn. The cyclist might continue straight, or slow because they've seen the robotaxi creeping forward. The pedestrian might stay put or step off the curb the moment the phone goes into a pocket. None of these has one right answer. Prediction is the module that turns "where things are" into "where they might be, and how likely each possibility is."
 
-You don't need a calculator to know that the teenager might step into the street without looking, or that the cyclist is going to try and beat the light. You are **predicting intent**.
-
-In the autonomous vehicle (AV) stack, this is the **Prediction Module**. It is the "Fortune Teller" that looks at the current world and says, "Based on what I see, here are the most likely things that will happen in the next 5 seconds."
-
-*   **Physics Prediction:** Like predicting where a thrown ball will land. Easy.
-*   **Behavioral Prediction:** Like predicting where a squirrel will run. Hard.
-*   **Interactive Prediction:** Like a high-stakes game of "After you, no after you" at a 4-way stop. The hardest.
-
----
-
-### Act I: The Age of Innocence (Physics & Kalman Filters)
-
-In the early days, prediction was handled by classical mechanics. The assumption was simple: **Objects in motion stay in motion.**
-
-Using **Kalman Filters**, we estimated state ($p, v$) and predicted the future.
-*   **Why it failed:** Physics predicts that a pedestrian standing at a curb ($v=0$) will stay there forever. But a human driver knows they might step out. Physics cannot model **intent**.
-
----
-
-### Act II: The Vector Revolution (QC-Centric Architecture)
-
-By 2023, the industry moved away from "rasterizing" (drawing) the road. Instead, we use **Vectorized Scene Encoding**.
-
-**Landmark Architecture: QCNet (CVPR 2023)**
-Instead of a fixed map, the model treats every car as a "Query." 
-*   **Translation Invariance:** It doesn't care if you are in SF or London; it only cares about the *relative* distance between you and the lane. This allows one model to drive anywhere in the world.
-
----
-
-### Act III: Mature Architecture — The Diffusion-Interaction Stack
-
-The "Gold Standard" for 2025 is the **Generative Diffusion Transformer**. This architecture unifies social reasoning with the diversity of generative AI.
-
-**The Prediction Pipeline (2025 SOTA):**
+## The idea in one picture
 
 ```mermaid
-graph TD
-    subgraph "1. Encoding (Vectorized)"
-        Map[Map Polylines] --> M_Enc[Hierarchical PointNet]
-        Agents[Agent History] --> A_Enc[1D-CNN / LSTM]
-    end
-
-    subgraph "2. Interaction (The Transformer Neck)"
-        M_Enc --> X_Attn[Cross-Attention: Agent-Map]
-        A_Enc --> S_Attn[Self-Attention: Social Interaction]
-        X_Attn --> Joint[Fused Latent Scene Token]
-        S_Attn --> Joint
-    end
-
-    subgraph "3. Decoding (Generative Diffusion)"
-        Noise[Gaussian Noise Trajectories] --> DiT[Diffusion Transformer]
-        Joint --> DiT
-        DiT --> Futures[Diverse, Plausible Futures]
-    end
-
-    subgraph "4. Scoring & Selection"
-        Futures --> Scorer[MLP Probability Head]
-        Scorer --> Final[K-Most Likely Modes]
-    end
+flowchart TD
+  subgraph Enc["1. Encode the scene"]
+    MAP["Map as lines<br/>lanes, crosswalks"] --> ME["Map encoder"]
+    AG["Each agent's recent history"] --> AE["Agent encoder"]
+  end
+  subgraph Int["2. Reason about interactions"]
+    ME --> XA["Agents look at the map<br/>which lanes can I reach?"]
+    AE --> SA["Agents look at each other<br/>who yields to whom?"]
+    XA --> J["Scene representation"]
+    SA --> J
+  end
+  subgraph Dec["3. Generate futures"]
+    J --> GEN["Decoder<br/>several possible paths<br/>per agent"]
+    GEN --> SC["Score each path<br/>with a probability"]
+  end
+  SC --> OUT["A handful of futures,<br/>each with a probability"]
 ```
 
-#### Why This Works
-1.  **Self-Attention (Social):** Every agent "looks" at every other agent. If Car A speeds up, the model "attends" to that and predicts Car B will brake. This is **Interaction Modeling**.
-2.  **Cross-Attention (Geometric):** Agents attend to map polylines. The car "queries" the map: *"Which lane can I actually reach from here?"* This snaps predictions to valid roads.
-3.  **Diffusion Transformers (DiT):** Instead of one single line, the model generates 100 possible futures and iteratively refines them from noise. This captures the messy, multi-modal nature of human driving (e.g., at a yellow light, will they stop or go?).
+*Read the map, reason about who affects whom, and output several possible futures with probabilities rather than one guess.*
 
-#### Trade-offs & Reasoning
-*   **Diffusion vs. Gaussian Mixture Models (GMMs):** Earlier models output a GMM. *Trade-off:* GMMs are fast but suffer from "mode averaging"—if an agent could go left or right, a GMM might average the two and predict "straight" (into a wall). Diffusion is computationally heavier but generates physically plausible, diverse paths without averaging.
-*   **Vector Queries vs. Raster Images:** Rasterizing the scene into an image is simple but wastes computation on empty space. *Trade-off:* Vectorizing elements as Queries is much more efficient and allows the model to generalize to new cities instantly.
+## From physics to intent
 
----
+The first prediction systems assumed things keep doing what they're doing: constant velocity, maybe constant turning rate, smoothed with a Kalman filter. That works for a car cruising down a straight road and fails exactly where it matters. A pedestrian standing still at the curb has zero velocity, so physics predicts they'll stay there forever. A driver slowing before an intersection might be stopping or turning. Physics sees motion, not **intent**, and intent comes from context: the map, traffic signals, other road users, body language.
 
-### Act IV: The Holy Grail — Joint Prediction
+## Learning from the map
 
-In dense urban traffic, agents don't move independently. They **negotiate**. If you predict agents one-by-one, you get "Socially Inconsistent" futures.
+Learned predictors took over by giving models that context. Early ones drew the scene as a top-down image, lanes, crosswalks and every agent's recent path painted in colors, and used image networks to predict paths. Waymo's [ChauffeurNet](https://arxiv.org/abs/1812.03079) and [MultiPath](https://arxiv.org/abs/1910.05449) worked this way.
 
-#### 1. Marginal vs. Joint Distributions
-*   **Marginal Prediction (The Old Way):** $P(Y_A | X)$ and $P(Y_B | X)$. Car A and Car B are predicted in isolation. 
-*   **Joint Prediction (The New Way):** $P(Y_A, Y_B, ..., Y_N | X)$. The model predicts the **entire scene** as a single coherent movie.
-*   **Why it matters:** In marginal prediction, the model might predict Car A goes straight and Car B turns left, leading to a collision in 2 seconds. A joint model realizes that if Car A goes, Car B *must* yield.
+Images waste effort on empty pixels and lose precise geometry. [VectorNet](https://arxiv.org/abs/2005.04259) (2020) instead represented lanes, crosswalks and agent histories as sets of line segments, and let a graph network relate them directly. Nearly every modern predictor works with this kind of vectorized scene. Transformer-based models like [Wayformer](https://arxiv.org/abs/2207.05844) and [MTR](https://arxiv.org/abs/2209.13508) then made the interactions explicit with attention: each agent attends to the map to see which lanes it could reach, and to other agents to see who might affect it. Query-centric designs like QCNet describe each element relative to its own position, so the same model generalizes across intersections and cities.
 
-#### 2. Joint Autoregressive Stack (MotionLM Style)
-Mature architectures like **MotionLM** treat joint prediction as a language modeling problem.
-*   **Tokenization:** Every agent's $t+1$ position is a token. 
-*   **Autoregressive Gaussian Decoding:** The model predicts the world state at $t=1$, then feeds that *entire world state* back in to predict $t=2$. This ensures that every agent's next move is conditioned on what everyone else did in the previous millisecond.
+## Several futures, not one
 
-#### 3. Multiple World State Propagations
-In complex scenes, we "fan out" **entire worlds**.
+The defining feature of prediction is that the answer is a distribution. At our intersection, the oncoming driver either yields or doesn't. A model trained with a simple average-error loss, asked to predict one path, learns the average of the two: a car half-yielding, which nobody will actually do and which is useless for planning.
+
+So predictors output several distinct futures, typically six or so per agent, each with a probability: "keeps going at speed, 70 percent; slows to let you turn, 25 percent; stops abruptly, 5 percent." Approaches differ in how they produce them, from fixed sets of anchor paths (MultiPath) to mixtures of probability distributions to generative models. Diffusion-based predictors like [MotionDiffuser](https://arxiv.org/abs/2306.03083) generate futures the way image models generate pictures, which handles many possible outcomes naturally, the same idea covered in [Diffusion for Action](/posts/generative-ai/diffusion-for-action-trajectories-policy).
+
+## Predicting agents together
+
+Predicting each agent separately creates a quieter problem. Suppose the model predicts the oncoming car "keeps going" with high probability and, separately, the cyclist "continues straight." Each is plausible alone. But what if the model also predicts "the car swerves right" for the car and "continues straight" for the cyclist, two futures that would put them in the same spot at the same time? Independent predictions can combine into futures that couldn't happen together.
+
+**Joint prediction** predicts the whole scene as one consistent future. [Scene Transformer](https://arxiv.org/abs/2106.08417) and Waymo's [MotionLM](https://arxiv.org/abs/2309.16534) model all agents together. MotionLM treats motion like language: every agent's next step is a token, and the model generates the scene step by step, each agent's move conditioned on what everyone did a moment before. The output is a set of coherent "future movies":
 
 ```mermaid
-graph TD
-    subgraph "World State 1 (70% Prob: Conservative)"
-        A1[Car A: Yields] --> B1[Car B: Turns Left]
-    end
-    subgraph "World State 2 (20% Prob: Aggressive)"
-        B2[Car B: Yields] --> A2[Car A: Proceeds]
-    end
-    subgraph "World State 3 (10% Prob: Extreme)"
-        A3[Car A: Swerves] --> B3[Car B: Brakes]
-    end
-
-    Input[Live Scene] --> Model[Joint Transformer]
-    Model --> A1 & B1
-    Model --> B2 & A2
-    Model --> A3 & B3
+flowchart TD
+  IN["Live scene"] --> M["Joint prediction model"]
+  subgraph F1["Future 1, 70%: the oncoming car keeps going"]
+    A1["Car continues"] --> B1["Cyclist continues behind it"]
+  end
+  subgraph F2["Future 2, 25%: the oncoming car yields"]
+    A2["Car slows"] --> B2["Cyclist slows behind the car"]
+  end
+  subgraph F3["Future 3, 5%: the pedestrian steps out"]
+    A3["Pedestrian enters crosswalk"] --> B3["Cyclist brakes"]
+  end
+  M --> F1
+  M --> F2
+  M --> F3
 ```
 
-**Propagations:** The planner sees distinct "Future Movies." This allows the planner to reason: *"In the world where Car B is aggressive, I need to stay 2 meters further back."*
+*Each future is consistent across agents. The planner can reason per future: if the car yields, there's a gap; if the pedestrian steps out, the far crosswalk is blocked.*
 
----
+## The loop with planning
 
-### Act V: Advanced Concepts (2025-2026)
+Prediction has a deeper dependency. Whether the oncoming driver yields depends partly on what our car does: creep forward confidently and they may slow; hesitate and they'll continue. A predictor that ignores the robotaxi's own plan is predicting a world in which the robotaxi does nothing. Modern systems increasingly condition predictions on candidate plans ("if I go now, what will they do?") or train prediction and planning together. [The Role of Predictions in Closed-Loop Driving](/posts/robotics/behavior-prediction-closed-loop-driving) explores this feedback loop, and [Module 8](/posts/robotics/autonomous-stack-module-8-planning) shows how planners use it.
 
-#### 1. Intention-Aware Guidance (IMPACT)
-Modern models (like **IMPACT**, 2025) jointly predict **high-level intent** (e.g., "yielding," "overtaking") and **low-level trajectories**.
-*   This provides a "Semantic Prior." If the model first decides Car A is "yielding," it prunes all trajectories where Car A accelerates into the intersection.
+## Measuring prediction
 
-#### 2. Driving Style & Latent Personalities
-Recent research integrates "driving style" (aggressive vs. timid) as a latent variable. 
-*   **The Mechanism:** The model looks at Car B's past 3 seconds. It sees Car B tailgating. It tags Car B as "Aggressive" and switches to an interaction logic that expects Car B to cut us off.
+The field's benchmarks, like the [Waymo Open Motion Dataset](https://waymo.com/open/data/motion/) and Argoverse 2, use a few standard measures:
 
-#### 3. Vectorized Occupancy Flow
-Instead of predicting $(x, y)$ lines, we predict **Future Occupancy Flow**.
-*   We predict a 3D grid where each cell contains the probability of being occupied AND a 3D velocity vector. This handles "General Obstacles" (like a stroller or a falling ladder) that don't have a defined "heading."
+- **minADE and minFDE:** the average and final distance between the true path and the best of the model's predicted futures. Taking the best of several rewards covering the possibilities.
+- **Miss rate:** how often none of the predicted futures came close to what actually happened.
+- **Calibration-aware scores** like Brier-minFDE: penalize models that put low probability on the future that came true.
+- **Joint metrics:** for interacting agents, score whole-scene futures, not each agent separately.
+- **Realism in simulation:** the [Waymo Sim Agents](https://arxiv.org/abs/2305.12032) benchmark asks whether simulated agents driven by a model behave like real ones over time, which matters when predictors are used to populate simulators.
 
----
+All of these are open-loop: they compare predictions with a recorded log. A predictor can score well and still be unhelpful to a planner, for instance by being accurate about the easy, far-away cars and vague about the one that matters. That gap is a recurring theme in the next module.
 
-### Act VI: 2026 Frontier — Generative World Models
+## What I'd remember
 
-The industry is shifting from "Trajectory Prediction" (lines) to **"World Prediction"** (pixels/voxels). 
+- **Physics sees motion; prediction needs intent.** Context comes from the map, signals and other agents.
+- **Vectorized scenes and attention are standard.** Agents look at the map and at each other.
+- **Output several futures with probabilities.** A single guess averages incompatible outcomes.
+- **Predict the scene jointly.** Separate predictions can combine into impossible futures.
+- **Prediction depends on your own plan.** Which is why it's merging with planning.
 
-**The Concept: Predicting the Future Video**
-Models like NVIDIA **Cosmos** or Wayve **GAIA-1** predict the *entire video* of what the world will look like in 5 seconds.
+## Where to go next
 
-1.  **Implicit Physics:** The model "understands" world physics. If a ball rolls into the street, the predicted "Future Video" includes a child—not because of a rule, but because it has "seen" gravity and human behavior.
-2.  **Counterfactual Dreaming:** The AV can "dream" of what happens if it slams the brakes vs. if it swerves. It picks the path that leads to the safest predicted video.
+- [Module 8: Planning](/posts/robotics/autonomous-stack-module-8-planning), the next module: using these futures to decide.
+- [The Role of Predictions in Closed-Loop Driving](/posts/robotics/behavior-prediction-closed-loop-driving), on the feedback between prediction and the car's own actions.
+- Papers: [VectorNet](https://arxiv.org/abs/2005.04259), [Wayformer](https://arxiv.org/abs/2207.05844), [MotionLM](https://arxiv.org/abs/2309.16534).
 
----
+Previous: [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception). Next: [Module 8: Planning](/posts/robotics/autonomous-stack-module-8-planning).
 
-### Act VII: The Scorecard — Metrics & Evaluation
+**Questions to sit with**
 
-Accuracy is measured across **Displacement**, **Diversity**, and **Social Realism** (Waymo/Argoverse 2 standards).
-
-#### 1. The Metrics
-*   **minADE / minFDE:** Average/Final distance between ground truth and the **best** of $K$ predictions. 
-*   **avgBrierMinFDE:** Displacement error + a penalty $(1-p)^2$ for being overconfident.
-*   **Miss Rate (MR):** % of cases where even the best prediction was $>2.0m$ away. 
-*   **Soft mAP (Waymo):** Evaluates joint future positions of interacting agents.
-*   **Sim Agents Score (Waymax):** Evaluates if trajectories are **kinematically feasible** and **socially realistic**.
-
-#### 2. The Optimizer's Guide — Loss Functions
-*   **Variety Loss (Best-of-K):** $\mathcal{L} = \min_{k} \| \mathbf{Y}_{gt} - \hat{\mathbf{Y}}_k \|^2$. Updates only the best head to encourage mode specialization.
-*   **Negative Log-Likelihood (NLL):** For GMMs, minimize the probability that truth *couldn't* have come from our distribution.
-*   **Interaction Loss:** A penalty term if predicted paths for different agents overlap (social consistency).
-
----
-
-### Act VIII: System Design & Interview Scenarios
-
-#### Scenario 1: The "Fake" Intent (Conflict Resolution)
-*   **Question:** "A car has its left blinker on but is driving in a 'Straight Only' lane. What do you predict?"
-*   **Answer:** Discuss **Causal Disentanglement** (CaDeT, 2024). Output two modes: one following the blinker (high risk) and one following the map (high probability). The planner must "hedge" between them.
-
-#### Scenario 2: Latency vs. Horizon
-*   **Question:** "You have a 20ms budget. Do you predict 10 agents for 8 seconds, or 100 agents for 2 seconds?"
-*   **Answer:** This is an **Interaction Radius** trade-off. For safety, you need a long horizon (8s) for agents in your immediate path. For scene context, you need high density (100 agents) but perhaps at lower resolution. Modern stacks use **Hierarchical Prediction**: High-res for the "Social Circle" (nearest 10 agents), low-res for the rest.
-
----
-
-### Graduate Assignment: The Bayesian Interaction
-
-**Task:**
-A car is at a 4-way stop. 
-1.  **Joint Probabilities:** If $P(\text{You Go}) = 0.5$ and $P(\text{He Goes}) = 0.5$, calculate the probability of a "Mutual Yield" (Stall) vs. a "Mutual Go" (Collision) using a Joint Distribution model.
-2.  **Social Centrality:** Draw the attention weights between three cars. Which car's behavior "controls" the intersection?
-
----
-
-**Further Reading (The "Big Four" Papers):**
-*   *QCNet: Query-Centric Network for Trajectory Prediction (CVPR 2023)*
-*   *Diffusion Planner: Unified Prediction and Planning (ICLR 2025)*
-*   *MotionLM: Motion Forecasting as Language Modeling (ICCV 2023)*
-*   *IMPACT: Intention-aware Multi-modal Prediction (2025)*
-
----
-
-**Previous:** [Module 6 — Perception](/posts/robotics/autonomous-stack-module-6-perception)
-
-**Next:** [Module 8 — The Chess Master (Planning)](/posts/robotics/autonomous-stack-module-8-planning)
+1. Why is "the average of the possible futures" a bad prediction for the oncoming driver?
+2. How could two individually plausible predictions combine into an impossible scene?
+3. How would you predict the oncoming driver differently depending on whether your car creeps forward or waits?

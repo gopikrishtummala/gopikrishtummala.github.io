@@ -1,7 +1,7 @@
 ---
 author: Gopi Krishna Tummala
 pubDatetime: 2024-12-01T00:00:00Z
-modDatetime: 2024-12-01T00:00:00Z
+modDatetime: 2026-11-11T00:00:00Z
 title: The Role of Predictions in Closed-Loop Autonomous Driving
 slug: behavior-prediction-closed-loop-driving
 featured: true
@@ -10,75 +10,87 @@ tags:
   - autonomous-vehicles
   - machine-learning
   - prediction
-  - research
-description: Reflections on building production-grade behavior prediction systems for autonomous vehicles — and why closed-loop reasoning is the bridge between perception and planning.
+description: "Reflections from building behavior prediction for autonomous vehicles: why prediction is a probability over futures, why the car's own actions change what everyone else does, and why that feedback loop is the real reason prediction and planning are hard to separate."
 track: Robotics
-difficulty: Advanced
+difficulty: Intermediate
 interview_relevance:
   - System Design
   - Theory
-related_paper: "PhD Dissertation: Automatic Camera Calibration Techniques for Collaborative Vehicular Applications"
-estimated_read_time: 20
+estimated_read_time: 7
 ---
 
-When you work in autonomous driving long enough, you begin to realize that predicting behavior is far more than just a module in the autonomy stack. It's the quiet foundation that underpins everything from perception to planning, all the way down to decision-making and trust. But what does it really mean to predict the future when you're driving? It's about understanding not just where objects are but why they might be moving, what they intend to do, and how you can reason about these actions in a world full of uncertainty.
+*By Gopi Krishna Tummala*
 
-## The Heart of Behavior Prediction
+*Reflections from building behavior prediction for autonomous vehicles: why prediction is a probability over futures, and why the car's own actions change what everyone else does.*
 
-Behavior prediction isn't a simple forecasting task. It's an art that involves understanding human behavior, anticipating movement, and managing the inherent uncertainty in a world where no one follows the same rules. At its core, prediction allows a self-driving car to reason beyond the immediate present moment, shifting from a reactive stance to one based on intent and foresight.
+A companion to [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction) and [Module 8: Planning](/posts/robotics/autonomous-stack-module-8-planning) in the [autonomous stack series](/posts/robotics/autonomous-stack-module-1-architecture).
 
-Based on production experience building behavior prediction systems, I've seen firsthand how complex this challenge can be. Prediction in autonomous vehicles involves far more than just forecasting where another car will be in three seconds. It's about understanding what that vehicle, pedestrian, or cyclist intends to do next — and how their behavior may change in response to the car's own actions.
+---
 
-A good prediction system doesn't just estimate trajectories; it anticipates actions, understands interactions, and most importantly, does so in real-time, under imperfect conditions. If we're to build systems that act as safely and smoothly as humans, we need machines that reason with the same kind of intuitive foresight.
+Work on autonomous driving long enough and prediction stops looking like one module in the stack and starts looking like the foundation under the decisions. Picture the unprotected left turn from this series: the robotaxi waiting in the intersection, an oncoming car, a cyclist half-hidden behind a van, a pedestrian at the far crosswalk. The question isn't only where each of them will be in three seconds. It's what each of them intends, and how that intent will change in response to what the robotaxi does.
 
-## The Constant Uncertainty
+That second part is what this post is about. Prediction isn't a weather forecast, where the forecaster's choices don't affect the weather. On the road, the forecaster is also a participant.
 
-Every decision a self-driving system makes is done under partial observability. The system can see the world as it is in the present, but not as it will be. We can't predict with certainty if a pedestrian will step off the curb, whether the car in front of us will yield, or if that light will turn red in time. And while sensors like LiDAR, cameras, and radar can give us data, they still can't penetrate the layers of uncertainty that define human behavior on the road.
+## The idea in one picture
 
-This leads to one of the central paradoxes in autonomous driving: the further we predict into the future, the less certain we are, yet the more we must decide. Our task is not to eliminate uncertainty — that's impossible. Instead, we manage it, incorporating it into the decision-making process. It's a dance between certainty and ambiguity, where even slight shifts in perception or intention can have large downstream impacts.
+```mermaid
+flowchart LR
+  P["Predict<br/>what others will do"] --> PL["Plan<br/>what I'll do"]
+  PL --> A["Act<br/>creep, go, wait"]
+  A --> O["Others react<br/>yield, speed up, hesitate"]
+  O --> P
+```
 
-## Modeling Multiple Futures
+*In open loop, prediction feeds planning and stops there. In closed loop, the car's action changes what others do, which changes what should have been predicted.*
 
-A key insight in autonomous driving is that the world isn't deterministic. People make decisions on the road based on a complex set of factors, and the future is shaped by probabilities, not certainties. When a car approaches a yield sign, it might stop, slow down, or just keep going. A pedestrian might pause, or they might cross the street. Predicting human behavior is about embracing this ambiguity — not fighting it.
+## Uncertainty is the job, not a defect
 
-Modern prediction systems don't just provide a single trajectory; they model the distribution of possible futures. Instead of saying, "This will happen," they say, "Here are the possible scenarios, and here's the probability of each." The world is a web of probabilities, and we need to capture and reason with them effectively.
+Every decision a self-driving car makes is made with partial information. It sees the present, imperfectly, and has to act on a future it can't see. Will the pedestrian step off the curb? Will the oncoming driver yield? Better sensors don't remove that uncertainty, because it lives in people's heads, not in the scene.
+
+That produces the central tension of prediction: the further ahead you look, the less certain you are, and the more you need to look ahead to decide well. The goal isn't to eliminate uncertainty. It's to represent it honestly and hand it to the planner in a form it can use.
+
+## Many futures, with probabilities
+
+So a good prediction system doesn't say "this will happen." It says "here are the plausible futures, and here's how likely each is": the oncoming car continues at speed, or slows to let us turn, or stops abruptly. [Module 7](/posts/robotics/autonomous-stack-module-7-prediction) covers how models produce these sets of futures. What matters here is that the planner then has to choose an action that's acceptable across them, not just good for the most likely one.
+
+From experience building these systems, the hard part is rarely the common case. It's calibration of the rare ones: knowing whether a 5 percent future is really 5 percent, and telling apart two very different kinds of uncertainty. One is "this situation is genuinely ambiguous," where any model would be unsure. The other is "the model hasn't seen anything like this," where the model's confidence may itself be wrong. The second is the dangerous one, because it doesn't look like uncertainty from the outside.
 
 ## From Open-Loop to Closed-Loop Systems
 
-In the early days of autonomous driving, most prediction systems were built on the assumption that agents (other vehicles, pedestrians, cyclists, etc.) move independently — in what's called an "open-loop" system. The ego vehicle would plan its trajectory, and other agents would move based on their own (presumed) plans. This simplification worked well for training and debugging, as it was computationally simpler and easier to handle.
+Most early prediction systems treated other road users as moving independently of the ego vehicle. The car predicted everyone else, then planned around those predictions, as if its own plan had no effect on anyone. That's open-loop reasoning, and it was a sensible simplification: easier to build, train and debug, and adequate for a lot of driving.
 
-But driving isn't an open-loop process. It's a closed-loop system. Every action influences others. If I hesitate at a yield sign, the car behind me might decide to pass. If I inch forward at a traffic light, other vehicles might adjust their behavior. These interactions define real-world driving.
+But driving is closed-loop. If our robotaxi hesitates at the turn, the oncoming driver keeps going and the car behind may try to pass. If it creeps forward, the oncoming driver may slow. Every action changes the next second of everyone else's behavior. A planner working from open-loop predictions can freeze, waiting for a gap that never comes because it isn't doing anything to create one, or it can act on predictions that its own action has just made wrong.
 
-Incorporating closed-loop reasoning into prediction means capturing how agents influence one another's decisions. It's the subtle push-and-pull that makes driving dynamic and fluid. But it also introduces complexity. If a prediction system expects another car to slow down, but the car accelerates instead, it can throw off the entire planning process. Stability in these feedback loops is one of the hardest, yet most exciting, challenges in building reliable autonomous systems.
+Closed-loop reasoning means modeling that feedback: predicting how others will respond to each candidate action, and choosing actions with those responses in mind. It also introduces the hard part: stability. If the predictor expects the oncoming car to slow and it accelerates instead, the plan has to recover gracefully rather than oscillate between going and stopping. Evaluating systems in closed loop, where the car's choices actually affect the simulated world, is how the field found out how much this matters (see [Module 8](/posts/robotics/autonomous-stack-module-8-planning#the-surprise-open-loop-versus-closed-loop)).
 
-## A Glimpse Into a Modern Prediction System
+## What production prediction looks like
 
-So, how do modern prediction systems tackle this challenge? At a high level, they integrate data from a range of sensors — cameras, radar, LiDAR — and use deep learning techniques to make sense of the world. Production prediction models combine these sensor inputs with traditional machine learning techniques, such as decision trees, and deep learning models like CNNs, Transformers, and Graph Neural Networks (GNNs).
+In practice, prediction systems combine several kinds of input: the tracked history of every agent from perception, the map's lanes and crosswalks, traffic signal states, and increasingly the ego vehicle's own candidate plans. Over time the field moved from drawing all of this as top-down images to representing it as sets of lines and agents that a model relates directly, with approaches like [VectorNet](https://arxiv.org/abs/2005.04259) and later transformer models. Outputs are sets of futures with probabilities, often jointly for interacting agents, consumed by a planner that evaluates its options against them.
 
-The architecture of these systems is deceptively simple but incredibly complex under the hood. For example:
+The models are sophisticated, but the gap that matters most is data. Rare, dangerous interactions are exactly what's under-represented in driving logs, so a large share of the engineering goes into finding them, mining them from fleet data, and generating more of them in simulation.
 
-**Rasterized bird's-eye images** help identify road occupancy and track other agents (vehicles, pedestrians, cyclists) using models like ResNet, UNet, and Vision Transformers (ViT).
+## What comes next
 
-**Numerical features** like velocity, acceleration, and curvature are used by models like MLPs and GNNs to understand kinematic relationships and agent types.
+Two directions seem most promising to me. The first is more context: vehicle-to-vehicle and vehicle-to-infrastructure communication could let cars share intent directly, removing some uncertainty at the source. The second is memory: systems that retrieve similar past situations to inform the current one, helping with rare scenarios that a model has seen only a handful of times.
 
-**High-definition maps** encoded with VectorNet help provide topological and geometric context for more accurate predictions.
+Underneath both is a shift from predicting trajectories to understanding intentions: not just where the cyclist will be, but why, and what would change their mind. Whether a machine can ever "understand" driving in the way people do is an open question. Whether it can reason well enough about other people's reactions to drive among them safely is the practical one, and closed-loop thinking is how we get there.
 
-Prediction models typically output not just the most likely path of an agent but also an array of possible behaviors. These outputs feed into the vehicle's planner, which selects the safest and most efficient course of action based on real-time data.
+## What I'd remember
 
-But while the models themselves are sophisticated, there's still a major gap. The models we train are not perfect mirrors of reality. They are based on data — and often, the data they are trained on doesn't fully represent rare but crucial events. The challenge is understanding when the model's uncertainty arises because it's never seen a case like this, versus when it's due to ambiguity in the scenario itself.
+- **Prediction is a set of futures with probabilities.** The planner has to be acceptable across them.
+- **Two kinds of uncertainty.** Genuine ambiguity, and situations the model hasn't seen; the second is more dangerous.
+- **The car is a participant, not an observer.** Its actions change what others do.
+- **Closed-loop reasoning prevents freezing.** And requires plans that stay stable when predictions are wrong.
+- **Rare interactions are the bottleneck.** Finding and simulating them is most of the work.
 
-## The Future: More Context, Better Communication
+## Where to go next
 
-Looking ahead, the next frontier in prediction is not necessarily about building larger models but about adding more context and improving how systems communicate. For instance, Vehicle-to-Vehicle (V2V) and Vehicle-to-Everything (V2X) communications are rapidly becoming a part of the prediction landscape. With these technologies, vehicles can share information about their intent — drastically reducing uncertainty when predicting another agent's behavior.
+- [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction), for how prediction models work.
+- [Module 8: Planning](/posts/robotics/autonomous-stack-module-8-planning), for how planners use predictions and why closed-loop evaluation matters.
+- [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation#evaluation-the-hard-part), for closed-loop evaluation of learned driving models.
 
-Other emerging techniques like retrieval-augmented reasoning allow vehicles to "remember" similar past scenarios and apply that knowledge to current driving situations. This kind of memory-based reasoning could drastically improve the vehicle's ability to predict rare but dangerous situations that would be nearly impossible to capture in training.
+**Questions to sit with**
 
-## The Closed-Loop Philosophy
-
-At the end of the day, closed-loop reasoning is about making predictions that are not only accurate but also interpretable. In my experience, a major shift in autonomous driving is occurring — from predicting trajectories to predicting intentions. We're not just trying to forecast what will happen next but to understand why it might happen.
-
-This brings us to a fundamental philosophical question: can machines ever truly "understand" driving, or are we merely teaching them to mimic it? As we move toward more context-aware, closed-loop systems, this question is becoming less theoretical and more practical. The challenge is clear: can we build systems that don't just react faster but reason better? That's the true promise of autonomous driving.
-
----
-
-*Based on production experience building prediction systems for autonomous vehicles.*
+1. At the left turn, how would you predict the oncoming driver differently if the robotaxi creeps forward?
+2. How could you tell whether a model's low confidence comes from real ambiguity or from never having seen the situation?
+3. What would make a closed-loop planner oscillate, and how would you stop it?
