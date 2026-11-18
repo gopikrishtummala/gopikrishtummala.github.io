@@ -1,0 +1,62 @@
+---
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Layout from "./Layout.astro";
+import { SITE } from "@/config";
+
+export interface Props {
+  frontmatter: {
+    title: string;
+    description?: string;
+  };
+}
+
+const { frontmatter } = Astro.props;
+---
+
+<Layout title={`${frontmatter.title} Cheatsheet | ${SITE.title}`} description={frontmatter.description}>
+  <Header />
+  <main id="main-content" class="cheatsheet">
+    <section class="app-prose mb-28 max-w-app prose-img:border-0">
+      <p class="back-link"><a href="/cheatsheets">All cheatsheets</a></p>
+      <h1 class="text-2xl sm:text-3xl">{frontmatter.title}</h1>
+      <slot />
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  /* Dense, plain reference layout */
+  .cheatsheet :global(h2) {
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.25rem;
+  }
+  .cheatsheet :global(p),
+  .cheatsheet :global(li) {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+  .cheatsheet :global(ul) {
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .cheatsheet :global(table) {
+    font-size: 0.9em;
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .cheatsheet :global(th),
+  .cheatsheet :global(td) {
+    padding: 0.3rem 0.5rem;
+  }
+  @media print {
+    :global(header),
+    :global(footer),
+    .back-link {
+      display: none;
+    }
+  }
+</style>
