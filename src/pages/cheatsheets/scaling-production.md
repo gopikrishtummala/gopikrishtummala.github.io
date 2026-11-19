@@ -8,7 +8,7 @@ Getting models trained at scale and served reliably.
 
 ## Where training memory goes
 
-**In one line:** weights are the smallest part; gradients, optimizer state and activations dominate.
+Weights are the smallest part; gradients, optimizer state and activations dominate.
 
 **Remember:** about 16 bytes per parameter with mixed precision and Adam, before activations. A 7B model needs ~112 GB of training state.
 
@@ -16,13 +16,13 @@ Getting models trained at scale and served reliably.
 
 ## Data parallelism
 
-**In one line:** copy the model to every GPU, give each a different slice of data, average the gradients.
+Copy the model to every GPU, give each a different slice of data, average the gradients.
 
 **Remember:** speeds up training but doesn't save memory per GPU.
 
 ## ZeRO / FSDP
 
-**In one line:** instead of copying everything, split weights, gradients and optimizer state across GPUs.
+Instead of copying everything, split weights, gradients and optimizer state across GPUs.
 
 **Picture it:** a shared library where each person keeps a few volumes and lends them out when needed, instead of everyone owning every book.
 
@@ -30,19 +30,19 @@ Getting models trained at scale and served reliably.
 
 ## Tensor and pipeline parallelism
 
-**In one line:** tensor parallel splits each layer across GPUs; pipeline parallel puts different layers on different GPUs.
+Tensor parallel splits each layer across GPUs; pipeline parallel puts different layers on different GPUs.
 
 **Remember:** tensor parallel needs very fast links (inside a server); pipeline parallel works across servers but leaves GPUs idle at the start and end ("bubble"). Big runs combine data, tensor and pipeline: "3D parallelism."
 
 ## Activation checkpointing
 
-**In one line:** throw away intermediate results and recompute them during the backward pass.
+Throw away intermediate results and recompute them during the backward pass.
 
 **Remember:** trade about a third more compute for much less memory.
 
 ## Data loading
 
-**In one line:** the GPU is often waiting for data, not computing.
+The GPU is often waiting for data, not computing.
 
 **Remember:** decode and augment in parallel workers, prefetch, use columnar and sharded formats. Check GPU utilization first.
 
@@ -50,19 +50,19 @@ Getting models trained at scale and served reliably.
 
 ## Quantization
 
-**In one line:** store and compute with fewer bits (8 or 4 instead of 16).
+Store and compute with fewer bits (8 or 4 instead of 16).
 
 **Remember:** 8-bit is usually near-lossless; 4-bit loses a little. It cuts memory and speeds memory-bound inference.
 
 ## Distillation and pruning
 
-**In one line:** train a smaller student, or remove unimportant weights.
+Train a smaller student, or remove unimportant weights.
 
 **Remember:** the main ways to make a model cheap enough to serve widely.
 
 ## Batch vs online serving
 
-**In one line:** precompute predictions on a schedule, or compute each on request.
+Precompute predictions on a schedule, or compute each on request.
 
 **Remember:** batch is cheap and simple; online is needed for fresh, per-request predictions with tight latency.
 
@@ -78,7 +78,7 @@ Getting models trained at scale and served reliably.
 
 ## Hyperparameter tuning
 
-**In one line:** search smartly and stop bad runs early.
+Search smartly and stop bad runs early.
 
 **Remember:** random search beats grid search; Bayesian optimization is sample-efficient; Hyperband / ASHA stop weak trials early. Tune the learning rate first.
 
@@ -88,13 +88,13 @@ Getting models trained at scale and served reliably.
 
 ## Monitoring
 
-**In one line:** models degrade silently as the world changes.
+Models degrade silently as the world changes.
 
 **Remember:** watch input distributions (data drift), prediction distributions, latency, errors, cost, and real outcomes when labels arrive.
 
 ## Training-serving skew
 
-**In one line:** features computed differently offline and online.
+Features computed differently offline and online.
 
 **Remember:** a top cause of "great offline, bad in production." Share feature code or use a feature store.
 

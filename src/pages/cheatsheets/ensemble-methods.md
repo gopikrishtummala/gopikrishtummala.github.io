@@ -8,7 +8,7 @@ Still the winners on most tabular data.
 
 ## Decision tree
 
-**In one line:** repeatedly split the data on the question that best separates the outcomes.
+Repeatedly split the data on the question that best separates the outcomes.
 
 **Picture it:** a game of twenty questions that the computer learns to ask in the best order.
 
@@ -16,13 +16,13 @@ Still the winners on most tabular data.
 
 ## Impurity (Gini, entropy)
 
-**In one line:** how mixed a group is; splits aim to create purer groups.
+How mixed a group is; splits aim to create purer groups.
 
 **Remember:** a node with all one class has impurity zero. Gini and entropy give nearly identical trees.
 
 ## Why ensembles work
 
-**In one line:** many decent, different models averaged together beat one good model.
+Many decent, different models averaged together beat one good model.
 
 **Picture it:** the "wisdom of crowds": a hundred people's averaged guess of a jar's jellybeans beats most individuals.
 
@@ -30,13 +30,13 @@ Still the winners on most tabular data.
 
 ## Bagging
 
-**In one line:** train many trees on random resamples of the data and average them.
+Train many trees on random resamples of the data and average them.
 
 **Remember:** reduces variance. Each tree misses about a third of the rows, which gives a free validation estimate ("out-of-bag" error).
 
 ## Random forest
 
-**In one line:** bagging plus random feature subsets at each split.
+Bagging plus random feature subsets at each split.
 
 **Picture it:** a committee where each member is only allowed to look at some of the evidence, so they don't all make the same mistake.
 
@@ -44,7 +44,7 @@ Still the winners on most tabular data.
 
 ## Boosting
 
-**In one line:** train models one after another, each focusing on what the previous ones got wrong.
+Train models one after another, each focusing on what the previous ones got wrong.
 
 **Picture it:** a student who reviews only the questions they missed on the last practice test.
 
@@ -52,7 +52,7 @@ Still the winners on most tabular data.
 
 ## Gradient boosting
 
-**In one line:** each new tree predicts the remaining error (the gradient of the loss) of the ensemble so far.
+Each new tree predicts the remaining error (the gradient of the loss) of the ensemble so far.
 
 **Remember:** learning rate × number of trees is the key trade-off: smaller steps, more trees, better generalization.
 
@@ -79,13 +79,13 @@ Still the winners on most tabular data.
 
 ## Feature importance
 
-**In one line:** which features the model relied on.
+Which features the model relied on.
 
 **Remember:** built-in importance favors features with many unique values; permutation importance and SHAP values are more trustworthy.
 
 ## Stacking
 
-**In one line:** train a model on the predictions of other models.
+Train a model on the predictions of other models.
 
 **Remember:** small gains, more complexity; common in competitions, rarer in production.
 

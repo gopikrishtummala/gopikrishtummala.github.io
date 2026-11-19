@@ -8,7 +8,7 @@ Ways to learn beyond "lots of labeled examples."
 
 ## Self-supervised learning
 
-**In one line:** make up a task from unlabeled data whose answer is in the data itself.
+Make up a task from unlabeled data whose answer is in the data itself.
 
 **Picture it:** hide words in a sentence and learn to fill them in; to do that well, you must understand language.
 
@@ -16,7 +16,7 @@ Ways to learn beyond "lots of labeled examples."
 
 ## Transfer learning
 
-**In one line:** reuse what a model learned on one task for another.
+Reuse what a model learned on one task for another.
 
 **Picture it:** a pianist learning organ is far ahead of a beginner.
 
@@ -24,13 +24,13 @@ Ways to learn beyond "lots of labeled examples."
 
 ## Few-shot and zero-shot learning
 
-**In one line:** do a new task from a handful of examples, or from only a description.
+Do a new task from a handful of examples, or from only a description.
 
 **Remember:** CLIP classifies images zero-shot by matching them to class names; LLMs learn tasks from examples in the prompt.
 
 ## Meta-learning
 
-**In one line:** learn how to learn, so new tasks need very few examples.
+Learn how to learn, so new tasks need very few examples.
 
 **Picture it:** after learning ten languages, the eleventh comes fast.
 
@@ -38,13 +38,13 @@ Ways to learn beyond "lots of labeled examples."
 
 ## Multi-task learning
 
-**In one line:** train one model on several related tasks at once.
+Train one model on several related tasks at once.
 
 **Remember:** shared representations help each task, especially those with little data; conflicting tasks can hurt each other.
 
 ## Federated learning
 
-**In one line:** train on data that stays on users' devices; only model updates are shared.
+Train on data that stays on users' devices; only model updates are shared.
 
 **Picture it:** many hospitals improve one model without any patient record leaving its hospital.
 
@@ -52,37 +52,37 @@ Ways to learn beyond "lots of labeled examples."
 
 ## Differential privacy
 
-**In one line:** add carefully calibrated noise so no single person's data noticeably changes the result.
+Add carefully calibrated noise so no single person's data noticeably changes the result.
 
 **Remember:** a formal privacy guarantee, paid for with some accuracy.
 
 ## Continual learning
 
-**In one line:** keep learning new things without forgetting old ones.
+Keep learning new things without forgetting old ones.
 
 **Remember:** neural nets forget catastrophically; fixes include replaying old data, protecting important weights, or adding new parameters per task.
 
 ## Active learning
 
-**In one line:** let the model choose which examples a human should label next.
+Let the model choose which examples a human should label next.
 
 **Remember:** label the examples the model is most unsure about or that cover new ground; saves labeling cost.
 
 ## Weak supervision
 
-**In one line:** combine many noisy, cheap labeling rules into usable training labels.
+Combine many noisy, cheap labeling rules into usable training labels.
 
 **Remember:** faster than hand-labeling; label quality must be checked.
 
 ## Knowledge distillation
 
-**In one line:** a small student learns to imitate a large teacher's outputs.
+A small student learns to imitate a large teacher's outputs.
 
 **Remember:** the teacher's probabilities ("90% cat, 8% fox") teach more than hard labels; the standard way to make models cheaper.
 
 ## Multimodal learning
 
-**In one line:** models that connect text, images, audio and video in one representation.
+Models that connect text, images, audio and video in one representation.
 
 **Remember:** CLIP aligns images and captions; vision-language models plug a vision encoder into an LLM.
 
@@ -90,7 +90,7 @@ Ways to learn beyond "lots of labeled examples."
 
 ## Scaling laws
 
-**In one line:** performance improves predictably as model size, data and compute grow.
+Performance improves predictably as model size, data and compute grow.
 
 **Remember:** for a fixed budget, balance parameters and training tokens; bigger isn't automatically better.
 

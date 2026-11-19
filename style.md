@@ -4,6 +4,8 @@ This blog is a **map**, not a textbook. Someone should be able to land on any po
 
 Every post should read like it was written by one engineer who has done this work, explaining it to a smart colleague over coffee. Not like a course catalog, and not like a model's first draft.
 
+This guide covers blog posts. The cheatsheets at `/cheatsheets` have their own guide: [writing.md](writing.md).
+
 This guide is the contract for new posts and for the cleanup of old ones.
 
 ---

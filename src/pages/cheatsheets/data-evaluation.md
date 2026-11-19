@@ -8,25 +8,25 @@ Good models start with good data and honest measurement.
 
 ## Standardization vs normalization
 
-**In one line:** standardize = mean 0, standard deviation 1; normalize = squeeze into [0, 1].
+Standardize = mean 0, standard deviation 1; normalize = squeeze into [0, 1].
 
 **Remember:** scale features for distance-based and gradient-based models (k-NN, SVMs, linear models, neural nets). Trees don't care. Fit the scaler on training data only.
 
 ## Missing values
 
-**In one line:** fill them sensibly, and often record that they were missing.
+Fill them sensibly, and often record that they were missing.
 
 **Remember:** "missing" can be information itself (a blank income field). Median imputation plus a missing-flag is a solid default; boosted trees handle missing values natively.
 
 ## Categorical features
 
-**In one line:** turn categories into numbers the model can use.
+Turn categories into numbers the model can use.
 
 **Remember:** one-hot for few categories; target encoding or learned embeddings for many (thousands of zip codes). Target encoding must be computed out-of-fold to avoid leakage.
 
 ## Class imbalance
 
-**In one line:** when one class is rare, accuracy lies.
+When one class is rare, accuracy lies.
 
 **Picture it:** 99% of transactions are legitimate; a model that always says "legit" is 99% accurate and useless.
 
@@ -34,7 +34,7 @@ Good models start with good data and honest measurement.
 
 ## Data leakage
 
-**In one line:** the model sees something during training it won't have at prediction time.
+The model sees something during training it won't have at prediction time.
 
 **Remember:** split before preprocessing; check features for "future" information; dedupe across splits. Too-good results → suspect leakage.
 
@@ -42,15 +42,9 @@ Good models start with good data and honest measurement.
 
 **Remember:** random split for independent examples; time-based for anything temporal; group-based when one user or patient has many rows; stratified to keep class ratios.
 
-## Confusion matrix
-
-**In one line:** a 2×2 table of true positives, false positives, true negatives, false negatives.
-
-**Remember:** every classification metric is a different way to summarize this table.
-
 ## Precision vs recall
 
-**In one line:** precision = of what I flagged, how much was right; recall = of what was there, how much did I find.
+Precision = of what I flagged, how much was right; recall = of what was there, how much did I find.
 
 **Picture it:** a fishing net. Precision: how much of the catch is fish (not junk). Recall: how many of the fish in the lake you caught.
 
@@ -58,19 +52,19 @@ Good models start with good data and honest measurement.
 
 ## F1 and F-beta
 
-**In one line:** combine precision and recall into one number.
+Combine precision and recall into one number.
 
 **Remember:** F1 weighs them equally; F2 favors recall; F0.5 favors precision.
 
 ## ROC-AUC vs PR-AUC
 
-**In one line:** ROC plots true positive rate vs false positive rate; PR plots precision vs recall.
+ROC plots true positive rate vs false positive rate; PR plots precision vs recall.
 
 **Remember:** ROC-AUC = chance a random positive ranks above a random negative. With heavy imbalance, ROC-AUC looks great while PR-AUC reveals the truth.
 
 ## Calibration
 
-**In one line:** do predicted probabilities match real frequencies?
+Do predicted probabilities match real frequencies?
 
 **Remember:** a model can rank well (high AUC) and still be badly calibrated. Check with a reliability diagram.
 
@@ -85,7 +79,7 @@ Good models start with good data and honest measurement.
 
 ## Ranking metrics
 
-**In one line:** for search and recommendations, order matters.
+For search and recommendations, order matters.
 
 **Remember:** Recall@k (is it in the top k?), MRR (how high is the first correct one?), NDCG (rewards putting the best items at the top).
 
@@ -95,6 +89,6 @@ Good models start with good data and honest measurement.
 
 ## Drift
 
-**In one line:** the world changes after deployment.
+The world changes after deployment.
 
 **Remember:** data drift = inputs change; concept drift = the input-output relationship changes. Monitor both and retrain.

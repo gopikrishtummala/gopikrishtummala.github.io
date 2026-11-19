@@ -8,7 +8,7 @@ Two classic ideas: draw the widest possible boundary, and keep track of uncertai
 
 ## Support vector machine
 
-**In one line:** find the boundary that separates classes with the widest possible gap.
+Find the boundary that separates classes with the widest possible gap.
 
 **Picture it:** building the widest road between two neighborhoods; the houses touching the road's edges are the **support vectors**, and only they decide where the road goes.
 
@@ -16,13 +16,13 @@ Two classic ideas: draw the widest possible boundary, and keep track of uncertai
 
 ## Soft margin and C
 
-**In one line:** allow some points on the wrong side, at a cost.
+Allow some points on the wrong side, at a cost.
 
 **Remember:** large C = few mistakes allowed, narrow road, overfit risk; small C = wider road, more mistakes, smoother boundary.
 
 ## Kernel trick
 
-**In one line:** separate data that isn't linearly separable by implicitly mapping it to a higher-dimensional space.
+Separate data that isn't linearly separable by implicitly mapping it to a higher-dimensional space.
 
 **Picture it:** red dots in the middle of a ring of blue dots can't be split by a line; lift the middle up into 3D and a flat sheet separates them.
 
@@ -32,7 +32,7 @@ Two classic ideas: draw the widest possible boundary, and keep track of uncertai
 
 ## Bayesian thinking
 
-**In one line:** start with a belief (prior), update it with data (likelihood), get a new belief (posterior).
+Start with a belief (prior), update it with data (likelihood), get a new belief (posterior).
 
 **Picture it:** you think a coin is fair; after ten heads in a row, you're less sure. Bayesian methods do this formally.
 
@@ -40,25 +40,25 @@ Two classic ideas: draw the widest possible boundary, and keep track of uncertai
 
 ## Priors
 
-**In one line:** what you believe before seeing data.
+What you believe before seeing data.
 
 **Remember:** with little data, priors matter a lot; with lots of data, the data wins. Regularization is a prior in disguise.
 
 ## Conjugate priors
 
-**In one line:** prior-likelihood pairs where the posterior has the same form as the prior, so updates are just arithmetic.
+Prior-likelihood pairs where the posterior has the same form as the prior, so updates are just arithmetic.
 
 **Remember:** Beta for coin flips and click rates, Dirichlet for categories, Gaussian for Gaussians. Beta(successes + 1, failures + 1) is the classic click-rate estimate.
 
 ## Bayesian linear regression
 
-**In one line:** linear regression that returns a distribution over lines instead of one line.
+Linear regression that returns a distribution over lines instead of one line.
 
 **Remember:** predictions come with error bars that widen away from the data, exactly where you should be less sure.
 
 ## Gaussian processes
 
-**In one line:** a distribution over smooth functions, updated by data.
+A distribution over smooth functions, updated by data.
 
 **Picture it:** a bundle of possible curves pinned down near observed points, fanning out between them.
 
@@ -66,13 +66,13 @@ Two classic ideas: draw the widest possible boundary, and keep track of uncertai
 
 ## MCMC
 
-**In one line:** draw samples from the posterior by a guided random walk.
+Draw samples from the posterior by a guided random walk.
 
 **Remember:** exact in the long run, slow. Hamiltonian Monte Carlo (NUTS, in Stan and PyMC) is the modern workhorse.
 
 ## Variational inference
 
-**In one line:** approximate the posterior with a simpler distribution fitted by optimization.
+Approximate the posterior with a simpler distribution fitted by optimization.
 
 **Remember:** much faster than MCMC, tends to underestimate uncertainty. VAEs use it.
 

@@ -8,7 +8,7 @@ How models find the right information and answer from it instead of from memory.
 
 ## Embeddings
 
-**In one line:** turn text, images or anything else into a vector so that similar things land close together.
+Turn text, images or anything else into a vector so that similar things land close together.
 
 **Picture it:** a map where "dog" and "puppy" are neighbors, "cat" is nearby, and "invoice" is on another continent.
 
@@ -16,13 +16,13 @@ How models find the right information and answer from it instead of from memory.
 
 ## Cosine similarity
 
-**In one line:** compare the direction of two vectors, ignoring their length.
+Compare the direction of two vectors, ignoring their length.
 
 **Remember:** 1 = same direction, 0 = unrelated, −1 = opposite. With normalized vectors, cosine similarity and dot product are the same.
 
 ## Approximate nearest neighbor (ANN) search
 
-**In one line:** find the closest vectors among millions fast, accepting tiny misses.
+Find the closest vectors among millions fast, accepting tiny misses.
 
 **How it works:**
 - **HNSW:** a layered graph; jump across far links at the top, refine through near links below, like taking highways then local roads. Fast and accurate, memory-hungry.
@@ -33,13 +33,13 @@ How models find the right information and answer from it instead of from memory.
 
 ## Keyword search (BM25)
 
-**In one line:** score documents by how often query words appear, weighted by how rare those words are.
+Score documents by how often query words appear, weighted by how rare those words are.
 
 **Remember:** keyword search nails exact terms (product codes, names, error messages) that embeddings blur. Embeddings catch paraphrases that keywords miss.
 
 ## Hybrid search
 
-**In one line:** run keyword and vector search, then merge.
+Run keyword and vector search, then merge.
 
 **How it works:** reciprocal rank fusion combines rankings by position, avoiding the problem that the two kinds of score aren't comparable.
 
@@ -47,7 +47,7 @@ How models find the right information and answer from it instead of from memory.
 
 ## Reranking
 
-**In one line:** retrieve many candidates cheaply, then rescore the top few with a slower, smarter model.
+Retrieve many candidates cheaply, then rescore the top few with a slower, smarter model.
 
 **Picture it:** a quick skim of a hundred résumés, then careful reading of the best ten.
 
@@ -57,7 +57,7 @@ How models find the right information and answer from it instead of from memory.
 
 ## Chunking
 
-**In one line:** split documents into pieces small enough to retrieve precisely and large enough to make sense.
+Split documents into pieces small enough to retrieve precisely and large enough to make sense.
 
 **Remember:** split on natural boundaries (sections, paragraphs), keep some overlap, attach metadata (title, section, date). Retrieve small chunks, then show the model the surrounding section ("parent document" retrieval).
 
@@ -65,7 +65,7 @@ How models find the right information and answer from it instead of from memory.
 
 ## RAG (retrieval-augmented generation)
 
-**In one line:** retrieve relevant passages and give them to the model to answer from.
+Retrieve relevant passages and give them to the model to answer from.
 
 **Picture it:** an open-book exam instead of answering from memory.
 
@@ -77,13 +77,13 @@ How models find the right information and answer from it instead of from memory.
 
 ## Query rewriting
 
-**In one line:** turn a vague or conversational question into a good search query.
+Turn a vague or conversational question into a good search query.
 
 **Remember:** "what about the second one?" means nothing to a search engine; rewrite it using the conversation first. Multiple rewrites or a hypothetical answer (HyDE) can improve recall.
 
 ## Evaluating RAG
 
-**In one line:** check retrieval and generation separately.
+Check retrieval and generation separately.
 
 | Stage | Ask | Metrics |
 |---|---|---|

@@ -8,7 +8,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## Linear regression
 
-**In one line:** fit the straight line (or flat plane) that best passes through the data.
+Fit the straight line (or flat plane) that best passes through the data.
 
 **Picture it:** stretching a rubber band through a scatter plot so the total squared distance to the points is smallest.
 
@@ -18,7 +18,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## Logistic regression
 
-**In one line:** a linear model whose output is squashed through a sigmoid into a probability.
+A linear model whose output is squashed through a sigmoid into a probability.
 
 **Picture it:** a straight line separating two classes, with a soft ramp of probability across it.
 
@@ -26,7 +26,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## Regularization (Ridge, Lasso)
 
-**In one line:** penalize large weights so the model doesn't chase noise.
+Penalize large weights so the model doesn't chase noise.
 
 **Picture it:** Ridge (L2) shrinks every weight a little; Lasso (L1) pushes unimportant ones all the way to zero.
 
@@ -34,7 +34,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## k-nearest neighbors
 
-**In one line:** predict by asking the k most similar training examples.
+Predict by asking the k most similar training examples.
 
 **Picture it:** "you are the average of your five closest friends."
 
@@ -42,7 +42,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## Naive Bayes
 
-**In one line:** apply Bayes' rule assuming features are independent given the class.
+Apply Bayes' rule assuming features are independent given the class.
 
 **Picture it:** a spam filter that multiplies "how spammy is each word" together, ignoring that words co-occur.
 
@@ -50,7 +50,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## Decision tree
 
-**In one line:** a flowchart of yes/no questions learned from data.
+A flowchart of yes/no questions learned from data.
 
 **Picture it:** "Is income > 50k? → Is age < 30? → approve."
 
@@ -64,7 +64,7 @@ The models every practitioner should be able to explain in a sentence.
 
 ## Generative vs discriminative
 
-**In one line:** generative models learn how each class produces data; discriminative models learn the boundary directly.
+Generative models learn how each class produces data; discriminative models learn the boundary directly.
 
 **Remember:** Naive Bayes is generative; logistic regression is discriminative. Discriminative usually wins with enough data; generative can win with very little.
 

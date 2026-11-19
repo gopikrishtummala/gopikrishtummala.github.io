@@ -4,11 +4,11 @@ title: "Transformers & LLMs in 2 Minutes Each"
 description: "Intuition cards for attention, transformers, tokenization, pretraining, scaling, decoding, KV cache, MoE, long context, reasoning models and hallucination."
 ---
 
-Each card: what it is, a picture to hold in your head, how it works in plain words, the one thing to remember, and the common confusion. Follow "Go deeper" for the math.
+Attention, the transformer, and what happens when it becomes a large language model.
 
 ## Attention
 
-**In one line:** each word looks at every other word and decides how much each one matters for understanding it.
+Each word looks at every other word and decides how much each one matters for understanding it.
 
 **Picture it:** in "the animal didn't cross the street because *it* was tired," the word *it* scans the sentence and lights up *animal* strongly and *street* weakly. That weighted look is attention.
 
@@ -26,7 +26,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Self-attention vs cross-attention
 
-**In one line:** self-attention looks within one sequence; cross-attention lets one sequence look at another.
+Self-attention looks within one sequence; cross-attention lets one sequence look at another.
 
 **Picture it:** self-attention is a group discussion inside one team. Cross-attention is one team asking another team questions, like a translator's output checking the source sentence, or image patches checking a text prompt.
 
@@ -34,7 +34,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Multi-head attention
 
-**In one line:** run several attentions in parallel, each free to learn a different kind of relationship.
+Run several attentions in parallel, each free to learn a different kind of relationship.
 
 **Picture it:** one head tracks grammar (subject ↔ verb), another tracks coreference (*it* ↔ *animal*), another tracks nearby words. Their findings are concatenated.
 
@@ -42,7 +42,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## The transformer block
 
-**In one line:** attention (tokens talk to each other) followed by a small feed-forward network (each token thinks on its own), with shortcuts and normalization around both.
+Attention (tokens talk to each other) followed by a small feed-forward network (each token thinks on its own), with shortcuts and normalization around both.
 
 **Picture it:** a meeting (attention) then everyone goes back to their desk to process what they heard (feed-forward). Repeat 30–100 times.
 
@@ -55,7 +55,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Positional encoding and RoPE
 
-**In one line:** attention has no built-in sense of order, so position must be added.
+Attention has no built-in sense of order, so position must be added.
 
 **Picture it:** without positions, "dog bites man" and "man bites dog" look identical, just a bag of words.
 
@@ -77,7 +77,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Tokenization
 
-**In one line:** text is split into sub-word pieces before the model sees it.
+Text is split into sub-word pieces before the model sees it.
 
 **Picture it:** "unbelievable" → "un" + "believ" + "able." Common words are one token; rare words are several.
 
@@ -89,7 +89,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Pretraining: next-token prediction
 
-**In one line:** predict the next token on trillions of tokens of text; everything else emerges from that.
+Predict the next token on trillions of tokens of text; everything else emerges from that.
 
 **Picture it:** to predict the next word of a physics textbook, a mystery novel and Python code, you have to learn physics, plot and programming. The simple objective forces broad knowledge.
 
@@ -99,7 +99,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Scaling laws
 
-**In one line:** loss falls smoothly and predictably as you increase model size, data and compute.
+Loss falls smoothly and predictably as you increase model size, data and compute.
 
 **Picture it:** a straight line on a log-log plot. Double the compute, get a predictable improvement.
 
@@ -109,7 +109,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## In-context learning
 
-**In one line:** the model learns a task from examples in the prompt, with no weight updates.
+The model learns a task from examples in the prompt, with no weight updates.
 
 **Picture it:** show three examples of "English → French" and the model continues the pattern on the fourth.
 
@@ -117,7 +117,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Decoding: temperature, top-k, top-p
 
-**In one line:** how the next token is chosen from the model's probabilities.
+How the next token is chosen from the model's probabilities.
 
 **Picture it:** the model hands you a ranked list of next words with probabilities. Decoding is how you pick from it.
 
@@ -131,7 +131,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## KV cache
 
-**In one line:** store the keys and values of earlier tokens so generating each new token doesn't recompute them.
+Store the keys and values of earlier tokens so generating each new token doesn't recompute them.
 
 **Picture it:** a running set of notes on everything said so far; each new word only adds one line.
 
@@ -141,7 +141,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Prefill vs decode
 
-**In one line:** reading the prompt is fast and parallel; writing the answer is slow and one token at a time.
+Reading the prompt is fast and parallel; writing the answer is slow and one token at a time.
 
 **Picture it:** skimming a page at once vs writing a reply word by word.
 
@@ -151,7 +151,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Long context
 
-**In one line:** extending how much text a model can read at once, from thousands to millions of tokens.
+Extending how much text a model can read at once, from thousands to millions of tokens.
 
 **How it works:** RoPE scaling tricks (position interpolation, YaRN), training on long documents, efficient attention kernels, and memory-saving KV cache techniques.
 
@@ -159,7 +159,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Mixture of experts (MoE)
 
-**In one line:** many small expert networks per layer; a router sends each token to only a few.
+Many small expert networks per layer; a router sends each token to only a few.
 
 **Picture it:** a hospital with 128 specialists where each patient sees 8. Huge total expertise, modest cost per patient.
 
@@ -169,7 +169,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## FlashAttention
 
-**In one line:** compute exact attention in tiles that fit in fast on-chip memory, never writing the full attention matrix to slow memory.
+Compute exact attention in tiles that fit in fast on-chip memory, never writing the full attention matrix to slow memory.
 
 **Remember:** same math, far less memory traffic: faster and enables longer contexts.
 
@@ -177,7 +177,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## State space models (Mamba)
 
-**In one line:** sequence models that carry a compressed running state instead of attending to every past token.
+Sequence models that carry a compressed running state instead of attending to every past token.
 
 **Picture it:** a transformer rereads all its notes for every word; an SSM keeps a running summary.
 
@@ -185,7 +185,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Reasoning models
 
-**In one line:** models trained to "think" at length before answering, spending more compute on harder problems.
+Models trained to "think" at length before answering, spending more compute on harder problems.
 
 **Picture it:** showing your work on scratch paper before writing the final answer.
 
@@ -195,7 +195,7 @@ Each card: what it is, a picture to hold in your head, how it works in plain wor
 
 ## Hallucination
 
-**In one line:** fluent, confident output that isn't true.
+Fluent, confident output that isn't true.
 
 **Why it happens:** the model is trained to produce plausible continuations, not to know what it doesn't know; rare facts and missing context make guesses look like facts.
 

@@ -8,25 +8,25 @@ The habits that separate useful ML work from busy ML work.
 
 ## Frame the problem
 
-**In one line:** start from the decision the model will change, not from the model.
+Start from the decision the model will change, not from the model.
 
 **Remember:** ask who uses the prediction, what they'll do differently, what each kind of error costs, and whether a simple rule would do.
 
 ## Pick the metric before the model
 
-**In one line:** decide how success is measured before you see results.
+Decide how success is measured before you see results.
 
 **Remember:** the offline metric should track the real goal; if it doesn't, optimizing it is wasted effort.
 
 ## Baselines
 
-**In one line:** always beat something simple first.
+Always beat something simple first.
 
 **Remember:** majority class or average; a simple rule; a logistic regression or boosted trees. If a complex model barely beats them, it probably isn't worth it.
 
 ## Look at the data
 
-**In one line:** spend real time looking at raw examples before modeling.
+Spend real time looking at raw examples before modeling.
 
 **Remember:** most surprises (bad labels, duplicates, leakage, weird formats) are visible by eye.
 
@@ -36,13 +36,13 @@ The habits that separate useful ML work from busy ML work.
 
 ## Ablations
 
-**In one line:** remove one component at a time to see what actually helps.
+Remove one component at a time to see what actually helps.
 
 **Remember:** the fastest way to find out that half your clever ideas don't matter.
 
 ## Error analysis
 
-**In one line:** read the model's worst mistakes and group them.
+Read the model's worst mistakes and group them.
 
 **Remember:** fix the biggest group first; slice metrics by segment to find where it fails.
 
@@ -66,7 +66,7 @@ The habits that separate useful ML work from busy ML work.
 
 ## Communicating results
 
-**In one line:** lead with the conclusion and the decision it supports.
+Lead with the conclusion and the decision it supports.
 
 **Remember:** compare against the baseline and current system, show uncertainty, state limitations plainly, and prefer one clear chart to five tables.
 

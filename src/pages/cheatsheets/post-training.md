@@ -8,7 +8,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## Base model vs assistant
 
-**In one line:** a pretrained model completes text; post-training teaches it to respond helpfully.
+A pretrained model completes text; post-training teaches it to respond helpfully.
 
 **Picture it:** ask a base model "What's the capital of France?" and it may continue with "What's the capital of Germany?" because that's how quiz lists look. An assistant answers "Paris."
 
@@ -18,7 +18,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## Fine-tuning
 
-**In one line:** keep training a pretrained model on your smaller, specific dataset.
+Keep training a pretrained model on your smaller, specific dataset.
 
 **Picture it:** a general doctor doing a residency in cardiology. Most knowledge stays; a specialty is added.
 
@@ -28,7 +28,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## Supervised fine-tuning (SFT)
 
-**In one line:** train on example prompts paired with ideal responses.
+Train on example prompts paired with ideal responses.
 
 **How it works:** standard next-token loss, but only on the response tokens, using the model's chat template (special tokens marking user and assistant turns).
 
@@ -38,7 +38,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## LoRA
 
-**In one line:** freeze the model and learn a small low-rank correction for each weight matrix.
+Freeze the model and learn a small low-rank correction for each weight matrix.
 
 **Picture it:** instead of repainting a whole mural, add a thin transparent overlay. Peel it off and the original is intact; swap overlays for different tasks.
 
@@ -48,13 +48,13 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## QLoRA
 
-**In one line:** LoRA on top of a base model compressed to 4 bits.
+LoRA on top of a base model compressed to 4 bits.
 
 **Remember:** that's how a 65–70B model fits on a single 80 GB GPU for fine-tuning. The frozen base is 4-bit; the adapters train in higher precision.
 
 ## RLHF
 
-**In one line:** learn from human preferences rather than from ideal answers.
+Learn from human preferences rather than from ideal answers.
 
 **Picture it:** it's easier for people to say "answer A is better than B" than to write the perfect answer.
 
@@ -64,13 +64,13 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## Reward models and reward hacking
 
-**In one line:** a model that scores responses, standing in for human judgment.
+A model that scores responses, standing in for human judgment.
 
 **Watch out:** **reward hacking**: the policy finds ways to score high without being better, such as longer answers, flattery or confident tone. Keep a leash (KL penalty) to the original model and check samples by hand.
 
 ## DPO
 
-**In one line:** learn directly from preferred-vs-rejected pairs, with no separate reward model or RL loop.
+Learn directly from preferred-vs-rejected pairs, with no separate reward model or RL loop.
 
 **Picture it:** "make answers like this more likely and answers like that less likely," relative to where the model started.
 
@@ -80,7 +80,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## GRPO and verifiable rewards
 
-**In one line:** sample several answers to the same question, reward the ones that are checkably correct, and push toward better-than-average answers.
+Sample several answers to the same question, reward the ones that are checkably correct, and push toward better-than-average answers.
 
 **Picture it:** a teacher grading eight attempts at one math problem and telling the student "do more of what the right ones did."
 
@@ -90,7 +90,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## Knowledge distillation
 
-**In one line:** train a small student model to imitate a large teacher.
+Train a small student model to imitate a large teacher.
 
 **Picture it:** an apprentice copying a master's work, including the master's uncertainty ("this is probably a cat, maybe a fox").
 
@@ -98,13 +98,13 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## LLM-as-a-judge
 
-**In one line:** use a strong model to grade outputs instead of (or before) humans.
+Use a strong model to grade outputs instead of (or before) humans.
 
 **Remember:** scalable and surprisingly useful; biased toward longer answers, its own style and the first option shown. Calibrate against human ratings, randomize order, use clear rubrics.
 
 ## Prompt engineering
 
-**In one line:** writing instructions and examples so the model does what you want.
+Writing instructions and examples so the model does what you want.
 
 **What works:** clear task and role, relevant context, examples of good output, explicit format, asking the model to reason step by step for hard problems, and breaking big tasks into steps.
 
@@ -112,7 +112,7 @@ How a base model that only predicts text becomes an assistant that follows instr
 
 ## Context engineering
 
-**In one line:** deciding what information goes into the model's limited context window at each step.
+Deciding what information goes into the model's limited context window at each step.
 
 **Remember:** "the smallest set of high-signal tokens." Retrieve just in time, summarize old history, keep notes outside the window, use sub-agents with fresh context.
 

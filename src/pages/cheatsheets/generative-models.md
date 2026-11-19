@@ -8,13 +8,13 @@ How models learn to create new images, video and audio.
 
 ## The big idea
 
-**In one line:** learn the distribution of the data well enough to sample new examples from it.
+Learn the distribution of the data well enough to sample new examples from it.
 
 **Remember:** every family below is a different trick for turning simple random noise into realistic data.
 
 ## Autoencoder
 
-**In one line:** compress the input to a small code and reconstruct it.
+Compress the input to a small code and reconstruct it.
 
 **Picture it:** describing a face in 32 numbers so someone else can redraw it.
 
@@ -22,7 +22,7 @@ How models learn to create new images, video and audio.
 
 ## VAE (variational autoencoder)
 
-**In one line:** an autoencoder whose code space is smooth and organized, so you can sample from it.
+An autoencoder whose code space is smooth and organized, so you can sample from it.
 
 **How it works:** the encoder outputs a small cloud (mean and spread) rather than a point; a penalty keeps all clouds close to a standard Gaussian, so the space has no holes.
 
@@ -32,7 +32,7 @@ How models learn to create new images, video and audio.
 
 ## GAN
 
-**In one line:** a generator makes fakes, a discriminator tries to catch them; both improve.
+A generator makes fakes, a discriminator tries to catch them; both improve.
 
 **Picture it:** a counterfeiter and a detective training each other.
 
@@ -40,19 +40,19 @@ How models learn to create new images, video and audio.
 
 ## Normalizing flows
 
-**In one line:** a chain of invertible transformations from simple noise to data.
+A chain of invertible transformations from simple noise to data.
 
 **Remember:** exact likelihoods, but architecture constraints limit quality. Not to be confused with flow *matching*.
 
 ## Autoregressive models
 
-**In one line:** generate one piece at a time, each conditioned on everything before.
+Generate one piece at a time, each conditioned on everything before.
 
 **Remember:** that's how LLMs generate text. Excellent quality, but sequential and slow for images and long outputs.
 
 ## Diffusion models
 
-**In one line:** add noise to data step by step, and train a network to remove a little noise at a time.
+Add noise to data step by step, and train a network to remove a little noise at a time.
 
 **Picture it:** ink dispersing in water, played in reverse.
 
@@ -64,7 +64,7 @@ How models learn to create new images, video and audio.
 
 ## Classifier-free guidance (CFG)
 
-**In one line:** run the model with and without the prompt and push further in the prompt's direction.
+Run the model with and without the prompt and push further in the prompt's direction.
 
 **Remember:** higher guidance = follows the prompt more, less variety, eventually oversaturated. It doubles the cost per step.
 
@@ -72,19 +72,19 @@ How models learn to create new images, video and audio.
 
 ## Samplers
 
-**In one line:** the rule for walking from noise to image; decides how many steps you need.
+The rule for walking from noise to image; decides how many steps you need.
 
 **Remember:** DDPM ~1000 steps; DDIM and ODE solvers ~20–50; distilled models 1–4.
 
 ## Latent diffusion
 
-**In one line:** run diffusion on a compressed version of the image, then decode.
+Run diffusion on a compressed version of the image, then decode.
 
 **Remember:** a 512×512 image becomes a 64×64×4 latent, about 48× fewer numbers. That's what made Stable Diffusion cheap enough to run.
 
 ## Diffusion transformer (DiT)
 
-**In one line:** replace the U-Net with a transformer over latent patches.
+Replace the U-Net with a transformer over latent patches.
 
 **Remember:** transformers scale predictably with compute, so modern image and video models (SD3, FLUX, Sora-style) use them.
 
@@ -92,13 +92,13 @@ How models learn to create new images, video and audio.
 
 ## Flow matching
 
-**In one line:** learn a straight-line path from noise to data and predict the direction along it.
+Learn a straight-line path from noise to data and predict the direction along it.
 
 **Remember:** straighter paths = fewer sampling steps and easier distillation. The modern default for image and video models.
 
 ## Diffusion distillation
 
-**In one line:** train a student to do in 1–4 steps what the teacher does in 50.
+Train a student to do in 1–4 steps what the teacher does in 50.
 
 **Remember:** three families: follow the teacher's path (progressive, consistency models), match its distribution (DMD), add a critic (adversarial, e.g. SDXL-Turbo).
 
@@ -106,7 +106,7 @@ How models learn to create new images, video and audio.
 
 ## Video generation
 
-**In one line:** diffusion over space and time together, so frames stay consistent and motion is plausible.
+Diffusion over space and time together, so frames stay consistent and motion is plausible.
 
 **Remember:** video VAEs compress time as well as space; full space-time attention gives the best consistency at high cost. Physics remains the weak spot.
 

@@ -8,7 +8,7 @@ Learning by trial, error and reward.
 
 ## The setup
 
-**In one line:** an agent takes actions in an environment, gets rewards, and learns to maximize total future reward.
+An agent takes actions in an environment, gets rewards, and learns to maximize total future reward.
 
 **Picture it:** training a dog with treats. No one shows the right answer; good behavior gets rewarded, sometimes much later.
 
@@ -18,19 +18,19 @@ Learning by trial, error and reward.
 
 ## MDP (Markov decision process)
 
-**In one line:** states, actions, rewards, and transitions, where the next state depends only on the current state and action.
+States, actions, rewards, and transitions, where the next state depends only on the current state and action.
 
 **Remember:** the discount factor γ (e.g. 0.99) makes near rewards worth more than far ones and keeps sums finite.
 
 ## Policy
 
-**In one line:** the agent's strategy: what action to take in each state.
+The agent's strategy: what action to take in each state.
 
 **Remember:** deterministic (always do X) or stochastic (do X with 70% probability).
 
 ## Value functions
 
-**In one line:** how good it is to be in a state, $V(s)$, or to take an action in a state, $Q(s,a)$, measured by expected future reward.
+How good it is to be in a state, $V(s)$, or to take an action in a state, $Q(s,a)$, measured by expected future reward.
 
 **Picture it:** a chess player's sense that a position is "winning," before any piece is captured.
 
@@ -38,13 +38,13 @@ Learning by trial, error and reward.
 
 ## Bellman equation
 
-**In one line:** the value of a state = immediate reward + discounted value of where you land next.
+The value of a state = immediate reward + discounted value of where you land next.
 
 **Remember:** it turns a long-term problem into a one-step recursion, the basis of most RL algorithms.
 
 ## Q-learning and DQN
 
-**In one line:** learn $Q(s,a)$ by nudging it toward "reward + best next $Q$."
+Learn $Q(s,a)$ by nudging it toward "reward + best next $Q$."
 
 **How it works:** DQN uses a neural network for $Q$, a replay buffer of past experience (breaks correlations), and a slowly updated target network (stabilizes learning). It learned Atari games from pixels.
 
@@ -52,7 +52,7 @@ Learning by trial, error and reward.
 
 ## Policy gradients
 
-**In one line:** directly adjust the policy to make rewarded actions more likely.
+Directly adjust the policy to make rewarded actions more likely.
 
 **Picture it:** after each game, reinforce the moves of games you won, discourage those of games you lost.
 
@@ -60,37 +60,37 @@ Learning by trial, error and reward.
 
 ## Actor-critic
 
-**In one line:** an actor (policy) chooses actions; a critic (value function) judges them.
+An actor (policy) chooses actions; a critic (value function) judges them.
 
 **Remember:** the critic's estimate is the baseline that tames policy-gradient noise. SAC and TD3 are popular for continuous control.
 
 ## PPO
 
-**In one line:** policy gradient with a limit on how much the policy can change per update.
+Policy gradient with a limit on how much the policy can change per update.
 
 **Remember:** stable and simple enough to be the default for years, including in RLHF for language models.
 
 ## Exploration vs exploitation
 
-**In one line:** try new things to learn, or use what you know works?
+Try new things to learn, or use what you know works?
 
 **Remember:** ε-greedy (random action with small probability), entropy bonuses, optimism about unknown actions. Too little exploration gets stuck on mediocre strategies.
 
 ## Model-based RL
 
-**In one line:** learn a model of how the world responds, then plan or practice inside it.
+Learn a model of how the world responds, then plan or practice inside it.
 
 **Remember:** far more sample-efficient (AlphaZero, MuZero, Dreamer); errors in the learned model can mislead the agent.
 
 ## Offline RL
 
-**In one line:** learn a policy only from logged data, without new interaction.
+Learn a policy only from logged data, without new interaction.
 
 **Remember:** essential when trying things is dangerous (driving, healthcare); must avoid trusting actions the data never tried.
 
 ## Reward design
 
-**In one line:** the reward defines the task, and agents exploit any gap.
+The reward defines the task, and agents exploit any gap.
 
 **Watch out:** reward hacking: a boat-racing agent that spins in circles collecting points instead of finishing. Reward what you actually want.
 
