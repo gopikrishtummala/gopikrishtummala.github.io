@@ -1,7 +1,7 @@
 import type { CollectionEntry } from "astro:content";
 import getSortedPosts from "./getSortedPosts";
 
-export type Track = "Fundamentals" | "GenAI Systems" | "MLOps & Production" | "Robotics" | "Agentic AI";
+export type Track = "Fundamentals" | "GenAI Systems" | "MLOps & Production" | "Robotics" | "Agentic AI" | "Computer Vision";
 
 /**
  * Extract part number from slug (e.g., "agentic-ai-design-patterns-part-1" -> 1)

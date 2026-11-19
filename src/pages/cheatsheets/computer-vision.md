@@ -4,7 +4,7 @@ title: "Computer Vision in 2 Minutes Each"
 description: "Intuition cards for images and cameras, convolution, CNN architectures, ResNet, vision transformers, data augmentation, detection, IoU and NMS, segmentation, SAM, depth and 3D, NeRF and Gaussian splatting, CLIP and vision-language models."
 ---
 
-How machines learn to see.
+How machines learn to see. For the full story, read the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see).
 
 ## Camera model
 
