@@ -1,61 +1,87 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Unsupervised Learning"
-description: "Clustering, dimensionality reduction, density estimation, anomaly detection and generative models."
+title: "Unsupervised Learning in 2 Minutes Each"
+description: "Intuition cards for k-means, hierarchical clustering, DBSCAN, Gaussian mixtures, choosing the number of clusters, PCA, t-SNE and UMAP, autoencoders, anomaly detection and self-supervised representation learning."
 ---
 
-## Clustering
+Finding structure without labels.
 
-| Method | Idea | Pros | Cons |
-|---|---|---|---|
-| k-means | Assign to nearest centroid, recompute centroids | Fast, simple | Needs k; assumes round, similar-size clusters; sensitive to init (use k-means++) |
-| Hierarchical (agglomerative) | Merge closest clusters repeatedly | Dendrogram, no k upfront | $O(n^2)$ memory; linkage choice matters (single, complete, average, Ward) |
-| DBSCAN | Dense regions separated by sparse ones | Any shape, finds outliers, no k | Sensitive to `eps`, `min_samples`; struggles with varying density |
-| HDBSCAN | Hierarchical DBSCAN | Handles varying density | Slower |
-| Gaussian mixture | Soft assignments, elliptical clusters | Probabilities, flexible shapes | Needs k; EM can hit local optima |
-| Spectral | Cluster in eigenvectors of a similarity graph | Non-convex shapes | Expensive for large n |
+## k-means
 
-### Choosing k and evaluating
+**In one line:** place k centers, assign each point to its nearest center, move each center to the middle of its points, repeat.
 
-- Elbow method (inertia vs k), silhouette score (−1 to 1, higher better), Davies-Bouldin (lower better), BIC / AIC for mixtures.
-- With labels: adjusted Rand index, normalized mutual information.
+**Picture it:** k pizza shops repeatedly relocating to the middle of their customers.
 
-## Dimensionality reduction
+**Remember:** fast and simple; assumes round, similar-sized clusters; you must choose k; use k-means++ initialization.
 
-| Method | Type | Use |
-|---|---|---|
-| PCA | Linear; directions of max variance | Compression, denoising, preprocessing; keep components explaining ~90–95% variance |
-| SVD / truncated SVD | Linear | Sparse matrices, text (LSA), recommenders |
-| t-SNE | Non-linear, preserves local neighborhoods | 2D/3D visualization only; distances between clusters not meaningful |
-| UMAP | Non-linear, faster than t-SNE, keeps more global structure | Visualization, sometimes as features |
-| Autoencoder | Neural, non-linear | Learned compression, anomaly detection |
-| LDA (linear discriminant) | Supervised, maximizes class separation | Reduction for classification |
+## Hierarchical clustering
 
-- Standardize features before PCA.
+**In one line:** repeatedly merge the two closest clusters, building a tree.
 
-## Density estimation and anomaly detection
+**Remember:** no need to pick k up front; cut the tree (dendrogram) where you like. Expensive for large data.
 
-- Histograms, kernel density estimation, Gaussian mixtures, normalizing flows.
-- Anomaly detection: isolation forest, one-class SVM, local outlier factor, autoencoder reconstruction error, density thresholds.
+## DBSCAN
 
-## Generative models
+**In one line:** clusters are dense regions; points in sparse regions are noise.
 
-| Family | Idea | Notes |
-|---|---|---|
-| VAE | Encoder to a latent distribution, decoder back; maximize the ELBO | Smooth latent space; samples can be blurry. See [VAEs](/posts/fundamentals/variational-autoencoders-from-compression-to-creation) |
-| GAN | Generator vs discriminator game | Sharp samples; unstable training, mode collapse |
-| Normalizing flow | Invertible transforms; exact likelihood | Architecture constraints |
-| Autoregressive | Predict next element given previous | LLMs, PixelCNN; slow sequential sampling |
-| Diffusion / flow matching | Learn to reverse a noising process | State of the art for images and video. See [Diffusion Foundations](/posts/generative-ai/diffusion-from-molecules-to-machines) |
+**Picture it:** islands of people in a park; loners aren't forced into a group.
+
+**Remember:** finds any shape and flags outliers; sensitive to its distance setting; struggles when clusters have different densities (HDBSCAN helps).
+
+## Gaussian mixture models
+
+**In one line:** soft clustering where each cluster is a stretched bell shape.
+
+**Remember:** gives membership probabilities ("70% cluster A"), handles elliptical clusters, fitted with EM.
+
+## Choosing the number of clusters
+
+**Remember:** elbow plot, silhouette score, BIC for mixtures, and most importantly whether the clusters mean something for your use case. Clustering always finds clusters, even in random noise.
+
+## PCA
+
+**In one line:** find the directions where the data varies most and keep only those.
+
+**Picture it:** photographing a 3D object from the angle that shows the most detail.
+
+**Remember:** linear, fast, great for compression and denoising. Standardize first. Components are combinations of features, not individual features.
+
+## t-SNE and UMAP
+
+**In one line:** squash high-dimensional data into 2D for plotting while keeping neighbors near each other.
+
+**Remember:** for visualization, not analysis: cluster sizes and distances between clusters in the plot don't mean much. UMAP is faster and keeps more global structure.
+
+## Autoencoders
+
+**In one line:** a network that compresses its input and reconstructs it.
+
+**Remember:** the compressed code is a learned representation; high reconstruction error flags unusual inputs.
+
+## Anomaly detection
+
+**In one line:** find what doesn't look like the rest.
+
+**Remember:** isolation forest (anomalies are easy to isolate with few random splits), local outlier factor (lower density than neighbors), autoencoder reconstruction error. Labels for anomalies are rare, so evaluation is hard.
 
 ## Self-supervised representation learning
 
-- Contrastive: pull augmented views of the same item together, push others apart (SimCLR, MoCo, CLIP).
-- Masked prediction: hide parts and predict them (BERT, MAE).
-- Self-distillation: student matches teacher on different views (DINO).
+**In one line:** invent a task from unlabeled data whose solution requires understanding it.
 
-## Gotchas
+| Approach | Task |
+|---|---|
+| Contrastive (SimCLR, CLIP) | Pull matching pairs together, push others apart |
+| Masked prediction (BERT, MAE) | Fill in hidden parts |
+| Self-distillation (DINO) | Match a teacher's view of a different crop |
 
-- Clusters always appear, even in random data. Validate that they mean something.
-- Scaling changes distance-based results completely.
-- t-SNE and UMAP plots depend heavily on hyperparameters; don't over-read them.
+**Remember:** this is how modern foundation models learn from unlabeled data at scale.
+
+## Generative models
+
+**Go deeper:** [Generative Models cheatsheet](/cheatsheets/generative-models).
+
+## Watch out
+
+- Distance-based methods depend heavily on feature scaling.
+- High dimensions make distances meaningless; reduce dimensions first.
+- Validate clusters with domain knowledge, not just scores.

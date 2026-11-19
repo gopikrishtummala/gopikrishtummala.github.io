@@ -1,73 +1,105 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Scaling & Production ML"
-description: "Distributed training, memory math, hyperparameter tuning, serving, monitoring and MLOps."
+title: "Scaling & Production ML in 2 Minutes Each"
+description: "Intuition cards for training memory, data/tensor/pipeline/expert parallelism, FSDP, checkpointing, data loading, quantization, distillation, serving, batching, KV cache, speculative decoding, hyperparameter tuning, monitoring and MLOps."
 ---
 
-## Training memory (mixed precision + Adam)
+Getting models trained at scale and served reliably.
 
-- About **16 bytes per parameter** before activations: weights 2 + gradients 2 + FP32 master weights 4 + Adam moments 8.
-- 7B parameters ≈ 112 GB of state. Activations add more, growing with batch size and sequence length.
-- Cut memory: activation checkpointing, sharding (ZeRO / FSDP), 8-bit optimizers, LoRA, smaller batches with gradient accumulation.
+## Where training memory goes
 
-## Parallelism
+**In one line:** weights are the smallest part; gradients, optimizer state and activations dominate.
 
-| Type | Splits | Communication | Use when |
-|---|---|---|---|
-| Data parallel (DDP) | Data; full model per GPU | All-reduce gradients | Model fits on one GPU |
-| ZeRO-1/2/3, FSDP | Optimizer state, gradients, weights | Gather / scatter | Model state doesn't fit |
-| Tensor parallel | Each layer's matrices | Every layer; needs NVLink | Very large layers, inside a node |
-| Pipeline parallel | Layers across devices | Activations between stages | Very deep models, across nodes |
-| Expert parallel | MoE experts | All-to-all | Mixture-of-experts models |
-| Context / sequence parallel | Long sequences | Attention communication | Very long contexts |
+**Remember:** about 16 bytes per parameter with mixed precision and Adam, before activations. A 7B model needs ~112 GB of training state.
 
-See [Training Frameworks](/posts/mlops/hidden-engine-of-ai).
+**Go deeper:** [Training Frameworks](/posts/mlops/hidden-engine-of-ai).
 
-## Data pipeline
+## Data parallelism
 
-- GPU utilization is often limited by data loading: decode, augment and prefetch in parallel workers.
-- Columnar formats (Parquet), sharded files, streaming datasets. See [Datasets and Dataloaders](/posts/mlops/datasets-and-dataloaders).
+**In one line:** copy the model to every GPU, give each a different slice of data, average the gradients.
+
+**Remember:** speeds up training but doesn't save memory per GPU.
+
+## ZeRO / FSDP
+
+**In one line:** instead of copying everything, split weights, gradients and optimizer state across GPUs.
+
+**Picture it:** a shared library where each person keeps a few volumes and lends them out when needed, instead of everyone owning every book.
+
+**Remember:** what lets big models fit; costs extra communication.
+
+## Tensor and pipeline parallelism
+
+**In one line:** tensor parallel splits each layer across GPUs; pipeline parallel puts different layers on different GPUs.
+
+**Remember:** tensor parallel needs very fast links (inside a server); pipeline parallel works across servers but leaves GPUs idle at the start and end ("bubble"). Big runs combine data, tensor and pipeline: "3D parallelism."
+
+## Activation checkpointing
+
+**In one line:** throw away intermediate results and recompute them during the backward pass.
+
+**Remember:** trade about a third more compute for much less memory.
+
+## Data loading
+
+**In one line:** the GPU is often waiting for data, not computing.
+
+**Remember:** decode and augment in parallel workers, prefetch, use columnar and sharded formats. Check GPU utilization first.
+
+**Go deeper:** [Datasets and Dataloaders](/posts/mlops/datasets-and-dataloaders).
+
+## Quantization
+
+**In one line:** store and compute with fewer bits (8 or 4 instead of 16).
+
+**Remember:** 8-bit is usually near-lossless; 4-bit loses a little. It cuts memory and speeds memory-bound inference.
+
+## Distillation and pruning
+
+**In one line:** train a smaller student, or remove unimportant weights.
+
+**Remember:** the main ways to make a model cheap enough to serve widely.
+
+## Batch vs online serving
+
+**In one line:** precompute predictions on a schedule, or compute each on request.
+
+**Remember:** batch is cheap and simple; online is needed for fresh, per-request predictions with tight latency.
+
+## LLM serving essentials
+
+**Remember:**
+- The KV cache limits how many conversations fit on a GPU.
+- Continuous batching keeps the GPU busy as requests come and go.
+- Paged attention (vLLM) allocates KV cache memory in small blocks to waste almost none.
+- Speculative decoding: a fast draft guesses several tokens, the big model checks them at once.
+
+**Go deeper:** [LLM Serving](/posts/mlops/vllm-trilogy-of-modern-llm-scaling), [Speculative Decoding](/posts/mlops/speculative-decoding-guess-and-verify).
 
 ## Hyperparameter tuning
 
-| Method | Notes |
-|---|---|
-| Grid search | Exhaustive, wasteful in many dimensions |
-| Random search | Better than grid for the same budget |
-| Bayesian optimization | Models the objective (GP, TPE / Optuna); sample-efficient |
-| Successive halving / Hyperband / ASHA | Stop bad trials early |
-| Population-based training | Evolves hyperparameters during training |
+**In one line:** search smartly and stop bad runs early.
 
-- Tune learning rate first. Search on a log scale. Use small proxy runs, then confirm at full scale.
+**Remember:** random search beats grid search; Bayesian optimization is sample-efficient; Hyperband / ASHA stop weak trials early. Tune the learning rate first.
 
-## Serving
+## Safe deployment
 
-- **Batch vs online:** precompute predictions vs respond per request.
-- Latency levers: smaller or distilled models, quantization (INT8, FP8, INT4), batching, caching, compiled runtimes (TensorRT, ONNX Runtime).
-- LLM serving: KV cache memory limits concurrency; continuous batching and paged attention (vLLM); speculative decoding for latency. See [LLM Serving](/posts/mlops/vllm-trilogy-of-modern-llm-scaling).
-- Deploy safely: shadow mode, canary, A/B tests, quick rollback.
+**Remember:** shadow mode (run alongside without affecting users), canary (a small slice of traffic), A/B test, fast rollback.
 
 ## Monitoring
 
-- **Data drift:** input distribution changes (PSI, KS test).
-- **Concept drift:** relationship between inputs and labels changes.
-- **Prediction drift:** output distribution changes.
-- Track latency (P50 / P99), errors, throughput, cost, and business metrics; alert on thresholds.
-- Training-serving skew: features computed differently offline and online; fix with a feature store or shared code.
+**In one line:** models degrade silently as the world changes.
 
-## MLOps practices
+**Remember:** watch input distributions (data drift), prediction distributions, latency, errors, cost, and real outcomes when labels arrive.
 
-- Version code, data and models; track experiments (MLflow, Weights & Biases).
-- Reproducible pipelines; orchestrators for schedules and lineage. See [Pipeline Orchestration](/posts/mlops/ml-pipeline-orchestration-layers).
-- Model registry with stages; automated evaluation gates before promotion.
-- Retrain on a schedule or on drift triggers.
+## Training-serving skew
 
-## AutoML
+**In one line:** features computed differently offline and online.
 
-- Automates feature engineering, model selection and tuning (AutoGluon, H2O, auto-sklearn).
-- Strong baseline for tabular data; still needs good problem framing and data.
+**Remember:** a top cause of "great offline, bad in production." Share feature code or use a feature store.
 
-## Cost rules of thumb
+## MLOps basics
 
-- Training compute for transformers ≈ $6 \times$ parameters × tokens FLOPs.
-- Inference is often the larger long-term cost; optimize the serving path.
+**Remember:** version code, data and models; track experiments; automate pipelines with evaluation gates; keep lineage of which data trained which model.
+
+**Go deeper:** [The MLOps map](/posts/mlops/infrastructure-first-mlops-roadmap).

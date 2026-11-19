@@ -1,84 +1,114 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Deep Learning"
-description: "Layers, activations, initialization, normalization, regularization, CNNs, RNNs and transformers."
+title: "Deep Learning in 2 Minutes Each"
+description: "Intuition cards for neurons and layers, activations, losses, initialization, batch and layer norm, residual connections, dropout, CNNs, receptive fields, RNNs and LSTMs, embeddings, transfer learning and graph neural networks."
 ---
 
-## Building blocks
+The building blocks of neural networks.
 
-- Layer: $h = \phi(Wx + b)$. Stack layers; train with backpropagation (chain rule) and an optimizer.
-- Universal approximation: one wide hidden layer can approximate any continuous function; depth makes it efficient.
+## Neurons and layers
 
-## Activations
+**In one line:** a weighted sum of inputs passed through a simple non-linear function, stacked in layers.
 
-| Activation | Formula | Notes |
-|---|---|---|
-| Sigmoid | $1/(1+e^{-x})$ | Output probabilities; saturates, vanishing gradients in deep nets |
-| Tanh | $\tanh(x)$ | Zero-centered; still saturates |
-| ReLU | $\max(0, x)$ | Default for CNNs; can "die" (always zero) |
-| Leaky ReLU / PReLU | small slope for $x<0$ | Avoids dead units |
-| GELU | $x\,\Phi(x)$ | Default in transformers (BERT, GPT) |
-| SiLU / Swish | $x\,\sigma(x)$ | Used in many modern nets; SwiGLU in LLM feed-forward layers |
-| Softmax | $e^{z_i}/\sum_j e^{z_j}$ | Multi-class output |
+**Picture it:** each layer re-describes the input a bit more abstractly: pixels → edges → shapes → objects.
 
-## Losses
+**Remember:** without non-linearities, any stack of layers collapses into a single linear model.
 
-- Classification: cross-entropy (with softmax), binary cross-entropy (with sigmoid), focal loss for imbalance.
-- Regression: MSE, MAE, Huber.
-- Embeddings: contrastive, triplet, InfoNCE.
+## Activation functions
+
+| Activation | Remember it as |
+|---|---|
+| ReLU | Zero for negatives, identity for positives; the simple default |
+| GELU / SiLU | Smooth ReLU variants; default in transformers |
+| Sigmoid | Squashes to 0–1; for binary outputs, not hidden layers |
+| Tanh | Squashes to −1 to 1; used in older RNNs |
+| Softmax | Turns scores into class probabilities |
+
+**Watch out:** sigmoid and tanh saturate, killing gradients in deep nets; ReLU units can "die" and output zero forever.
+
+## Loss functions
+
+**In one line:** the number the network tries to make small.
+
+**Remember:** cross-entropy for classification, mean squared error for regression, contrastive losses for embeddings.
 
 ## Initialization
 
-- **Xavier / Glorot:** variance $2/(n_{in}+n_{out})$; for tanh / sigmoid.
-- **He / Kaiming:** variance $2/n_{in}$; for ReLU.
-- Goal: keep activation and gradient scale roughly constant across layers.
-- Residual networks often zero-initialize the last layer of each block.
+**In one line:** start weights at a scale that keeps signals from shrinking or exploding through layers.
 
-## Normalization
+**Remember:** He initialization for ReLU, Xavier for tanh. Bad initialization is a classic reason a network won't train.
 
-| | Normalizes over | Used in |
-|---|---|---|
-| Batch norm | Batch, per channel | CNNs; depends on batch size |
-| Layer norm | Features, per example | Transformers, RNNs |
-| RMS norm | Features, no mean subtraction | Modern LLMs |
-| Group norm | Groups of channels | Small-batch vision, diffusion models |
+## Batch norm and layer norm
 
-- Pre-norm (norm before attention / MLP) trains more stably than post-norm for deep transformers.
+**In one line:** rescale activations to a stable range inside the network.
 
-## Regularization
+**Remember:** batch norm normalizes across the batch (great for CNNs, depends on batch size); layer norm across features of each example (transformers, RNNs). Both make training faster and more stable.
 
-- Weight decay, dropout (0.1–0.5), data augmentation, early stopping, label smoothing (0.1), stochastic depth, mixup / cutmix.
-- More data and pretraining beat all of them.
+## Residual (skip) connections
 
-## Architectures
+**In one line:** add a layer's input to its output, so each layer learns a correction.
 
-| Family | Key idea | Good for |
-|---|---|---|
-| MLP | Fully connected layers | Tabular, small inputs, heads |
-| CNN | Local filters, weight sharing, pooling | Images, audio spectrograms |
-| ResNet | Skip connections $h + F(h)$ | Very deep nets train stably |
-| RNN / LSTM / GRU | Recurrent state; gates control memory | Sequences (largely replaced by transformers) |
-| Transformer | Self-attention over all tokens | Text, images (ViT), audio, multimodal |
-| U-Net | Encoder-decoder with skip connections | Segmentation, diffusion models |
-| Autoencoder / VAE | Compress and reconstruct | Representation learning, generation |
+**Picture it:** an express lane that lets information and gradients bypass layers.
 
-## Attention
+**Remember:** the reason networks with hundreds of layers train at all (ResNet, transformers).
 
-- $\text{Attention}(Q,K,V) = \text{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$.
-- Multi-head: several attention patterns in parallel.
-- Cost is quadratic in sequence length; mitigations: FlashAttention (exact, memory-efficient), sparse / linear attention, sliding windows.
-- Positional information: sinusoidal, learned, or rotary (RoPE, standard in LLMs).
-- See [The Transformer](/posts/fundamentals/transformers-attention-mechanism).
+## Dropout
 
-## Representation learning and transfer
+**In one line:** randomly switch off neurons during training.
 
-- Pretrain on large data (supervised, self-supervised), then fine-tune or use frozen features.
-- Fine-tuning options: full, last layers only, adapters / LoRA (see [Post-Training](/posts/mlops/modern-post-training-peft-2026)).
-- Embeddings: dense vectors where similar inputs are close.
+**Picture it:** a team where anyone might be absent, so nobody can rely on a single colleague.
 
-## Training checklist
+**Remember:** reduces overfitting; turned off at inference. Less common in very large pretrained models.
 
-- Overfit one batch first. Then scale up.
-- Normalize inputs. Use a known-good architecture and optimizer (AdamW, cosine schedule, warmup).
-- Monitor train and validation loss, gradient norm, learning rate.
-- Use mixed precision and gradient checkpointing for memory.
+## Convolutional networks (CNNs)
+
+**In one line:** slide small learned filters across an image to detect patterns anywhere.
+
+**Picture it:** a flashlight scanning the image with the same "edge detector" in every position.
+
+**Remember:** weight sharing and locality make CNNs data-efficient for images; pooling and stride shrink the image as features get more abstract.
+
+## Receptive field
+
+**In one line:** how much of the input one neuron can "see."
+
+**Remember:** grows with depth; deep layers see large regions, which is how CNNs recognize whole objects.
+
+## RNNs and LSTMs
+
+**In one line:** process a sequence one step at a time, carrying a memory forward.
+
+**Remember:** LSTMs and GRUs add gates that decide what to remember and forget, fixing plain RNNs' short memory. Largely replaced by transformers, which process sequences in parallel.
+
+## Embeddings
+
+**In one line:** learned vectors representing discrete things (words, users, products).
+
+**Remember:** similar things end up close together; the representation is learned for the task.
+
+## Transfer learning
+
+**In one line:** start from a model pretrained on lots of data and adapt it.
+
+**Remember:** almost always better than training from scratch for images, text and audio. Freeze early layers for small data; fine-tune more for larger data.
+
+## Graph neural networks
+
+**In one line:** each node updates itself by gathering messages from its neighbors.
+
+**Picture it:** gossip spreading through a social network, one hop per layer.
+
+**Remember:** for molecules, social networks, road networks and recommendation graphs.
+
+## Transformers
+
+**In one line:** layers of attention, where every token looks at every other token.
+
+**Go deeper:** [Transformers & LLMs cheatsheet](/cheatsheets/transformers-llms).
+
+## Training recipe
+
+- Overfit a single batch first to confirm the setup works.
+- Use a proven architecture, AdamW, warmup and cosine decay.
+- Watch train and validation loss together.
+- Regularize with data augmentation before anything fancier.

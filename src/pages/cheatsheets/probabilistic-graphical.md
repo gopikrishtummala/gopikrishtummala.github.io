@@ -1,73 +1,93 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Probabilistic & Graphical Models"
-description: "Mixture models, EM, hidden Markov models, Bayesian networks, Markov random fields and inference."
+title: "Probabilistic & Graphical Models in 2 Minutes Each"
+description: "Intuition cards for graphical models, Bayesian networks, Markov random fields, conditional independence, EM, Gaussian mixtures, hidden Markov models, Kalman filters, inference and causal graphs."
 ---
 
-## Why graphical models
+Reasoning about uncertainty among many connected variables.
 
-- Represent a joint distribution over many variables compactly using conditional independence.
-- Nodes = random variables; edges = direct dependence.
+## Graphical models
 
-| | Bayesian network | Markov random field |
-|---|---|---|
-| Graph | Directed acyclic | Undirected |
-| Factorization | $p(x) = \prod_i p(x_i \mid \text{parents}(x_i))$ | $p(x) = \frac{1}{Z}\prod_c \psi_c(x_c)$ |
-| Good for | Causal-style generative stories | Symmetric relations (pixels, spatial) |
-| Hard part | Structure learning | Partition function $Z$ |
+**In one line:** draw variables as nodes and direct dependencies as edges, so a huge joint distribution becomes many small pieces.
 
-- **d-separation:** read conditional independence off a Bayesian network.
-- Conditional random fields (CRFs): discriminative MRFs for sequence labeling.
+**Picture it:** a family tree of causes: rain → wet grass ← sprinkler.
 
-## Gaussian mixture models
+**Remember:** the graph tells you what's independent of what, which is what makes reasoning tractable.
 
-- $p(x) = \sum_k \pi_k\,\mathcal{N}(x \mid \mu_k, \Sigma_k)$.
-- Soft clustering; k-means is the limit with shared spherical covariances and hard assignments.
-- Choose k with BIC / AIC.
+## Bayesian networks
+
+**In one line:** a directed graph where each variable depends only on its parents.
+
+**Remember:** natural for "this causes that" stories and expert systems; the probability of everything = product of each variable given its parents.
+
+## Explaining away
+
+**In one line:** two independent causes become dependent once you observe their shared effect.
+
+**Picture it:** the grass is wet. Learning that the sprinkler was on makes rain *less* likely, even though rain and sprinkler are unrelated.
+
+## Markov random fields
+
+**In one line:** undirected graphs for symmetric relationships, like neighboring pixels tending to match.
+
+**Remember:** conditional random fields (CRFs) are the supervised version, classic for sequence labeling.
 
 ## Expectation-maximization (EM)
 
-- For models with hidden variables.
-- **E-step:** compute the posterior over hidden variables given current parameters (responsibilities).
-- **M-step:** maximize expected complete-data log-likelihood to update parameters.
-- Never decreases the likelihood; converges to a local optimum, so run several initializations.
-- Uses: GMMs, HMMs (Baum-Welch), missing data, topic models.
+**In one line:** when some variables are hidden, alternate between guessing them and refitting the model.
 
-## Markov chains and hidden Markov models
+**Picture it:** sorting mixed coins by guessing which bag each came from, re-estimating each bag's weight, and repeating.
 
-- Markov property: the future depends only on the present state.
-- HMM: hidden states $z_t$ with transitions $p(z_t \mid z_{t-1})$, emitting observations $p(x_t \mid z_t)$.
+**Remember:** always improves the fit but can get stuck; restart from several initializations.
 
-| Task | Algorithm |
+## Gaussian mixture models
+
+**In one line:** data drawn from several overlapping bell curves; EM figures out which point came from which.
+
+**Remember:** soft clustering with probabilities; k-means is a hard, simplified version.
+
+## Hidden Markov models
+
+**In one line:** a hidden state moves step by step; you only see noisy signals it emits.
+
+**Picture it:** guessing the weather (hidden) from whether someone carries an umbrella each day (observed).
+
+| Question | Algorithm |
 |---|---|
-| Likelihood of a sequence | Forward algorithm |
-| Most likely hidden sequence | Viterbi (dynamic programming) |
-| Posterior of each state | Forward-backward |
-| Learn parameters | Baum-Welch (EM) |
+| How likely is this observed sequence? | Forward algorithm |
+| What's the most likely hidden sequence? | Viterbi |
+| Learn the model from data | Baum-Welch (EM) |
 
-- Uses: speech (historically), part-of-speech tagging, bioinformatics, tracking.
-- **Kalman filter:** an HMM with linear-Gaussian dynamics; closed-form tracking. **Particle filter:** sampling-based for non-linear cases.
+## Kalman filter
+
+**In one line:** track a moving thing by blending a motion prediction with noisy measurements, weighted by how much you trust each.
+
+**Picture it:** estimating a car's position from a fast-but-drifting speedometer and a slow-but-absolute GPS.
+
+**Remember:** the core of tracking and localization; particle filters handle non-linear, non-Gaussian cases.
+
+**Go deeper:** [Module 4: Localization](/posts/robotics/autonomous-stack-module-4-localization).
 
 ## Inference
 
-| Method | Exact? | Notes |
-|---|---|---|
-| Variable elimination | Yes | Cost depends on elimination order |
-| Belief propagation | Exact on trees | Loopy BP: approximate on graphs with cycles |
-| Junction tree | Yes | Exponential in treewidth |
-| MCMC (Gibbs, Metropolis-Hastings) | Asymptotically | General, slow |
-| Variational inference | No | Fast, optimization-based |
+**In one line:** answering questions like "given what I observed, what's the probability of X?"
 
-## Topic models
+**Remember:** exact methods (variable elimination, belief propagation on trees) work on simple graphs; sampling (MCMC) and variational methods approximate the rest.
 
-- **LDA (latent Dirichlet allocation):** documents are mixtures of topics; topics are distributions over words.
-- Learned with Gibbs sampling or variational inference. Largely replaced by embedding-based clustering for many uses.
+## Topic models (LDA)
+
+**In one line:** each document is a mixture of topics; each topic is a mixture of words.
+
+**Remember:** classic unsupervised text analysis; often replaced today by clustering embeddings.
 
 ## Probabilistic programming
 
-- Write the generative model as code; the system does inference (Stan, PyMC, NumPyro, Pyro).
+**In one line:** write the model as code; the library does the inference.
 
-## Causality (briefly)
+**Remember:** Stan, PyMC, NumPyro make Bayesian modeling practical.
 
-- Correlation in observational data isn't causation; confounders create spurious links.
-- Tools: randomized experiments, causal graphs (do-calculus), instrumental variables, difference-in-differences, propensity scores.
+## Causal graphs
+
+**In one line:** graphs that encode cause and effect, so you can reason about interventions.
+
+**Remember:** "what happens if I *change* X?" differs from "what's usually seen *with* X?" Confounders create misleading correlations; randomized experiments break them.

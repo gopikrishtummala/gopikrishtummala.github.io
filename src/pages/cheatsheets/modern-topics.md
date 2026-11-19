@@ -1,70 +1,99 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Modern Topics"
-description: "Self-supervised, transfer, meta, federated and continual learning, plus reinforcement learning basics."
+title: "Learning Paradigms in 2 Minutes Each"
+description: "Intuition cards for self-supervised, transfer, few-shot, meta, multi-task, federated, continual, active and weakly supervised learning, plus knowledge distillation, multimodal learning and scaling laws."
 ---
+
+Ways to learn beyond "lots of labeled examples."
 
 ## Self-supervised learning
 
-- Create labels from the data itself, learn general representations, then fine-tune.
+**In one line:** make up a task from unlabeled data whose answer is in the data itself.
 
-| Approach | Pretext task | Examples |
-|---|---|---|
-| Masked modeling | Predict hidden parts | BERT, MAE |
-| Next-token prediction | Predict the next token | GPT-style LLMs |
-| Contrastive | Match augmented views or paired modalities | SimCLR, MoCo, CLIP |
-| Self-distillation | Student matches teacher across views | BYOL, DINO |
+**Picture it:** hide words in a sentence and learn to fill them in; to do that well, you must understand language.
+
+**Remember:** the recipe behind foundation models: pretrain self-supervised on huge data, then adapt.
 
 ## Transfer learning
 
-- Reuse a pretrained model. Options, cheapest first: linear probe (frozen features) → fine-tune head → partial fine-tune → full fine-tune.
-- Parameter-efficient fine-tuning: LoRA, adapters, prefix tuning. See [Post-Training](/posts/mlops/modern-post-training-peft-2026).
-- **Domain shift:** pretrained data differs from target; fine-tune or adapt.
-- **Catastrophic forgetting:** fine-tuning erases old skills; use lower learning rates, replay, or LoRA.
+**In one line:** reuse what a model learned on one task for another.
 
-## Few-shot, zero-shot and in-context learning
+**Picture it:** a pianist learning organ is far ahead of a beginner.
 
-- Zero-shot: no examples (e.g. CLIP matching images to class names).
-- Few-shot: a handful of labeled examples.
-- In-context learning: examples in the prompt; no weight updates (LLMs).
+**Remember:** cheapest to most expensive: use frozen features → train a new head → fine-tune some layers → fine-tune everything (or LoRA).
 
-## Meta-learning ("learning to learn")
+## Few-shot and zero-shot learning
 
-- Train across many tasks so a new task can be learned from few examples.
-- Metric-based (prototypical networks), optimization-based (MAML: learn an initialization that fine-tunes fast), model-based.
+**In one line:** do a new task from a handful of examples, or from only a description.
+
+**Remember:** CLIP classifies images zero-shot by matching them to class names; LLMs learn tasks from examples in the prompt.
+
+## Meta-learning
+
+**In one line:** learn how to learn, so new tasks need very few examples.
+
+**Picture it:** after learning ten languages, the eleventh comes fast.
+
+**Remember:** MAML learns a starting point that fine-tunes quickly; prototypical networks classify by distance to class averages.
+
+## Multi-task learning
+
+**In one line:** train one model on several related tasks at once.
+
+**Remember:** shared representations help each task, especially those with little data; conflicting tasks can hurt each other.
 
 ## Federated learning
 
-- Train across devices or institutions without centralizing data; share model updates, not data.
-- **FedAvg:** clients train locally, server averages weights.
-- Challenges: non-IID data across clients, communication cost, stragglers, privacy leakage through updates (add secure aggregation, differential privacy).
+**In one line:** train on data that stays on users' devices; only model updates are shared.
 
-## Continual / lifelong learning
+**Picture it:** many hospitals improve one model without any patient record leaving its hospital.
 
-- Learn a sequence of tasks without forgetting earlier ones.
-- Methods: replay buffers, regularization (EWC penalizes changing important weights), separate parameters per task.
+**Remember:** data across devices is uneven and communication is costly; updates can still leak information, so add secure aggregation or differential privacy.
 
-## Reinforcement learning basics
+## Differential privacy
 
-- Agent observes state $s$, takes action $a$, gets reward $r$, maximizes discounted return $\sum_t \gamma^t r_t$.
-- **Value function** $V(s)$, **action-value** $Q(s,a)$. **Policy** $\pi(a \mid s)$.
-- Bellman equation: $Q(s,a) = r + \gamma \max_{a'} Q(s', a')$.
+**In one line:** add carefully calibrated noise so no single person's data noticeably changes the result.
 
-| Family | Examples | Notes |
-|---|---|---|
-| Value-based | Q-learning, DQN | Discrete actions; off-policy |
-| Policy gradient | REINFORCE, PPO | Directly optimize the policy; on-policy |
-| Actor-critic | A2C, SAC, TD3 | Policy + learned value baseline |
-| Model-based | Dyna, MuZero, Dreamer | Learn a world model, plan with it |
-| Offline RL | CQL, IQL | Learn from logged data only |
+**Remember:** a formal privacy guarantee, paid for with some accuracy.
 
-- Exploration vs exploitation: ε-greedy, entropy bonuses, optimism.
-- RL for LLMs: RLHF (reward model + PPO), DPO (preferences, no RL loop), GRPO (group-relative rewards, verifiable tasks). See [RL intuition](/posts/fundamentals/reinforcement-learning-intuition-to-algorithms).
+## Continual learning
 
-## Other topics worth knowing
+**In one line:** keep learning new things without forgetting old ones.
 
-- **Active learning:** pick the most informative examples to label next (uncertainty, diversity).
-- **Weak supervision:** noisy labeling functions combined into training labels.
-- **Knowledge distillation:** train a small student to match a large teacher's outputs.
-- **Multimodal learning:** joint models of text, images, audio (CLIP, VLMs).
-- **Scaling laws:** loss falls predictably as a power law with model size, data and compute; compute-optimal training balances parameters and tokens (Chinchilla).
+**Remember:** neural nets forget catastrophically; fixes include replaying old data, protecting important weights, or adding new parameters per task.
+
+## Active learning
+
+**In one line:** let the model choose which examples a human should label next.
+
+**Remember:** label the examples the model is most unsure about or that cover new ground; saves labeling cost.
+
+## Weak supervision
+
+**In one line:** combine many noisy, cheap labeling rules into usable training labels.
+
+**Remember:** faster than hand-labeling; label quality must be checked.
+
+## Knowledge distillation
+
+**In one line:** a small student learns to imitate a large teacher's outputs.
+
+**Remember:** the teacher's probabilities ("90% cat, 8% fox") teach more than hard labels; the standard way to make models cheaper.
+
+## Multimodal learning
+
+**In one line:** models that connect text, images, audio and video in one representation.
+
+**Remember:** CLIP aligns images and captions; vision-language models plug a vision encoder into an LLM.
+
+**Go deeper:** [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained).
+
+## Scaling laws
+
+**In one line:** performance improves predictably as model size, data and compute grow.
+
+**Remember:** for a fixed budget, balance parameters and training tokens; bigger isn't automatically better.
+
+## Reinforcement learning
+
+**Go deeper:** [Reinforcement Learning cheatsheet](/cheatsheets/reinforcement-learning).

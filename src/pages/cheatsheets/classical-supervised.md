@@ -1,70 +1,85 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Classical Supervised Learning"
-description: "Linear and logistic regression, regularization, decision trees, k-NN and Naive Bayes."
+title: "Classical Supervised Learning in 2 Minutes Each"
+description: "Intuition cards for linear regression, logistic regression, regularization, k-nearest neighbors, Naive Bayes, decision trees, and how to choose between them."
 ---
+
+The models every practitioner should be able to explain in a sentence.
 
 ## Linear regression
 
-- Model: $\hat{y} = w^\top x + b$. Loss: mean squared error.
-- Closed form: $w = (X^\top X)^{-1} X^\top y$; use gradient descent for large data.
-- Assumptions: linear relationship, independent errors, constant variance, little multicollinearity.
-- Coefficients: change in $y$ per unit change in a feature, holding others fixed.
+**In one line:** fit the straight line (or flat plane) that best passes through the data.
+
+**Picture it:** stretching a rubber band through a scatter plot so the total squared distance to the points is smallest.
+
+**Remember:** each coefficient is "how much the prediction changes per unit of this feature, holding others fixed." Fast, interpretable, a great baseline.
+
+**Watch out:** correlated features make coefficients unstable and misleading even when predictions are fine.
 
 ## Logistic regression
 
-- Model: $p(y=1 \mid x) = \sigma(w^\top x + b)$, with $\sigma(z) = 1/(1+e^{-z})$.
-- Loss: binary cross-entropy (log loss); convex, no closed form.
-- Coefficients are log-odds; $e^{w_j}$ is the odds ratio.
-- Multi-class: softmax regression, or one-vs-rest.
-- Linear decision boundary unless features are transformed.
+**In one line:** a linear model whose output is squashed through a sigmoid into a probability.
 
-## Regularization
+**Picture it:** a straight line separating two classes, with a soft ramp of probability across it.
 
-| | Penalty | Effect |
-|---|---|---|
-| L2 (Ridge) | $\lambda \lVert w \rVert_2^2$ | Shrinks all weights; handles correlated features |
-| L1 (Lasso) | $\lambda \lVert w \rVert_1$ | Drives some weights to exactly zero; feature selection |
-| Elastic Net | mix of L1 and L2 | Sparse but stable with correlated features |
+**Remember:** despite the name, it's for classification. Coefficients are changes in log-odds. The go-to baseline for binary classification and text with TF-IDF features.
 
-- Larger $\lambda$: simpler model, more bias, less variance. Tune with cross-validation.
-- Standardize features first so the penalty treats them equally.
-- Bayesian view: L2 = Gaussian prior on weights, L1 = Laplace prior.
+## Regularization (Ridge, Lasso)
 
-## Decision trees
+**In one line:** penalize large weights so the model doesn't chase noise.
 
-- Split recursively on the feature and threshold that most reduce impurity.
-- Impurity: Gini $1-\sum p_k^2$; entropy $-\sum p_k \log p_k$; regression uses variance (MSE).
-- Pros: interpretable, no scaling needed, handles mixed types and interactions.
-- Cons: high variance, overfits; fix with max depth, min samples per leaf, pruning, or ensembles.
+**Picture it:** Ridge (L2) shrinks every weight a little; Lasso (L1) pushes unimportant ones all the way to zero.
+
+**Remember:** Lasso for automatic feature selection, Ridge for many correlated features, Elastic Net for both. Scale features first.
 
 ## k-nearest neighbors
 
-- Predict from the k closest training points: majority vote or average.
-- Small k: low bias, high variance. Large k: smoother, more bias.
-- Needs scaled features; slow at prediction time; suffers in high dimensions (curse of dimensionality).
-- Distance: Euclidean, Manhattan, cosine.
+**In one line:** predict by asking the k most similar training examples.
+
+**Picture it:** "you are the average of your five closest friends."
+
+**Remember:** no training, slow prediction, needs scaled features, struggles in high dimensions. Small k = jumpy; large k = smooth.
 
 ## Naive Bayes
 
-- Bayes' rule with the "naive" assumption that features are independent given the class:
-  $p(y \mid x) \propto p(y) \prod_j p(x_j \mid y)$.
-- Variants: Gaussian (continuous), multinomial (counts, text), Bernoulli (binary).
-- Fast, works with little data, strong text baseline; probabilities poorly calibrated.
-- Use Laplace smoothing to avoid zero probabilities.
+**In one line:** apply Bayes' rule assuming features are independent given the class.
 
-## Choosing quickly
+**Picture it:** a spam filter that multiplies "how spammy is each word" together, ignoring that words co-occur.
 
-| Situation | Try first |
+**Remember:** the independence assumption is wrong, yet it works well for text and tiny data. Probabilities are poorly calibrated; rankings are often fine.
+
+## Decision tree
+
+**In one line:** a flowchart of yes/no questions learned from data.
+
+**Picture it:** "Is income > 50k? → Is age < 30? → approve."
+
+**Remember:** interpretable, needs no scaling, captures interactions; a single tree overfits easily. Ensembles of trees are far stronger.
+
+**Go deeper:** [Trees & Ensembles](/cheatsheets/ensemble-methods).
+
+## Linear vs non-linear boundaries
+
+**Remember:** linear models draw straight boundaries unless you engineer features (polynomials, interactions, binning). Trees, k-NN and kernel SVMs draw curved ones natively.
+
+## Generative vs discriminative
+
+**In one line:** generative models learn how each class produces data; discriminative models learn the boundary directly.
+
+**Remember:** Naive Bayes is generative; logistic regression is discriminative. Discriminative usually wins with enough data; generative can win with very little.
+
+## Choosing a model
+
+| Situation | Start with |
 |---|---|
-| Small tabular data, need explanation | Logistic / linear regression, shallow tree |
-| Tabular data, best accuracy | Gradient-boosted trees (see Trees & Ensembles) |
-| Text classification baseline | TF-IDF + logistic regression, or Naive Bayes |
-| Few features, irregular boundaries | k-NN, SVM with RBF kernel |
-| Many features, few samples | L1 / L2 regularized linear models |
+| Need explanation, small data | Logistic or linear regression |
+| Tabular data, best accuracy | Gradient-boosted trees |
+| Text classification baseline | TF-IDF + logistic regression |
+| Very little data, many features | Regularized linear model or Naive Bayes |
+| Irregular boundaries, few features | k-NN or SVM with RBF kernel |
 
-## Common gotchas
+## Common mistakes
 
-- Multicollinearity makes linear coefficients unstable (not predictions).
-- Logistic regression on perfectly separable data: weights diverge without regularization.
-- Trees and k-NN don't extrapolate beyond the range of training targets.
+- Comparing coefficients across features with different scales.
+- Treating logistic regression's probabilities as calibrated without checking.
+- Expecting trees or k-NN to extrapolate beyond the training range.

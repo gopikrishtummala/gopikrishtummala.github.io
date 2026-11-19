@@ -1,74 +1,103 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Optimization for ML"
-description: "Gradient descent variants, Adam and friends, learning-rate schedules."
+title: "Optimization in 2 Minutes Each"
+description: "Intuition cards for gradient descent, backpropagation, SGD and mini-batches, momentum, Adam and AdamW, learning rates, warmup and schedules, batch size, vanishing gradients, clipping, mixed precision and debugging training."
 ---
+
+How models actually learn their weights.
 
 ## Gradient descent
 
-- Update: $\theta \leftarrow \theta - \eta \nabla_\theta L(\theta)$.
-- **Batch GD:** full dataset per step; exact gradient, slow.
-- **Stochastic GD (SGD):** one example; noisy, cheap.
-- **Mini-batch:** 32–4096 examples; the standard. Noise can help escape sharp minima.
-- **Convex** problems (linear / logistic regression): any local minimum is global. Neural nets: non-convex; saddle points are the usual obstacle.
+**In one line:** repeatedly take a small step downhill on the loss.
 
-## Optimizers
+**Picture it:** walking down a foggy mountain by always stepping in the steepest downward direction you can feel.
 
-| Optimizer | Idea | Notes |
-|---|---|---|
-| SGD + momentum | Accumulate velocity: $v \leftarrow \beta v + \nabla L$ | Strong for vision with tuned schedule |
-| Nesterov | Look-ahead momentum | Slightly better convergence |
-| AdaGrad | Per-parameter step shrinks with past squared gradients | Good for sparse features; step decays too fast |
-| RMSProp | Exponential moving average of squared gradients | Fixes AdaGrad's decay |
-| Adam | Momentum + RMSProp + bias correction | Default for most deep learning |
-| AdamW | Adam with decoupled weight decay | Default for transformers |
-| Lion, Adafactor, Shampoo, Muon | Memory-saving or second-order-flavored | Used at large scale |
+**Remember:** the learning rate is the step size. Too big: you overshoot and bounce around; too small: you crawl.
 
-- Adam defaults: $\beta_1 = 0.9$, $\beta_2 = 0.999$ (often 0.95 for large models), $\epsilon = 10^{-8}$.
-- Adam stores two extra values per parameter: memory cost matters at scale.
+## Backpropagation
+
+**In one line:** compute how much each weight contributed to the error by passing blame backward through the network with the chain rule.
+
+**Picture it:** a manager traces a mistake back through the team, giving each person a share of the blame proportional to their part.
+
+**Remember:** one backward pass costs about the same as one forward pass and gives every weight's gradient.
+
+**Go deeper:** [Backpropagation](/posts/fundamentals/backpropagation-mlp-math-derivation).
+
+## SGD and mini-batches
+
+**In one line:** estimate the gradient from a small random batch instead of all the data.
+
+**Remember:** noisy but cheap, and the noise helps escape bad spots. Mini-batches of tens to thousands are standard.
+
+## Momentum
+
+**In one line:** keep some of the previous step's direction.
+
+**Picture it:** a ball rolling downhill builds speed through flat stretches and doesn't zig-zag in narrow valleys.
+
+## Adam and AdamW
+
+**In one line:** momentum plus a separate, adaptive step size for each weight.
+
+**Remember:** Adam is the default for deep learning; AdamW fixes how weight decay is applied and is the default for transformers. Costs two extra numbers of memory per weight.
 
 ## Learning rate
 
-- The most important hyperparameter. Too high: divergence or loss spikes. Too low: slow, stuck.
-- **LR range test:** increase LR over a short run; pick where loss falls fastest.
-- Scaling rule of thumb: larger batches tolerate larger learning rates (linear for SGD, ~square-root for Adam), with warmup.
+**In one line:** the most important hyperparameter.
 
-## Schedules
+**Remember:** if training diverges, lower it; if it's painfully slow, raise it. A quick learning-rate range test finds a good region.
 
-| Schedule | Use |
-|---|---|
-| Warmup (linear, first ~1–5% of steps) | Stabilizes early training, essential for transformers and large batches |
-| Step decay | Classic CNN training |
-| Cosine decay | Common default |
-| Linear decay | Common for LLM fine-tuning |
-| One-cycle | Fast training with SGD |
-| Warmup-stable-decay | Constant LR then quick decay; popular for LLM pre-training |
+## Warmup and schedules
 
-## Stability tricks
+**In one line:** start the learning rate small, ramp up, then decay.
 
-- **Gradient clipping** by global norm (e.g. 1.0): prevents spikes, standard for RNNs and transformers.
-- **Normalization layers** (batch, layer, RMS norm) make optimization easier.
-- **Mixed precision:** BF16 compute with FP32 master weights; FP16 needs loss scaling.
-- **EMA of weights:** smoother final model, common in vision and diffusion.
+**Picture it:** don't sprint before warming up; slow down as you approach the finish.
 
-## Regularization during optimization
+**Remember:** warmup prevents early instability (essential for transformers); cosine or linear decay helps settle into a good minimum.
 
-- **Weight decay:** shrink weights each step; with Adam, use AdamW (decoupled).
-- **Early stopping:** stop when validation loss stops improving.
-- **Dropout, data augmentation, label smoothing:** see Deep Learning.
+## Batch size
 
-## Second-order and other methods
+**In one line:** how many examples per update.
 
-- **Newton's method:** uses the Hessian; fast convergence, too expensive for large models.
-- **L-BFGS:** approximates curvature; good for small, deterministic problems (classic ML, fine-tuning small heads).
-- **Coordinate descent:** used for Lasso.
+**Remember:** bigger batches = smoother gradients and better hardware use, but need higher learning rates and warmup, and can generalize slightly worse. Use gradient accumulation to simulate big batches on small GPUs.
+
+## Vanishing and exploding gradients
+
+**In one line:** in deep networks, gradients can shrink to nothing or blow up as they pass back through many layers.
+
+**Remember:** fixed by ReLU-family activations, careful initialization, normalization layers and residual connections.
+
+## Gradient clipping
+
+**In one line:** cap the gradient's size before each step.
+
+**Remember:** a cheap insurance policy against sudden loss spikes; standard for transformers and RNNs.
+
+## Weight decay and early stopping
+
+**In one line:** shrink weights a little each step; stop when validation stops improving.
+
+**Remember:** both are regularization through the optimizer.
+
+## Mixed precision
+
+**In one line:** do most math in 16-bit numbers, keep a 32-bit master copy of the weights.
+
+**Remember:** roughly halves memory and speeds training. BF16 is easier than FP16 (no loss scaling needed).
+
+## Convex vs non-convex
+
+**In one line:** convex losses have one valley; neural networks have many.
+
+**Remember:** linear and logistic regression are convex, so any minimum is the best. Neural nets aren't, yet SGD finds good solutions in practice; saddle points are a bigger obstacle than bad local minima.
 
 ## Debugging training
 
-| Symptom | Likely cause |
+| Symptom | First suspect |
 |---|---|
-| Loss is NaN or explodes | LR too high, bad initialization, FP16 overflow, division by zero, bad data |
-| Loss flat from the start | LR too low, dead activations, bug in labels or loss |
-| Train down, validation up | Overfitting: regularize, more data, early stop |
-| Loss spikes periodically | Bad batches, LR too high, missing warmup or clipping |
-| Can't overfit a single batch | Bug in the model or data pipeline |
+| Loss becomes NaN | Learning rate too high, FP16 overflow, bad data |
+| Loss doesn't move | Learning rate too low, bug in labels or loss, dead activations |
+| Can't overfit one small batch | Bug in model or data pipeline |
+| Train improves, validation worsens | Overfitting |
+| Periodic spikes | Bad batches, no warmup or clipping |

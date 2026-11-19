@@ -1,83 +1,121 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Computer Vision"
-description: "Image basics, classical methods, CNN and transformer architectures, detection, segmentation, 3D vision and multimodal models."
+title: "Computer Vision in 2 Minutes Each"
+description: "Intuition cards for images and cameras, convolution, CNN architectures, ResNet, vision transformers, data augmentation, detection, IoU and NMS, segmentation, SAM, depth and 3D, NeRF and Gaussian splatting, CLIP and vision-language models."
 ---
 
-## Image basics
+How machines learn to see.
 
-- Image = height × width × channels (RGB). Values 0–255 or normalized.
-- Color spaces: RGB, HSV (separates color from brightness), grayscale, YUV.
-- Pinhole camera: intrinsics $K$ (focal length, principal point) map 3D camera coordinates to pixels; extrinsics (rotation, translation) map world to camera.
+## Images as numbers
 
-## Classical image processing
+**In one line:** a grid of pixels, each with color values.
 
-- Filtering: blur (Gaussian), sharpen, median (salt-and-pepper noise).
-- Edges: Sobel, Canny. Corners: Harris.
-- Features: SIFT, SURF, ORB (keypoints + descriptors for matching).
-- Geometry: homography (planar warps), RANSAC (robust fitting with outliers), epipolar geometry (two views).
-- Morphology: erosion, dilation, opening, closing.
+**Remember:** a 1080p color image is about 6 million numbers; most of vision is learning which patterns among them matter.
+
+## Camera model
+
+**In one line:** a camera projects the 3D world onto a 2D image.
+
+**Remember:** intrinsics describe the lens (focal length, center); extrinsics describe where the camera sits. Needed whenever images meet 3D.
+
+**Go deeper:** [Module 3: Calibration](/posts/robotics/autonomous-stack-module-3-calibration).
+
+## Convolution
+
+**In one line:** slide a small filter across the image to detect a pattern everywhere.
+
+**Picture it:** a stencil for "vertical edge" pressed against every spot on the photo.
+
+**Remember:** early layers learn edges and colors; deeper layers learn textures, parts and objects.
 
 ## CNN architectures
 
-| Model | Year | Key idea |
-|---|---|---|
-| LeNet | 1998 | Conv + pool for digits |
-| AlexNet | 2012 | Deep CNN on GPUs, ReLU, dropout; won ImageNet |
-| VGG | 2014 | Stacks of small 3×3 convolutions |
-| GoogLeNet / Inception | 2014 | Parallel filter sizes |
-| ResNet | 2015 | Residual connections; 100+ layers |
-| MobileNet / EfficientNet | 2017–19 | Depthwise separable convs; compound scaling |
-| ConvNeXt | 2022 | Modernized CNN matching transformers |
+| Model | Remember it as |
+|---|---|
+| AlexNet (2012) | Deep learning's ImageNet breakthrough on GPUs |
+| VGG | Just stack small 3×3 filters |
+| ResNet | Skip connections make 100+ layers trainable |
+| MobileNet / EfficientNet | Cheap convolutions for phones |
+| ConvNeXt | A modernized CNN that matches transformers |
 
-- Convolution output size: $(W - K + 2P)/S + 1$.
-- Receptive field grows with depth, kernel size and stride.
+## Vision transformer (ViT)
 
-## Vision transformers
+**In one line:** cut the image into patches, treat them like words, run a transformer.
 
-- **ViT:** split image into patches (e.g. 16×16), embed, add positions, run a transformer. Needs lots of data or strong pretraining.
-- **Swin:** windowed attention with shifting; hierarchical like a CNN.
-- Self-supervised pretraining: MAE (masked patches), DINO / DINOv2 (self-distillation).
+**Remember:** sees the whole image at once; needs lots of data or pretraining, then scales very well.
 
-## Tasks
+## Data augmentation
 
-| Task | Output | Representative models |
-|---|---|---|
-| Classification | One label | ResNet, ViT |
-| Object detection | Boxes + labels | Faster R-CNN (two-stage), YOLO, SSD (one-stage), DETR (transformer, set prediction) |
-| Semantic segmentation | Class per pixel | FCN, U-Net, DeepLab |
-| Instance segmentation | Mask per object | Mask R-CNN |
-| Panoptic segmentation | Both | Mask2Former |
-| Promptable segmentation | Mask for any prompt | SAM / SAM 2 |
-| Pose estimation | Keypoints | OpenPose, HRNet |
-| Tracking | IDs across frames | SORT, DeepSORT, ByteTrack |
+**In one line:** create variations of training images (flips, crops, color changes) so the model learns what doesn't matter.
 
-## Detection essentials
+**Remember:** the cheapest big win in vision; augmentations must preserve the label.
 
-- **IoU:** overlap / union of two boxes. **NMS:** remove overlapping duplicate boxes.
-- **mAP:** mean average precision over classes (and IoU thresholds, e.g. COCO mAP@[.5:.95]).
-- Anchors vs anchor-free; one-stage (fast) vs two-stage (accurate).
-- Segmentation metrics: mIoU, Dice.
+## Object detection
 
-## 3D vision
+**In one line:** find each object and draw a box around it with a label.
 
-- Depth: stereo, structure from motion, monocular depth networks (Depth Anything).
-- Point clouds: PointNet, voxel / pillar networks (PointPillars).
-- Bird's-eye-view perception for driving: BEVFormer, BEVFusion. See [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception).
-- Scene representation: NeRF (neural radiance fields), 3D Gaussian splatting (fast rendering).
+**Remember:** two-stage detectors (Faster R-CNN) are accurate; one-stage (YOLO) are fast; DETR treats detection as predicting a set of objects with a transformer.
 
-## Generative vision
+## IoU and NMS
 
-- GANs (StyleGAN), VAEs, diffusion models (Stable Diffusion, DiT, FLUX). See the [diffusion series](/posts/generative-ai/diffusion-from-molecules-to-machines).
+**In one line:** IoU measures box overlap; NMS removes duplicate boxes for the same object.
 
-## Multimodal
+**Remember:** mAP, the main detection metric, counts a box as correct above an IoU threshold.
 
-- **CLIP:** image and text encoders trained contrastively into one space; zero-shot classification.
-- **Vision-language models:** vision encoder + connector + LLM (LLaVA, Qwen-VL). See [Qwen3-VL](/posts/generative-ai/vlm-moe-qwen-train-to-deploy).
-- Open-vocabulary detection and segmentation (Grounding DINO, OWL-ViT, SAM with text prompts).
+## Segmentation
 
-## Practical tips
+| Type | Output |
+|---|---|
+| Semantic | A class for every pixel ("road," "car") |
+| Instance | A separate mask for each object |
+| Panoptic | Both at once |
 
-- Use pretrained backbones; fine-tune with strong augmentation (flips, crops, color jitter, mixup / cutmix, RandAugment).
-- Match train and test preprocessing (resize, normalization).
-- Check label quality; visualize predictions and failure cases.
+**Remember:** U-Net's encoder-decoder with skip connections is the classic architecture.
+
+## Segment Anything (SAM)
+
+**In one line:** a foundation model that segments whatever you point at, click or box.
+
+**Remember:** promptable segmentation without task-specific training.
+
+## Self-supervised vision
+
+**In one line:** learn visual features without labels.
+
+**Remember:** masked autoencoders hide patches and rebuild them; DINO learns features so good that object boundaries appear without supervision.
+
+## Depth and 3D
+
+**In one line:** recover distance from stereo cameras, motion, or a single image with a learned model.
+
+**Remember:** monocular depth models (Depth Anything) give relative depth; a few known distances fix the scale. Point clouds come from lidar or depth.
+
+## NeRF and Gaussian splatting
+
+**In one line:** reconstruct a 3D scene from photos so you can render new viewpoints.
+
+**Remember:** NeRF stores the scene in a neural network (slow to render); Gaussian splatting uses millions of small blobs (renders in real time).
+
+## Bird's-eye view
+
+**In one line:** turn camera views into a top-down map around a vehicle.
+
+**Go deeper:** [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception).
+
+## CLIP
+
+**In one line:** images and captions trained to land close together in one space.
+
+**Remember:** enables zero-shot classification ("a photo of a dog" vs "a photo of a cat") and powers text-to-image models.
+
+## Vision-language models
+
+**In one line:** a vision encoder plus an LLM that can talk about images.
+
+**Remember:** vision encoder → small connector → language model.
+
+**Go deeper:** [Qwen3-VL](/posts/generative-ai/vlm-moe-qwen-train-to-deploy), [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained).
+
+## Generating images and video
+
+**Go deeper:** [Generative Models cheatsheet](/cheatsheets/generative-models).

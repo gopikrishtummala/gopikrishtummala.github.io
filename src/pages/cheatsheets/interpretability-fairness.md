@@ -1,65 +1,89 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Interpretability & Fairness"
-description: "Feature attribution, SHAP, explanations for deep models, fairness definitions and their trade-offs."
+title: "Interpretability & Fairness in 2 Minutes Each"
+description: "Intuition cards for global vs local explanations, permutation importance, partial dependence, LIME, SHAP, counterfactuals, saliency maps, mechanistic interpretability, sources of bias, fairness definitions and their trade-offs."
 ---
 
-## Interpretability: kinds of explanation
+Understanding why a model decides, and whether it treats people fairly.
 
-| | Global (whole model) | Local (one prediction) |
-|---|---|---|
-| Model-agnostic | Permutation importance, partial dependence, global surrogate | LIME, SHAP values, counterfactuals |
-| Model-specific | Linear coefficients, tree structure, attention maps (with care) | Gradients, Integrated Gradients, Grad-CAM |
+## Global vs local explanations
 
-- **Intrinsically interpretable:** linear models, small trees, rule lists, GAMs (generalized additive models).
-- **Post-hoc:** explain a black box after training.
+**In one line:** global explains the model overall; local explains one prediction.
 
-## Methods
+**Remember:** "income matters most to this model" is global; "you were declined mainly because of your debt ratio" is local.
 
-- **Permutation importance:** shuffle a feature, measure the drop in score. Misleading with correlated features.
-- **Partial dependence (PDP):** average prediction as one feature varies. **ICE:** one curve per example. **ALE:** handles correlated features better.
-- **LIME:** fit a simple model to the black box's behavior around one example. Unstable between runs.
-- **SHAP:** Shapley values from game theory; each feature's fair share of the difference from the average prediction. Additive and consistent. TreeSHAP is exact and fast for trees; KernelSHAP is slow and approximate.
-- **Counterfactual explanations:** the smallest change that flips the decision ("approved if income were $5k higher").
-- **Saliency / gradients:** sensitivity of output to input pixels; noisy. **Integrated Gradients** fixes some issues. **Grad-CAM:** class-specific heatmaps for CNNs.
-- **Mechanistic interpretability:** reverse-engineer circuits and features inside networks (probing, sparse autoencoders).
+## Interpretable by design
 
-## Interpretability pitfalls
+**In one line:** models simple enough to read directly: linear models, small trees, rule lists, additive models.
 
-- Explanations explain the model, not the world; correlated features share or swap credit.
-- Attention weights are not reliable explanations by themselves.
-- Saliency maps can look plausible even for random models; sanity-check them.
+**Remember:** for high-stakes decisions, an interpretable model that's nearly as accurate often beats a black box plus an explanation.
 
-## Sources of unfairness
+## Permutation importance
+
+**In one line:** shuffle a feature and see how much the model's accuracy drops.
+
+**Remember:** model-agnostic and simple; misleading when features are correlated (the model can lean on a substitute).
+
+## Partial dependence
+
+**In one line:** how the prediction changes, on average, as one feature varies.
+
+**Remember:** shows the shape of a relationship ("risk rises sharply after age 60"); individual curves (ICE) reveal when the average hides different behaviors.
+
+## LIME
+
+**In one line:** explain one prediction by fitting a simple model to the black box's behavior in the neighborhood of that example.
+
+**Remember:** intuitive but can be unstable between runs.
+
+## SHAP
+
+**In one line:** split a prediction among features fairly, using Shapley values from game theory.
+
+**Picture it:** dividing a group's prize according to how much each member added across every possible team they could have joined.
+
+**Remember:** contributions add up exactly to the prediction minus the average prediction. Fast and exact for tree models (TreeSHAP).
+
+## Counterfactual explanations
+
+**In one line:** the smallest change that would flip the decision.
+
+**Remember:** "you'd have been approved with a slightly lower debt ratio" is actionable for the person affected.
+
+## Saliency maps
+
+**In one line:** highlight which input pixels most affect the output.
+
+**Watch out:** they can look convincing even for broken models; sanity-check them. Grad-CAM and Integrated Gradients are more reliable variants.
+
+## Mechanistic interpretability
+
+**In one line:** reverse-engineer the internal circuits and features of a neural network.
+
+**Remember:** an active research area; sparse autoencoders find interpretable features inside large models.
+
+## Where unfairness comes from
 
 - **Historical bias:** labels reflect past discrimination.
-- **Representation bias:** some groups under-sampled.
-- **Measurement bias:** proxies measured differently across groups.
-- **Proxy features:** zip code standing in for race; removing the sensitive attribute doesn't remove bias.
+- **Representation bias:** some groups are underrepresented.
+- **Measurement bias:** features mean different things for different groups.
+- **Proxies:** removing a sensitive attribute doesn't help if zip code stands in for it.
 
 ## Fairness definitions
 
-| Definition | Requires | Notes |
-|---|---|---|
-| Demographic parity | Equal positive rate across groups | Ignores whether labels differ |
-| Equal opportunity | Equal true positive rate | Fair to qualified people |
-| Equalized odds | Equal TPR and FPR | Stricter |
-| Predictive parity | Equal precision | Equal meaning of a positive prediction |
-| Calibration within groups | Scores mean the same in each group | |
-| Individual fairness | Similar people treated similarly | Needs a similarity measure |
+| Definition | Means |
+|---|---|
+| Demographic parity | Each group gets positive outcomes at the same rate |
+| Equal opportunity | Qualified people in each group are approved at the same rate |
+| Equalized odds | Equal true and false positive rates across groups |
+| Calibration | A score of 0.7 means the same risk in every group |
 
-- **Impossibility:** when base rates differ, calibration and equal error rates can't all hold at once (Kleinberg et al., Chouldechova). Choose based on the harm you care about.
+**Remember:** when groups' base rates differ, you can't satisfy all of these at once. Choosing one is a values decision about which harm matters most.
 
 ## Mitigation
 
-- **Pre-processing:** reweight or resample data, fix labels.
-- **In-processing:** fairness constraints or adversarial debiasing during training.
-- **Post-processing:** group-specific thresholds.
-- Always measure metrics per group, not just overall.
+**Remember:** fix data (reweight, collect more), constrain training, or adjust thresholds per group, and always report metrics per group, not just overall.
 
-## Responsible AI practice
+## Responsible practice
 
-- Model cards and datasheets: document intended use, data, limitations, per-group metrics.
-- Human review for high-stakes decisions; appeal processes.
-- Privacy: differential privacy, federated learning, data minimization.
-- Monitor fairness after deployment, since data shifts.
+**Remember:** document models (model cards) and data (datasheets), keep humans in high-stakes loops, allow appeals, and monitor fairness after launch because data shifts.

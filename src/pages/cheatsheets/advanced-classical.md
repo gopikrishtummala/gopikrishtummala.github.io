@@ -1,67 +1,86 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "SVMs & Bayesian Methods"
-description: "Margins, kernels, priors, posteriors and Gaussian processes."
+title: "SVMs & Bayesian Methods in 2 Minutes Each"
+description: "Intuition cards for support vector machines, margins, the kernel trick, Bayesian inference, conjugate priors, Bayesian linear regression, Gaussian processes, MCMC and variational inference."
 ---
 
-## Support vector machines
+Two classic ideas: draw the widest possible boundary, and keep track of uncertainty.
 
-- Find the separating hyperplane with the **largest margin** to the nearest points (support vectors).
-- Hard margin: requires separable data. Soft margin: allows violations with slack, penalty $C$.
-- Primal: $\min \frac{1}{2}\lVert w\rVert^2 + C\sum \xi_i$ subject to $y_i(w^\top x_i + b) \ge 1 - \xi_i$.
-- Equivalent to hinge loss $\max(0, 1 - y f(x))$ plus L2 regularization.
-- Only support vectors determine the boundary.
+## Support vector machine
 
-| Hyperparameter | Large value | Small value |
-|---|---|---|
-| $C$ | Fewer violations, narrower margin, overfit risk | Wider margin, more violations, smoother |
-| RBF $\gamma$ | Very local influence, wiggly boundary | Smooth, near-linear boundary |
+**In one line:** find the boundary that separates classes with the widest possible gap.
 
-## Kernels
+**Picture it:** building the widest road between two neighborhoods; the houses touching the road's edges are the **support vectors**, and only they decide where the road goes.
 
-- **Kernel trick:** replace dot products with $k(x, x')$ to work in a high-dimensional feature space without computing it.
-- Linear: $x^\top x'$. Polynomial: $(x^\top x' + c)^d$. RBF: $\exp(-\gamma\lVert x - x'\rVert^2)$.
-- Valid kernel: the kernel matrix is positive semi-definite (Mercer).
-- Cost: $O(n^2)$ memory, $O(n^2)$–$O(n^3)$ time; impractical past ~100k examples. Use linear SVMs or approximations (random Fourier features) for big data.
+**Remember:** wide margins generalize well. Only a few training points matter in the end.
 
-## SVM practical notes
+## Soft margin and C
 
-- Always scale features.
-- Linear kernel for many features (text); RBF as the default otherwise; grid-search $C$ and $\gamma$.
-- No probabilities by default; use Platt scaling.
-- Multi-class: one-vs-rest or one-vs-one.
-- SVR: regression with an $\epsilon$-insensitive tube.
+**In one line:** allow some points on the wrong side, at a cost.
 
-## Bayesian basics
+**Remember:** large C = few mistakes allowed, narrow road, overfit risk; small C = wider road, more mistakes, smoother boundary.
 
-- Posterior ∝ likelihood × prior: $p(\theta \mid D) \propto p(D \mid \theta)\,p(\theta)$.
-- **Predictive distribution:** average predictions over the posterior, $p(y \mid x, D) = \int p(y \mid x,\theta)\,p(\theta \mid D)\,d\theta$.
-- Benefits: uncertainty estimates, principled regularization, works with little data.
-- Cost: integrals are usually intractable.
+## Kernel trick
+
+**In one line:** separate data that isn't linearly separable by implicitly mapping it to a higher-dimensional space.
+
+**Picture it:** red dots in the middle of a ring of blue dots can't be split by a line; lift the middle up into 3D and a flat sheet separates them.
+
+**Remember:** kernels compute similarities as if in the higher space, without ever building it. RBF is the usual default; γ controls how local each point's influence is.
+
+**Watch out:** kernel SVMs scale poorly past tens of thousands of examples; scale features first.
+
+## Bayesian thinking
+
+**In one line:** start with a belief (prior), update it with data (likelihood), get a new belief (posterior).
+
+**Picture it:** you think a coin is fair; after ten heads in a row, you're less sure. Bayesian methods do this formally.
+
+**Remember:** the payoff is uncertainty: not just "the answer is 5" but "probably between 4 and 6."
+
+## Priors
+
+**In one line:** what you believe before seeing data.
+
+**Remember:** with little data, priors matter a lot; with lots of data, the data wins. Regularization is a prior in disguise.
 
 ## Conjugate priors
 
-| Likelihood | Conjugate prior | Posterior |
-|---|---|---|
-| Bernoulli / binomial | Beta | Beta |
-| Categorical / multinomial | Dirichlet | Dirichlet |
-| Gaussian (known variance) | Gaussian | Gaussian |
-| Poisson | Gamma | Gamma |
+**In one line:** prior-likelihood pairs where the posterior has the same form as the prior, so updates are just arithmetic.
 
-## Approximate inference
-
-- **MCMC** (Metropolis-Hastings, Gibbs, Hamiltonian Monte Carlo / NUTS): asymptotically exact samples, slow.
-- **Variational inference:** fit a simple distribution by maximizing the ELBO; fast, biased (often underestimates variance).
-- **Laplace approximation:** Gaussian around the MAP estimate.
+**Remember:** Beta for coin flips and click rates, Dirichlet for categories, Gaussian for Gaussians. Beta(successes + 1, failures + 1) is the classic click-rate estimate.
 
 ## Bayesian linear regression
 
-- Gaussian prior on weights + Gaussian noise → Gaussian posterior in closed form.
-- Predictions come with variance that grows away from the data.
+**In one line:** linear regression that returns a distribution over lines instead of one line.
+
+**Remember:** predictions come with error bars that widen away from the data, exactly where you should be less sure.
 
 ## Gaussian processes
 
-- A distribution over functions: any finite set of points is jointly Gaussian, defined by a mean and a kernel.
-- Gives predictions with calibrated uncertainty; great for small data and Bayesian optimization.
-- Cost $O(n^3)$; use sparse / inducing-point approximations for larger data.
-- The kernel encodes assumptions: smoothness (RBF, Matérn), periodicity, linear trends.
+**In one line:** a distribution over smooth functions, updated by data.
+
+**Picture it:** a bundle of possible curves pinned down near observed points, fanning out between them.
+
+**Remember:** great uncertainty for small data and the engine of Bayesian hyperparameter optimization. Cost grows with the cube of the number of points.
+
+## MCMC
+
+**In one line:** draw samples from the posterior by a guided random walk.
+
+**Remember:** exact in the long run, slow. Hamiltonian Monte Carlo (NUTS, in Stan and PyMC) is the modern workhorse.
+
+## Variational inference
+
+**In one line:** approximate the posterior with a simpler distribution fitted by optimization.
+
+**Remember:** much faster than MCMC, tends to underestimate uncertainty. VAEs use it.
+
+## When to reach for these
+
+| Need | Use |
+|---|---|
+| Strong classifier on small-to-medium tabular or text data | SVM (linear for text, RBF otherwise) |
+| Uncertainty with little data | Bayesian models, Gaussian processes |
+| Tuning expensive experiments | Bayesian optimization with a GP |
+| Principled pooling across groups | Hierarchical Bayesian models |

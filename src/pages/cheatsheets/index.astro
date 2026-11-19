@@ -5,46 +5,94 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import { SITE } from "@/config";
 
-const cheatsheets = [
-  { id: "intro-to-ml", title: "Intro to ML", description: "Types of learning, the ML pipeline, key vocabulary" },
-  { id: "data-evaluation", title: "Data & Evaluation", description: "Preprocessing, splits, cross-validation, metrics" },
-  { id: "classical-supervised", title: "Classical Supervised Learning", description: "Linear and logistic regression, regularization, trees, k-NN, Naive Bayes" },
-  { id: "stats-learning-theory", title: "Stats & Learning Theory", description: "Bias-variance, generalization, VC dimension, PAC, MLE vs MAP" },
-  { id: "advanced-classical", title: "SVMs & Bayesian Methods", description: "Margins, kernels, priors, posteriors, Gaussian processes" },
-  { id: "ensemble-methods", title: "Trees & Ensembles", description: "Decision trees, bagging, random forests, boosting, XGBoost / LightGBM / CatBoost" },
-  { id: "optimization-ml", title: "Optimization for ML", description: "Gradient descent variants, Adam and friends, learning-rate schedules" },
-  { id: "modern-deep-learning", title: "Deep Learning", description: "Layers, activations, initialization, normalization, CNNs, RNNs, transformers" },
-  { id: "unsupervised-learning", title: "Unsupervised Learning", description: "Clustering, dimensionality reduction, density estimation, generative models" },
-  { id: "probabilistic-graphical", title: "Probabilistic & Graphical Models", description: "Mixtures, EM, HMMs, Bayesian networks, inference" },
-  { id: "modern-topics", title: "Modern Topics", description: "Self-supervised, transfer, meta, federated, continual learning, RL basics" },
-  { id: "interpretability-fairness", title: "Interpretability & Fairness", description: "Feature attribution, SHAP, fairness definitions and trade-offs" },
-  { id: "scaling-production", title: "Scaling & Production ML", description: "Distributed training, tuning, serving, monitoring, MLOps" },
-  { id: "project-research-skills", title: "Project & Research Skills", description: "Problem framing, baselines, experiment design, debugging models" },
-  { id: "computer-vision", title: "Computer Vision", description: "Image basics, CNN architectures, detection, segmentation, 3D, multimodal" },
+const groups = [
+  {
+    name: "Foundations",
+    sheets: [
+      { id: "intro-to-ml", title: "ML Foundations", description: "Learning paradigms, generalization, overfitting, bias-variance, leakage" },
+      { id: "stats-learning-theory", title: "Probability, Stats & Learning Theory", description: "Bayes, MLE vs MAP, p-values, A/B tests, entropy, calibration" },
+      { id: "data-evaluation", title: "Data & Evaluation", description: "Scaling, imbalance, precision vs recall, ROC vs PR, drift" },
+      { id: "optimization-ml", title: "Optimization", description: "Gradient descent, backprop, Adam, learning rates, debugging training" },
+    ],
+  },
+  {
+    name: "Classical ML",
+    sheets: [
+      { id: "classical-supervised", title: "Classical Supervised Learning", description: "Linear and logistic regression, k-NN, Naive Bayes, trees" },
+      { id: "advanced-classical", title: "SVMs & Bayesian Methods", description: "Margins, kernels, priors, Gaussian processes, MCMC" },
+      { id: "ensemble-methods", title: "Trees & Ensembles", description: "Random forests, boosting, XGBoost, LightGBM, CatBoost" },
+      { id: "unsupervised-learning", title: "Unsupervised Learning", description: "Clustering, PCA, t-SNE / UMAP, anomaly detection" },
+      { id: "probabilistic-graphical", title: "Probabilistic & Graphical Models", description: "Bayesian networks, EM, HMMs, Kalman filters" },
+    ],
+  },
+  {
+    name: "Deep Learning",
+    sheets: [
+      { id: "modern-deep-learning", title: "Deep Learning", description: "Activations, normalization, residuals, CNNs, RNNs, embeddings" },
+      { id: "computer-vision", title: "Computer Vision", description: "CNNs, ViT, detection, segmentation, 3D, CLIP" },
+      { id: "modern-topics", title: "Learning Paradigms", description: "Self-supervised, transfer, few-shot, federated, continual learning" },
+    ],
+  },
+  {
+    name: "LLMs & Generative AI",
+    sheets: [
+      { id: "transformers-llms", title: "Transformers & LLMs", description: "Attention, tokenization, scaling, decoding, KV cache, MoE" },
+      { id: "post-training", title: "Post-Training & Alignment", description: "SFT, LoRA, RLHF, DPO, GRPO, distillation, prompting" },
+      { id: "retrieval-rag", title: "Embeddings, Search & RAG", description: "Vector search, hybrid search, reranking, chunking" },
+      { id: "agents", title: "Agents", description: "Agent loop, tools, MCP, memory, harnesses, failure modes" },
+      { id: "generative-models", title: "Generative Models", description: "VAEs, GANs, diffusion, guidance, flow matching" },
+    ],
+  },
+  {
+    name: "Acting in the World",
+    sheets: [
+      { id: "reinforcement-learning", title: "Reinforcement Learning", description: "Value functions, Q-learning, policy gradients, PPO" },
+      { id: "autonomous-driving", title: "Autonomous Driving", description: "Sensors, localization, perception, prediction, planning" },
+    ],
+  },
+  {
+    name: "Production & Practice",
+    sheets: [
+      { id: "scaling-production", title: "Scaling & Production ML", description: "Parallelism, quantization, serving, monitoring, MLOps" },
+      { id: "interpretability-fairness", title: "Interpretability & Fairness", description: "SHAP, counterfactuals, fairness definitions" },
+      { id: "project-research-skills", title: "Project & Research Skills", description: "Framing, baselines, ablations, error analysis" },
+    ],
+  },
 ];
 ---
 
 <Layout title={`Cheatsheets | ${SITE.title}`}>
   <Header />
-  <Main pageTitle="Cheatsheets" pageDesc="Compact reference sheets for machine learning. One page per topic.">
-    <ul class="cheatsheet-list">
-      {cheatsheets.map((c) => (
-        <li>
-          <a href={`/cheatsheets/${c.id}`} class="font-semibold underline">{c.title}</a>
-          <span class="text-secondary-foreground"> — {c.description}</span>
-        </li>
-      ))}
-    </ul>
+  <Main
+    pageTitle="Cheatsheets"
+    pageDesc="Each concept in about two minutes: what it is, a picture to remember it by, how it works in plain words, and the common confusion. Follow the links for the full posts."
+  >
+    {groups.map((g) => (
+      <section class="cheatsheet-group">
+        <h2 class="text-lg font-semibold">{g.name}</h2>
+        <ul class="cheatsheet-list">
+          {g.sheets.map((c) => (
+            <li>
+              <a href={`/cheatsheets/${c.id}`} class="font-semibold underline">{c.title}</a>
+              <span class="text-secondary-foreground"> — {c.description}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
   </Main>
   <Footer />
 </Layout>
 
 <style>
+  .cheatsheet-group {
+    margin-bottom: 1.25rem;
+  }
   .cheatsheet-list {
     list-style: disc;
     padding-left: 1.25rem;
   }
   .cheatsheet-list li {
-    margin: 0.4rem 0;
+    margin: 0.35rem 0;
   }
 </style>

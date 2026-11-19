@@ -1,81 +1,100 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
-title: "Data & Evaluation"
-description: "Preprocessing, splits, cross-validation and evaluation metrics."
+title: "Data & Evaluation in 2 Minutes Each"
+description: "Intuition cards for normalization, missing values, categorical encoding, imbalance, leakage, splits, precision and recall, ROC vs PR curves, F-beta, calibration, regression metrics, ranking metrics and drift."
 ---
 
-## Preprocessing
+Good models start with good data and honest measurement.
 
-| Problem | Fix |
-|---|---|
-| Missing values | Drop; impute mean / median / mode; model-based imputation; add a "was missing" flag |
-| Different scales | Standardize $(x-\mu)/\sigma$; min-max to [0, 1]; robust scaling (median, IQR) for outliers |
-| Categorical features | One-hot (low cardinality); target / mean encoding (high cardinality, use out-of-fold); embeddings |
-| Skewed features | Log or Box-Cox transform |
-| Outliers | Clip, transform, or use robust losses (Huber, MAE) |
-| Text | Tokenize; TF-IDF; pretrained embeddings |
+## Standardization vs normalization
 
-- Fit scalers and encoders on **training data only**, then apply to validation and test.
-- Scaling matters for k-NN, SVMs, linear models with regularization, and neural nets; not for trees.
+**In one line:** standardize = mean 0, standard deviation 1; normalize = squeeze into [0, 1].
 
-## Splits
+**Remember:** scale features for distance-based and gradient-based models (k-NN, SVMs, linear models, neural nets). Trees don't care. Fit the scaler on training data only.
 
-- Typical: 70/15/15 or 80/10/10. Large data: smaller val/test fractions are fine.
-- **Stratify** splits for classification to keep class ratios.
-- **Time series:** split by time; never train on the future.
-- **Grouped data** (same user, patient, session): split by group so it doesn't appear on both sides.
+## Missing values
 
-## Cross-validation
+**In one line:** fill them sensibly, and often record that they were missing.
 
-- **k-fold:** split into k folds, train on k−1, validate on 1, rotate; average. k = 5 or 10.
-- **Stratified k-fold:** keeps class ratios per fold.
-- **Group k-fold:** no group in both train and validation.
-- **Time-series CV:** expanding or rolling window, always validating on later data.
-- **Nested CV:** inner loop tunes hyperparameters, outer loop estimates performance.
-- **Leave-one-out:** k = n; low bias, high variance, expensive.
+**Remember:** "missing" can be information itself (a blank income field). Median imputation plus a missing-flag is a solid default; boosted trees handle missing values natively.
 
-## Data leakage (the #1 silent bug)
+## Categorical features
 
-- Features that wouldn't exist at prediction time (future data, the label in disguise).
-- Preprocessing fit on all data before splitting.
-- Duplicates or near-duplicates across train and test.
-- Tuning on the test set.
-- Symptom: validation results too good to be true.
+**In one line:** turn categories into numbers the model can use.
 
-## Classification metrics
-
-Confusion matrix: TP, FP, TN, FN.
-
-| Metric | Formula | Use when |
-|---|---|---|
-| Accuracy | $(TP+TN)/N$ | Classes balanced, errors equally costly |
-| Precision | $TP/(TP+FP)$ | False positives are costly (spam filter) |
-| Recall (sensitivity, TPR) | $TP/(TP+FN)$ | False negatives are costly (disease screening) |
-| F1 | $2PR/(P+R)$ | Balance of precision and recall |
-| Specificity | $TN/(TN+FP)$ | True negative rate |
-| ROC-AUC | Area under TPR vs FPR | Ranking quality, threshold-free; optimistic under heavy imbalance |
-| PR-AUC | Area under precision vs recall | Imbalanced data, positive class matters |
-| Log loss | $-\frac{1}{N}\sum y\log p + (1-y)\log(1-p)$ | Probability quality |
-
-- Thresholds: choose on validation for the trade-off you need.
-- **Calibration:** do predicted probabilities match frequencies? Check reliability diagrams; fix with Platt scaling or isotonic regression.
-- Multi-class: macro average (classes equal), micro average (examples equal), weighted.
-
-## Regression metrics
-
-- **MSE / RMSE:** penalizes large errors; RMSE in target units.
-- **MAE:** robust to outliers; median-optimal.
-- **$R^2$:** $1 - SS_{res}/SS_{tot}$; fraction of variance explained; can be negative.
-- **MAPE:** percentage error; breaks near zero.
-
-## Ranking and other metrics
-
-- **Precision@k, Recall@k, MAP, MRR, NDCG:** ranking and retrieval.
-- **BLEU / ROUGE:** text overlap (weak proxies for quality).
-- **FID:** image generation realism and diversity.
+**Remember:** one-hot for few categories; target encoding or learned embeddings for many (thousands of zip codes). Target encoding must be computed out-of-fold to avoid leakage.
 
 ## Class imbalance
 
-- Use PR-AUC, F1 or recall at fixed precision, not accuracy.
-- Resample (undersample majority, oversample minority, SMOTE) or use class weights.
-- Tune the decision threshold.
+**In one line:** when one class is rare, accuracy lies.
+
+**Picture it:** 99% of transactions are legitimate; a model that always says "legit" is 99% accurate and useless.
+
+**Remember:** use precision, recall, PR-AUC; reweight classes or resample; tune the decision threshold.
+
+## Data leakage
+
+**In one line:** the model sees something during training it won't have at prediction time.
+
+**Remember:** split before preprocessing; check features for "future" information; dedupe across splits. Too-good results → suspect leakage.
+
+## Splitting data
+
+**Remember:** random split for independent examples; time-based for anything temporal; group-based when one user or patient has many rows; stratified to keep class ratios.
+
+## Confusion matrix
+
+**In one line:** a 2×2 table of true positives, false positives, true negatives, false negatives.
+
+**Remember:** every classification metric is a different way to summarize this table.
+
+## Precision vs recall
+
+**In one line:** precision = of what I flagged, how much was right; recall = of what was there, how much did I find.
+
+**Picture it:** a fishing net. Precision: how much of the catch is fish (not junk). Recall: how many of the fish in the lake you caught.
+
+**Remember:** high precision matters when false alarms are costly (spam filter); high recall when misses are costly (cancer screening). Moving the threshold trades one for the other.
+
+## F1 and F-beta
+
+**In one line:** combine precision and recall into one number.
+
+**Remember:** F1 weighs them equally; F2 favors recall; F0.5 favors precision.
+
+## ROC-AUC vs PR-AUC
+
+**In one line:** ROC plots true positive rate vs false positive rate; PR plots precision vs recall.
+
+**Remember:** ROC-AUC = chance a random positive ranks above a random negative. With heavy imbalance, ROC-AUC looks great while PR-AUC reveals the truth.
+
+## Calibration
+
+**In one line:** do predicted probabilities match real frequencies?
+
+**Remember:** a model can rank well (high AUC) and still be badly calibrated. Check with a reliability diagram.
+
+## Regression metrics
+
+| Metric | Intuition |
+|---|---|
+| MAE | Average miss, in target units; robust to outliers |
+| RMSE | Like MAE but punishes big misses more |
+| $R^2$ | Fraction of variance explained; 1 is perfect, 0 is "predict the mean" |
+| MAPE | Percentage error; breaks when actual values near zero |
+
+## Ranking metrics
+
+**In one line:** for search and recommendations, order matters.
+
+**Remember:** Recall@k (is it in the top k?), MRR (how high is the first correct one?), NDCG (rewards putting the best items at the top).
+
+## Evaluating generative models
+
+**Remember:** BLEU and ROUGE measure word overlap, weak proxies for quality; human ratings and LLM judges are common, each with biases.
+
+## Drift
+
+**In one line:** the world changes after deployment.
+
+**Remember:** data drift = inputs change; concept drift = the input-output relationship changes. Monitor both and retrain.
