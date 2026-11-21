@@ -40,15 +40,11 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
 
     if (!pageFindSearch || searchInitialized) return;
 
-    // Show loading state
-    pageFindSearch.innerHTML = `
-      <div class="flex items-center justify-center py-8">
-        <div class="text-center">
-          <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent"></div>
-          <p class="mt-4 text-sm text-secondary-foreground">Loading search index...</p>
-        </div>
-      </div>
-    `;
+    searchInitialized = true;
+
+    // Keep the placeholder box usable while the UI loads; just update its hint
+    const hint = pageFindSearch.querySelector(".search-placeholder p");
+    if (hint) hint.textContent = "Loading search index...";
 
     const params = new URLSearchParams(window.location.search);
 
@@ -67,18 +63,19 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
         return;
       }
 
-      // Remove placeholder before initializing
-      const placeholder = pageFindSearch.querySelector(".search-placeholder");
-      if (placeholder) {
-        placeholder.remove();
-      }
+      // Carry over anything typed while the index loaded, then mount the UI
+      const placeholderInput = document.querySelector("#search-trigger") as HTMLInputElement | null;
+      const pendingQuery = placeholderInput?.value.trim() ?? "";
+      const hadFocus = document.activeElement === placeholderInput;
+      pageFindSearch.innerHTML = "";
 
       // Init pagefind ui
       searchInstance = new PagefindUI({
         element: "#pagefind-search",
         showSubResults: true,
         showImages: false,
-        basePath: "/",
+        // The index is generated into /pagefind/ by `pagefind --site dist`
+        bundlePath: "/pagefind/",
         processTerm: function (term: string) {
           params.set("q", term);
           history.replaceState(history.state, "", "?" + params.toString());
@@ -90,12 +87,14 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
         },
       });
 
-      searchInitialized = true;
-
-      // If search param exists (eg: search?q=astro), trigger search
-      const query = params.get("q");
+      // If search param exists (eg: search?q=astro), trigger search;
+      // otherwise carry over text typed before the UI loaded
+      const query = params.get("q") || pendingQuery;
       if (query) {
         searchInstance.triggerSearch(query);
+      }
+      if (hadFocus || pendingQuery) {
+        (document.querySelector(".pagefind-ui__search-input") as HTMLInputElement | null)?.focus();
       }
 
       // Reset search param if search input is cleared
@@ -149,15 +148,7 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
     // Load when user starts typing or focuses the input
     if (searchTrigger) {
       searchTrigger.addEventListener("focus", loadSearch, { once: true });
-      searchTrigger.addEventListener("input", (e) => {
-        loadSearch();
-        // If search is initialized, trigger the actual search
-        if (searchInstance && (e.target as HTMLInputElement).value) {
-          setTimeout(() => {
-            searchInstance.triggerSearch((e.target as HTMLInputElement).value);
-          }, 100);
-        }
-      });
+      searchTrigger.addEventListener("input", () => loadSearch());
     }
 
     // Also load after a delay if user is still on page (low priority, background)

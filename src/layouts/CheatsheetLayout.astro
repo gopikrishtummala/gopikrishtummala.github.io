@@ -17,8 +17,8 @@ const { frontmatter } = Astro.props;
 <Layout title={`${frontmatter.title} | Cheatsheets | ${SITE.title}`} description={frontmatter.description}>
   <Header />
   <main id="main-content" class="cheatsheet">
-    <section class="app-prose mb-28 max-w-app prose-img:border-0">
-      <p class="back-link"><a href="/cheatsheets">All cheatsheets</a></p>
+    <section class="app-prose mb-28 max-w-app prose-img:border-0" data-pagefind-body>
+      <p class="back-link" data-pagefind-ignore><a href="/cheatsheets">All cheatsheets</a></p>
       <h1 class="text-2xl sm:text-3xl">{frontmatter.title}</h1>
       <slot />
     </section>
