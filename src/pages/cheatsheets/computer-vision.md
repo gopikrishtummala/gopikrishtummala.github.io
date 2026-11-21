@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/CheatsheetLayout.astro
 title: "Computer Vision in 2 Minutes Each"
-description: "Intuition cards for images and cameras, convolution, CNN architectures, ResNet, vision transformers, data augmentation, detection, IoU and NMS, segmentation, SAM, depth and 3D, NeRF and Gaussian splatting, CLIP and vision-language models."
+description: "Intuition cards for images and cameras, filters and frequency, features and RANSAC, convolution, CNN architectures, ResNet, vision transformers, data augmentation, detection, IoU and NMS, segmentation, SAM, depth and 3D, NeRF and Gaussian splatting, CLIP and vision-language models."
 ---
 
 How machines learn to see. For the full story, read the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see).
@@ -13,6 +13,26 @@ A camera projects the 3D world onto a 2D image.
 **Remember:** intrinsics describe the lens (focal length, center); extrinsics describe where the camera sits. Needed whenever images meet 3D.
 
 **Go deeper:** [Module 3: Calibration](/posts/robotics/autonomous-stack-module-3-calibration).
+
+## Filters and frequency
+
+Replace each pixel with a weighted sum of its neighbors; the weights decide whether you blur, sharpen or find edges.
+
+**Picture it:** an image is smooth shading (low frequencies) plus edges and texture (high frequencies). Blur keeps the first, edge filters keep the second.
+
+**Remember:** downsample without blurring first and fine detail turns into false patterns (aliasing, the moiré on a striped shirt). Image pyramids blur, then halve.
+
+**Go deeper:** [Module 2: Image Formation and Filtering](/posts/computer-vision/computer-vision-module-2-image-formation-and-filtering).
+
+## Features, matching and RANSAC
+
+Find distinctive points, describe each, pair them across images, then keep only the pairs that agree on one geometric transform.
+
+**How it works:** corners (Harris) are distinctive in every direction; SIFT describes each with gradient-direction histograms that survive scale, rotation and lighting; the ratio test drops ambiguous matches.
+
+**Remember:** RANSAC fits many tiny random samples (4 matches for a homography) and keeps the fit most matches agree with, so outliers never win the vote.
+
+**Go deeper:** [Module 3: Feature Detection and Matching](/posts/computer-vision/computer-vision-module-3-features-and-matching).
 
 ## Convolution
 

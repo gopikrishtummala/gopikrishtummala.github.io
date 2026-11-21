@@ -18,6 +18,15 @@ import react from "@astrojs/react";
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
+  redirects: {
+    "/posts/computer-vision/computer-vision-module-2-convolutional-networks": "/posts/computer-vision/computer-vision-module-4-convolutional-networks",
+    "/posts/computer-vision/computer-vision-module-3-vision-transformers": "/posts/computer-vision/computer-vision-module-5-vision-transformers",
+    "/posts/computer-vision/computer-vision-module-4-object-detection": "/posts/computer-vision/computer-vision-module-6-object-detection",
+    "/posts/computer-vision/computer-vision-module-5-segmentation": "/posts/computer-vision/computer-vision-module-7-segmentation",
+    "/posts/computer-vision/computer-vision-module-6-video-and-tracking": "/posts/computer-vision/computer-vision-module-8-video-and-tracking",
+    "/posts/computer-vision/computer-vision-module-7-3d-vision": "/posts/computer-vision/computer-vision-module-9-3d-vision",
+    "/posts/computer-vision/computer-vision-module-8-vision-foundation-models": "/posts/computer-vision/computer-vision-module-10-vision-foundation-models",
+  },
   integrations: [
     mdx(),
     react(),

@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 4: Object Detection"
-slug: computer-vision-module-4-object-detection
+title: "Computer Vision, Module 6: Object Detection"
+slug: computer-vision-module-6-object-detection
 featured: true
 draft: false
 tags:
@@ -22,7 +22,7 @@ estimated_read_time: 9
 
 *Finding every object in an image and drawing a box around it: from two-stage detectors to YOLO to transformers that predict a set of objects directly.*
 
-Module 4 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Vision Transformers](/posts/computer-vision/computer-vision-module-3-vision-transformers). Next: [Segmentation](/posts/computer-vision/computer-vision-module-5-segmentation).
+Module 6 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Vision Transformers](/posts/computer-vision/computer-vision-module-5-vision-transformers). Next: [Segmentation](/posts/computer-vision/computer-vision-module-7-segmentation).
 
 ---
 
@@ -89,7 +89,7 @@ flowchart LR
 
 *Each query is a slot that either claims one object or says "nothing." One-to-one matching in training removes duplicates without NMS.*
 
-The original DETR trained slowly and struggled with small objects; follow-ups such as Deformable DETR and DINO (a DETR variant, unrelated to the self-supervised DINO in Module 3) fixed much of that, and transformer detectors now lead accuracy benchmarks, with real-time variants like RT-DETR competing with YOLO.
+The original DETR trained slowly and struggled with small objects; follow-ups such as Deformable DETR and DINO (a DETR variant, unrelated to the self-supervised DINO in Module 5) fixed much of that, and transformer detectors now lead accuracy benchmarks, with real-time variants like RT-DETR competing with YOLO.
 
 ## Measuring detection
 
@@ -101,7 +101,7 @@ For the checkout, the summary number matters less than per-class results and spe
 
 - **Real-time on limited hardware:** a small YOLO variant or RT-DETR.
 - **Highest accuracy, offline:** a modern transformer detector on a strong backbone.
-- **Unknown or changing categories:** open-vocabulary detectors like Grounding DINO, covered in [Module 8](/posts/computer-vision/computer-vision-module-8-vision-foundation-models).
+- **Unknown or changing categories:** open-vocabulary detectors like Grounding DINO, covered in [Module 10](/posts/computer-vision/computer-vision-module-10-vision-foundation-models).
 - **Exact shapes needed, not boxes:** segmentation, the next module.
 
 ## What I'd remember
@@ -114,11 +114,12 @@ For the checkout, the summary number matters less than per-class results and spe
 
 ## Where to go next
 
-- [Module 5: Segmentation](/posts/computer-vision/computer-vision-module-5-segmentation), the next module.
+- [Module 7: Segmentation](/posts/computer-vision/computer-vision-module-7-segmentation), the next module.
 - [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception) in the autonomous driving series, for 3D detection.
+- **Formal reading:** Georgia Tech CS 6476 lecture [17](https://faculty.cc.gatech.edu/~hays/compvision/lectures/17.pdf) on object detection, with Szeliski section 6.3 in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/).
 - Papers: [Faster R-CNN](https://arxiv.org/abs/1506.01497), [YOLO](https://arxiv.org/abs/1506.02640), [RetinaNet](https://arxiv.org/abs/1708.02002), [DETR](https://arxiv.org/abs/2005.12872).
 
-Previous: [Vision Transformers](/posts/computer-vision/computer-vision-module-3-vision-transformers). Next: [Segmentation](/posts/computer-vision/computer-vision-module-5-segmentation).
+Previous: [Vision Transformers](/posts/computer-vision/computer-vision-module-5-vision-transformers). Next: [Segmentation](/posts/computer-vision/computer-vision-module-7-segmentation).
 
 **Questions to sit with**
 

@@ -145,7 +145,7 @@ The failures are worth knowing by name:
 
 - [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction), the next module: what the tracked objects will do next.
 - [Module 2: Sensors](/posts/robotics/autonomous-stack-module-2-sensors), for why fusion is necessary.
-- The [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see), especially [Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection) and [3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision).
+- The [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see), especially [Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection) and [3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision).
 - Papers: [BEVFormer](https://arxiv.org/abs/2203.17270), [BEVFusion](https://arxiv.org/abs/2205.13542), [Lift-Splat-Shoot](https://arxiv.org/abs/2008.05711).
 
 Previous: [Module 5: Mapping](/posts/robotics/autonomous-stack-module-5-mapping). Next: [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction).

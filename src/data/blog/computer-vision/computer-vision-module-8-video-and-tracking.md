@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 6: Video and Tracking"
-slug: computer-vision-module-6-video-and-tracking
+title: "Computer Vision, Module 8: Video and Tracking"
+slug: computer-vision-module-8-video-and-tracking
 featured: true
 draft: false
 tags:
@@ -23,7 +23,7 @@ estimated_read_time: 8
 
 *What changes when images become video: motion, recognizing actions, and following the same object from frame to frame.*
 
-Module 6 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Segmentation](/posts/computer-vision/computer-vision-module-5-segmentation). Next: [3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision).
+Module 8 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Segmentation](/posts/computer-vision/computer-vision-module-7-segmentation). Next: [3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision).
 
 ---
 
@@ -56,7 +56,7 @@ Flow tells the checkout which regions are moving, separating the hand and item i
 Some questions are about what's happening, not what's present: is the customer scanning, bagging, or putting an item back? A single frame can be ambiguous; a hand holding an item near the scanner could be either scanning or reaching past it. Action recognition models look at a short clip.
 
 - **Two-stream networks** process the frames for appearance and optical flow for motion separately, then combine them.
-- **3D convolutions** extend Module 2's filters into time, sliding over height, width and frames together. I3D (2017) "inflated" ImageNet-pretrained 2D filters into 3D, reusing image knowledge for video.
+- **3D convolutions** extend Module 4's filters into time, sliding over height, width and frames together. I3D (2017) "inflated" ImageNet-pretrained 2D filters into 3D, reusing image knowledge for video.
 - **Video transformers** like TimeSformer treat a clip as patches in space and time, typically attending across space and time in separate steps to keep the cost manageable, the same trick video *generation* models use (see [Video Diffusion](/posts/generative-ai/video-diffusion-fundamentals)).
 
 ## Tracking: is this the same object?
@@ -79,7 +79,7 @@ The dominant approach is **tracking by detection**: run a detector on every fram
 - **DeepSORT** added an appearance embedding, a learned fingerprint of each object's look, so two similar-shaped items crossing could still be told apart, and objects could be re-identified after a brief occlusion.
 - **[ByteTrack](https://arxiv.org/abs/2110.06864)** (2021) noticed that partly hidden objects often get low detection confidence and were being thrown away. It also matches low-confidence detections to existing tracks, which keeps the track alive when the carton is half behind a hand.
 
-Newer approaches track with transformers end to end or, like SAM 2 from Module 5, propagate a segmentation mask through a video using memory of earlier frames.
+Newer approaches track with transformers end to end or, like SAM 2 from Module 7, propagate a segmentation mask through a video using memory of earlier frames.
 
 ## The cost of video
 
@@ -106,11 +106,12 @@ For the checkout, the camera can run a light detector and tracker continuously, 
 
 ## Where to go next
 
-- [Module 7: 3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision), the next module.
+- [Module 9: 3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision), the next module.
 - [Module 7: Prediction](/posts/robotics/autonomous-stack-module-7-prediction) in the autonomous driving series, for predicting where tracked objects will go.
+- **Formal reading:** Georgia Tech CS 6476 the [course schedule](https://faculty.cc.gatech.edu/~hays/compvision/) for the motion and video sessions, with Szeliski's chapter on motion estimation (optical flow) in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/).
 - Papers: [RAFT](https://arxiv.org/abs/2003.12039), [SORT](https://arxiv.org/abs/1602.00763), [ByteTrack](https://arxiv.org/abs/2110.06864).
 
-Previous: [Segmentation](/posts/computer-vision/computer-vision-module-5-segmentation). Next: [3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision).
+Previous: [Segmentation](/posts/computer-vision/computer-vision-module-7-segmentation). Next: [3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision).
 
 **Questions to sit with**
 

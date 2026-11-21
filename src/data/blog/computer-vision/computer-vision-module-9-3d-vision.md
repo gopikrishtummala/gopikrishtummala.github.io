@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 7: 3D Vision"
-slug: computer-vision-module-7-3d-vision
+title: "Computer Vision, Module 9: 3D Vision"
+slug: computer-vision-module-9-3d-vision
 featured: true
 draft: false
 tags:
@@ -25,7 +25,7 @@ estimated_read_time: 9
 
 *Recovering the third dimension from images: depth, reconstruction, point clouds, and the scene representations that render real places from new viewpoints.*
 
-Module 7 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Video and Tracking](/posts/computer-vision/computer-vision-module-6-video-and-tracking). Next: [Vision Foundation Models](/posts/computer-vision/computer-vision-module-8-vision-foundation-models).
+Module 9 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Video and Tracking](/posts/computer-vision/computer-vision-module-8-video-and-tracking). Next: [Vision Foundation Models](/posts/computer-vision/computer-vision-module-10-vision-foundation-models).
 
 ---
 
@@ -113,11 +113,12 @@ flowchart TB
 
 ## Where to go next
 
-- [Module 8: Vision Foundation Models](/posts/computer-vision/computer-vision-module-8-vision-foundation-models), the final module.
+- [Module 10: Vision Foundation Models](/posts/computer-vision/computer-vision-module-10-vision-foundation-models), the final module.
 - [Module 3: Calibration](/posts/robotics/autonomous-stack-module-3-calibration) and [Module 6: Perception](/posts/robotics/autonomous-stack-module-6-perception) in the driving series.
+- **Formal reading:** Georgia Tech CS 6476 lectures [16](https://faculty.cc.gatech.edu/~hays/compvision/lectures/16.pdf) and [21](https://faculty.cc.gatech.edu/~hays/compvision/lectures/21.pdf) on 3D point processing and NeRF, plus the course's sessions on Plenoxels and Gaussian splatting and on geometry in the deep learning era, with Szeliski sections 5.5.1 and 14.6 in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/). The fifth and sixth projects cover PointNet and NeRF.
 - Papers: [Depth Anything V2](https://arxiv.org/abs/2406.09414), [NeRF](https://arxiv.org/abs/2003.08934), [3D Gaussian Splatting](https://arxiv.org/abs/2308.04079), [PointNet](https://arxiv.org/abs/1612.00593).
 
-Previous: [Video and Tracking](/posts/computer-vision/computer-vision-module-6-video-and-tracking). Next: [Vision Foundation Models](/posts/computer-vision/computer-vision-module-8-vision-foundation-models).
+Previous: [Video and Tracking](/posts/computer-vision/computer-vision-module-8-video-and-tracking). Next: [Vision Foundation Models](/posts/computer-vision/computer-vision-module-10-vision-foundation-models).
 
 **Questions to sit with**
 

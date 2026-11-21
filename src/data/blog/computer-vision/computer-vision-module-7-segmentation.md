@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 5: Segmentation"
-slug: computer-vision-module-5-segmentation
+title: "Computer Vision, Module 7: Segmentation"
+slug: computer-vision-module-7-segmentation
 featured: true
 draft: false
 tags:
@@ -22,7 +22,7 @@ estimated_read_time: 8
 
 *Labeling images pixel by pixel: semantic, instance and panoptic segmentation, the encoder-decoder idea, and Segment Anything.*
 
-Module 5 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection). Next: [Video and Tracking](/posts/computer-vision/computer-vision-module-6-video-and-tracking).
+Module 7 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection). Next: [Video and Tracking](/posts/computer-vision/computer-vision-module-8-video-and-tracking).
 
 ---
 
@@ -76,7 +76,7 @@ flowchart LR
 
 ## Instance masks: Mask R-CNN and mask transformers
 
-[Mask R-CNN](https://arxiv.org/abs/1703.06870) (2017) extended the Faster R-CNN detector from Module 4 with one more small branch: for each detected box, predict a mask of which pixels inside belong to the object. Detect first, then segment each detection. It was simple, accurate and became the standard for instance segmentation.
+[Mask R-CNN](https://arxiv.org/abs/1703.06870) (2017) extended the Faster R-CNN detector from Module 6 with one more small branch: for each detected box, predict a mask of which pixels inside belong to the object. Detect first, then segment each detection. It was simple, accurate and became the standard for instance segmentation.
 
 Later, transformer models unified all three kinds. [Mask2Former](https://arxiv.org/abs/2112.01527) uses object queries, like DETR, where each query predicts one mask and its class, handling semantic, instance and panoptic segmentation with one architecture.
 
@@ -86,7 +86,7 @@ Every model above needs labeled masks for its categories, and pixel-accurate mas
 
 SAM is **promptable**: give it a point, a box or a rough mask, and it returns the mask of whatever object is there, for objects of any kind, without being trained on their category. It was trained on SA-1B, a dataset of over a billion masks on 11 million images, built with a "data engine" in which the model helped annotators label, the improved model helped more, and eventually it labeled automatically. [SAM 2](https://arxiv.org/abs/2408.00714) (2024) extended this to video, following a selected object's mask across frames.
 
-For the checkout, that means a new product needs no new mask labels: click it once, or prompt with its detection box, and SAM outlines it. SAM tells you *where* an object is, not *what* it is, so it's usually paired with a detector or a vision-language model (Module 8) that supplies the label.
+For the checkout, that means a new product needs no new mask labels: click it once, or prompt with its detection box, and SAM outlines it. SAM tells you *where* an object is, not *what* it is, so it's usually paired with a detector or a vision-language model (Module 10) that supplies the label.
 
 ## Measuring segmentation
 
@@ -107,11 +107,12 @@ Boundary quality often matters more than these averages show: a mask that's righ
 
 ## Where to go next
 
-- [Module 6: Video and Tracking](/posts/computer-vision/computer-vision-module-6-video-and-tracking), the next module.
+- [Module 8: Video and Tracking](/posts/computer-vision/computer-vision-module-8-video-and-tracking), the next module.
 - [Image Diffusion: From U-Net to DiT](/posts/generative-ai/image-diffusion-models-unet-to-dit), for U-Net's second life in generative models.
+- **Formal reading:** Georgia Tech CS 6476 lecture [13](https://faculty.cc.gatech.edu/~hays/compvision/lectures/13.pdf) on semantic segmentation, with Szeliski section 6.4 in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/). The course's fourth project builds a semantic segmentation network.
 - Papers: [U-Net](https://arxiv.org/abs/1505.04597), [Mask R-CNN](https://arxiv.org/abs/1703.06870), [Segment Anything](https://arxiv.org/abs/2304.02643), [SAM 2](https://arxiv.org/abs/2408.00714).
 
-Previous: [Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection). Next: [Video and Tracking](/posts/computer-vision/computer-vision-module-6-video-and-tracking).
+Previous: [Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection). Next: [Video and Tracking](/posts/computer-vision/computer-vision-module-8-video-and-tracking).
 
 **Questions to sit with**
 

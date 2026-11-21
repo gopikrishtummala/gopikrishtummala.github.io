@@ -22,7 +22,7 @@ estimated_read_time: 9
 
 *The map for this series: the ladder of vision tasks, why vision is hard, and how the field moved from hand-designed features to learned ones to foundation models.*
 
-Module 1 of 8 in the computer vision series. Next: [Module 2: Convolutional Networks](/posts/computer-vision/computer-vision-module-2-convolutional-networks).
+Module 1 of 10 in the computer vision series. Next: [Module 2: Image Formation and Filtering](/posts/computer-vision/computer-vision-module-2-image-formation-and-filtering).
 
 ---
 
@@ -34,6 +34,7 @@ This series follows that camera from the simplest question, "what is this?", to 
 
 ```mermaid
 flowchart TB
+  B["Foundations<br/>how images form, filters,<br/>features and matching"] --> C
   C["Classification<br/>what is in the image?"] --> D["Detection<br/>what and where, as boxes"]
   D --> S["Segmentation<br/>exactly which pixels"]
   S --> V["Video and tracking<br/>what moves, over time"]
@@ -41,7 +42,7 @@ flowchart TB
   T --> F["Foundation models<br/>anything you can describe"]
 ```
 
-*Each rung asks a harder question about the same image. Modules 4 to 8 climb it; Modules 2 and 3 cover the networks that power every rung.*
+*Each rung asks a harder question about the same image. Modules 2 and 3 cover the foundations (how images form, filtering, features and matching), Modules 4 and 5 the networks that power every rung, and Modules 6 to 10 climb the ladder.*
 
 ## Why vision is hard
 
@@ -61,9 +62,9 @@ flowchart LR
 
 **Hand-designed features.** For decades, engineers wrote algorithms to extract features they believed mattered: edges, corners, gradient histograms (HOG), scale-invariant keypoints (SIFT). A classifier like an SVM then learned from those features. It worked for narrow problems, like detecting pedestrians or matching photos of the same building, but every new problem needed new hand engineering.
 
-**Learned features.** In 2012, AlexNet, a deep convolutional network trained on GPUs, won the ImageNet challenge by a wide margin, and the field changed almost overnight. Instead of designing features, you showed a network millions of labeled images and let it learn its own features, layer by layer. Module 2 covers how that works.
+**Learned features.** In 2012, AlexNet, a deep convolutional network trained on GPUs, won the ImageNet challenge by a wide margin, and the field changed almost overnight. Instead of designing features, you showed a network millions of labeled images and let it learn its own features, layer by layer. Module 4 covers how that works. The hand-designed era isn't obsolete knowledge: its ideas (filters, frequencies, keypoints, geometric fitting) explain what learned networks do, and they're covered in Modules 2 and 3.
 
-**Foundation models.** From around 2020, vision transformers and self-supervised learning made it possible to pretrain on enormous image collections, often without labels or with only loose web captions. Models like CLIP, DINOv2 and SAM learn general visual knowledge that transfers to many tasks with little or no task-specific training. Modules 3 and 8 cover them.
+**Foundation models.** From around 2020, vision transformers and self-supervised learning made it possible to pretrain on enormous image collections, often without labels or with only loose web captions. Models like CLIP, DINOv2 and SAM learn general visual knowledge that transfers to many tasks with little or no task-specific training. Modules 5 and 10 cover them.
 
 ## Data is most of the work
 
@@ -90,18 +91,25 @@ A recurring caution: benchmark scores measure performance on the benchmark's ima
 ## The series
 
 1. How Machines See (this post)
-2. [Convolutional Networks](/posts/computer-vision/computer-vision-module-2-convolutional-networks): how CNNs learn features, from AlexNet to ConvNeXt
-3. [Vision Transformers and Self-Supervised Learning](/posts/computer-vision/computer-vision-module-3-vision-transformers): ViT, MAE, DINO and CLIP
-4. [Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection): from R-CNN to YOLO to DETR
-5. [Segmentation](/posts/computer-vision/computer-vision-module-5-segmentation): from U-Net to Segment Anything
-6. [Video and Tracking](/posts/computer-vision/computer-vision-module-6-video-and-tracking): motion, action recognition and following objects
-7. [3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision): depth, reconstruction, NeRF and Gaussian splatting
-8. [Vision Foundation Models](/posts/computer-vision/computer-vision-module-8-vision-foundation-models): open-vocabulary vision and vision-language models
+2. [Image Formation and Filtering](/posts/computer-vision/computer-vision-module-2-image-formation-and-filtering): cameras, light and color, filters and frequencies
+3. [Feature Detection and Matching](/posts/computer-vision/computer-vision-module-3-features-and-matching): corners, SIFT, RANSAC and aligning images
+4. [Convolutional Networks](/posts/computer-vision/computer-vision-module-4-convolutional-networks): how CNNs learn features, from AlexNet to ConvNeXt
+5. [Vision Transformers and Self-Supervised Learning](/posts/computer-vision/computer-vision-module-5-vision-transformers): ViT, MAE, DINO and CLIP
+6. [Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection): from R-CNN to YOLO to DETR
+7. [Segmentation](/posts/computer-vision/computer-vision-module-7-segmentation): from U-Net to Segment Anything
+8. [Video and Tracking](/posts/computer-vision/computer-vision-module-8-video-and-tracking): motion, action recognition and following objects
+9. [3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision): depth, reconstruction, NeRF and Gaussian splatting
+10. [Vision Foundation Models](/posts/computer-vision/computer-vision-module-10-vision-foundation-models): open-vocabulary vision and vision-language models
+
+## For formal study
+
+This series is built for intuition. For the formal treatment, with derivations, assignments and slides, the best companion is James Hays' [CS 6476 Computer Vision at Georgia Tech](https://faculty.cc.gatech.edu/~hays/compvision/), whose lectures and projects (convolution and hybrid images, SIFT and RANSAC, recognition with deep learning, semantic segmentation, PointNet, NeRF) line up closely with these modules. Its readings come from Richard Szeliski's [Computer Vision: Algorithms and Applications, 2nd edition](https://szeliski.org/Book/), which is free to download. Each module below ends with the matching lectures and chapters.
 
 Companions: [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), on the history of vision-language models, and the [Computer Vision cheatsheet](/cheatsheets/computer-vision) for quick refreshers.
 
 ## What I'd remember
 
+- **Foundations first.** How images form, filters, features and matching explain what every later model does.
 - **A ladder of tasks.** Classify, detect, segment, track, reconstruct in 3D, generalize to anything.
 - **Invariance vs sensitivity.** Ignore lighting and pose; notice the difference between onion and apple.
 - **Three eras.** Hand-designed features, learned features, foundation models.
@@ -110,7 +118,7 @@ Companions: [When AI Sees and Speaks](/posts/computer-vision/vision-language-mod
 
 ## Where to go next
 
-Start with [Module 2: Convolutional Networks](/posts/computer-vision/computer-vision-module-2-convolutional-networks). For a quick refresher on any concept, use the [Computer Vision cheatsheet](/cheatsheets/computer-vision).
+Start with [Module 2: Image Formation and Filtering](/posts/computer-vision/computer-vision-module-2-image-formation-and-filtering). For formal reading, the [Georgia Tech CS 6476 introduction lecture](https://faculty.cc.gatech.edu/~hays/compvision/lectures/01.pdf) and Szeliski chapter 1. For a quick refresher on any concept, use the [Computer Vision cheatsheet](/cheatsheets/computer-vision).
 
 **Questions to sit with**
 

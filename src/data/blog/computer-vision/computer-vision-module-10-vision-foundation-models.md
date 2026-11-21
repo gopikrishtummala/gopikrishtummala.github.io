@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 8: Vision Foundation Models"
-slug: computer-vision-module-8-vision-foundation-models
+title: "Computer Vision, Module 10: Vision Foundation Models"
+slug: computer-vision-module-10-vision-foundation-models
 featured: true
 draft: false
 tags:
@@ -24,11 +24,11 @@ estimated_read_time: 9
 
 *How vision moved from fixed category lists to recognizing anything you can describe, and how to build with these models.*
 
-Module 8 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision).
+Module 10 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision).
 
 ---
 
-Every model in Modules 2 to 6 shares a limitation: it recognizes only the categories it was trained on. When the store stocks a new product, a vision team collects images, labels them, retrains and redeploys. A store adds products every week.
+Every model in Modules 4 to 8 shares a limitation: it recognizes only the categories it was trained on. When the store stocks a new product, a vision team collects images, labels them, retrains and redeploys. A store adds products every week.
 
 Vision foundation models remove most of that loop. Trained on enormous, loosely labeled collections of images and text, they can recognize, locate, segment and describe things they were never specifically trained on, given only a name or a question. Ask "where is the dragon fruit?" and an open-vocabulary detector finds it, even if the store never labeled one. This module covers the main families and how they fit together.
 
@@ -51,19 +51,19 @@ flowchart TB
 
 ## CLIP: images and words in one space
 
-[CLIP](https://arxiv.org/abs/2103.00020), introduced in [Module 3](/posts/computer-vision/computer-vision-module-3-vision-transformers#learning-without-labels), trained image and text encoders so that an image and its caption land close together. That simple property enables **zero-shot classification**: embed the photo, embed text like "a photo of a dragon fruit," "a photo of a red onion," and pick the closest. New categories need only a name.
+[CLIP](https://arxiv.org/abs/2103.00020), introduced in [Module 5](/posts/computer-vision/computer-vision-module-5-vision-transformers#learning-without-labels), trained image and text encoders so that an image and its caption land close together. That simple property enables **zero-shot classification**: embed the photo, embed text like "a photo of a dragon fruit," "a photo of a red onion," and pick the closest. New categories need only a name.
 
 CLIP's limits matter in practice. It works on whole images, not individual objects. It's weaker on fine distinctions (two similar brands), counting, and text in images. And it inherits biases from web captions. It's a superb starting point, rarely the whole solution.
 
 ## Open-vocabulary detection
 
-Detectors from Module 4 output boxes for a fixed list of classes. Open-vocabulary detectors take the list as text at run time. [Grounding DINO](https://arxiv.org/abs/2303.05499) (2023) fuses a transformer detector with language understanding, so a prompt like "oat milk carton . dragon fruit . plastic bag" returns boxes for each phrase, including categories absent from its training labels. OWL-ViT and its successor OWLv2 do similar, built directly on CLIP-style models.
+Detectors from Module 6 output boxes for a fixed list of classes. Open-vocabulary detectors take the list as text at run time. [Grounding DINO](https://arxiv.org/abs/2303.05499) (2023) fuses a transformer detector with language understanding, so a prompt like "oat milk carton . dragon fruit . plastic bag" returns boxes for each phrase, including categories absent from its training labels. OWL-ViT and its successor OWLv2 do similar, built directly on CLIP-style models.
 
 For the checkout, the product catalog's names become the detector's vocabulary. A new product is recognized as soon as its name is added, with no retraining, though accuracy on new or look-alike products should be checked before trusting it.
 
 ## Detect, then segment
 
-Combining an open-vocabulary detector with [Segment Anything](https://arxiv.org/abs/2304.02643) from Module 5 gives text-prompted segmentation: the detector finds "dragon fruit" boxes, and SAM turns each box into a precise mask. Pipelines like Grounded-SAM made this a popular recipe for labeling new datasets automatically: run it over thousands of images, have people correct the mistakes, and train a smaller, faster model on the result. That **auto-labeling** loop is now one of the main ways vision teams get training data.
+Combining an open-vocabulary detector with [Segment Anything](https://arxiv.org/abs/2304.02643) from Module 7 gives text-prompted segmentation: the detector finds "dragon fruit" boxes, and SAM turns each box into a precise mask. Pipelines like Grounded-SAM made this a popular recipe for labeling new datasets automatically: run it over thousands of images, have people correct the mistakes, and train a smaller, faster model on the result. That **auto-labeling** loop is now one of the main ways vision teams get training data.
 
 ## General-purpose features
 
@@ -100,9 +100,10 @@ The checkout camera started this series with a single question, "is this an onio
 
 - [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), for how vision-language models came together.
 - [Vision-Language-Action Models](/posts/robotics/vla-models-data-architecture-evaluation), for vision foundation models that act.
+- **Formal reading:** Georgia Tech CS 6476 lectures [19](https://faculty.cc.gatech.edu/~hays/compvision/lectures/19.pdf) and [20](https://faculty.cc.gatech.edu/~hays/compvision/lectures/20.pdf) on foundation models (CLIP, DINO and beyond) and on generative models, with Szeliski section 5.5.4 in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/).
 - Papers: [CLIP](https://arxiv.org/abs/2103.00020), [Grounding DINO](https://arxiv.org/abs/2303.05499), [Segment Anything](https://arxiv.org/abs/2304.02643), [DINOv2](https://arxiv.org/abs/2304.07193).
 
-Previous: [3D Vision](/posts/computer-vision/computer-vision-module-7-3d-vision). Back to the start: [How Machines See](/posts/computer-vision/computer-vision-module-1-how-machines-see).
+Previous: [3D Vision](/posts/computer-vision/computer-vision-module-9-3d-vision). Back to the start: [How Machines See](/posts/computer-vision/computer-vision-module-1-how-machines-see).
 
 **Questions to sit with**
 

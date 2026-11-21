@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 2: Convolutional Networks"
-slug: computer-vision-module-2-convolutional-networks
+title: "Computer Vision, Module 4: Convolutional Networks"
+slug: computer-vision-module-4-convolutional-networks
 featured: true
 draft: false
 tags:
@@ -23,7 +23,7 @@ estimated_read_time: 9
 
 *How convolutional networks learn to see, why their design suits images, and the line of architectures from AlexNet to ConvNeXt.*
 
-Module 2 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [How Machines See](/posts/computer-vision/computer-vision-module-1-how-machines-see). Next: [Vision Transformers](/posts/computer-vision/computer-vision-module-3-vision-transformers).
+Module 4 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Feature Detection and Matching](/posts/computer-vision/computer-vision-module-3-features-and-matching). Next: [Vision Transformers](/posts/computer-vision/computer-vision-module-5-vision-transformers).
 
 ---
 
@@ -88,7 +88,7 @@ The one rule: an augmentation must not change the label. Flipping a photo of an 
 
 ## Where CNNs stand now
 
-Transformers (Module 3) now lead at large scale and power most foundation models. But CNNs remain the practical choice when data is limited, latency and power are tight, or the deployment target is a small chip. Their built-in locality bias means they need less data to learn good features. Many production systems, including most detectors and segmenters in Modules 4 and 5, still use CNN backbones or hybrids.
+Transformers (Module 5) now lead at large scale and power most foundation models. But CNNs remain the practical choice when data is limited, latency and power are tight, or the deployment target is a small chip. Their built-in locality bias means they need less data to learn good features. Many production systems, including most detectors and segmenters in Modules 6 and 7, still use CNN backbones or hybrids.
 
 ## What I'd remember
 
@@ -100,11 +100,12 @@ Transformers (Module 3) now lead at large scale and power most foundation models
 
 ## Where to go next
 
-- [Module 3: Vision Transformers and Self-Supervised Learning](/posts/computer-vision/computer-vision-module-3-vision-transformers), the next module.
+- [Module 5: Vision Transformers and Self-Supervised Learning](/posts/computer-vision/computer-vision-module-5-vision-transformers), the next module.
 - [Deep Learning cheatsheet](/cheatsheets/modern-deep-learning), for activations, normalization and residuals.
+- **Formal reading:** Georgia Tech CS 6476 lectures [09](https://faculty.cc.gatech.edu/~hays/compvision/lectures/09.pdf) to [12](https://faculty.cc.gatech.edu/~hays/compvision/lectures/12.pdf) on machine learning, neural networks and convolutional networks, with Szeliski sections 5.1 to 5.5 in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/). The course's third project does recognition with deep learning.
 - Papers: [ResNet](https://arxiv.org/abs/1512.03385), [MobileNet](https://arxiv.org/abs/1704.04861), [EfficientNet](https://arxiv.org/abs/1905.11946), [ConvNeXt](https://arxiv.org/abs/2201.03545).
 
-Previous: [How Machines See](/posts/computer-vision/computer-vision-module-1-how-machines-see). Next: [Vision Transformers](/posts/computer-vision/computer-vision-module-3-vision-transformers).
+Previous: [Feature Detection and Matching](/posts/computer-vision/computer-vision-module-3-features-and-matching). Next: [Vision Transformers](/posts/computer-vision/computer-vision-module-5-vision-transformers).
 
 **Questions to sit with**
 

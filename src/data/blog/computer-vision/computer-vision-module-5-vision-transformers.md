@@ -2,8 +2,8 @@
 author: Gopi Krishna Tummala
 pubDatetime: 2026-11-19T00:00:00Z
 modDatetime: 2026-11-19T00:00:00Z
-title: "Computer Vision, Module 3: Vision Transformers and Self-Supervised Learning"
-slug: computer-vision-module-3-vision-transformers
+title: "Computer Vision, Module 5: Vision Transformers and Self-Supervised Learning"
+slug: computer-vision-module-5-vision-transformers
 featured: true
 draft: false
 tags:
@@ -23,7 +23,7 @@ estimated_read_time: 9
 
 *How transformers came to vision by treating image patches as words, and how self-supervised learning lets them learn from images without labels.*
 
-Module 3 of 8 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Convolutional Networks](/posts/computer-vision/computer-vision-module-2-convolutional-networks). Next: [Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection).
+Module 5 of 10 in the [computer vision series](/posts/computer-vision/computer-vision-module-1-how-machines-see). Previous: [Convolutional Networks](/posts/computer-vision/computer-vision-module-4-convolutional-networks). Next: [Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection).
 
 ---
 
@@ -47,7 +47,7 @@ The [Vision Transformer](https://arxiv.org/abs/2010.11929) (ViT, Google, 2020) d
 
 Where a CNN builds up a global view slowly through many layers, a transformer's attention connects every patch to every other from the first layer. The patch showing the oat milk carton's logo can directly inform the patch showing its cap.
 
-The catch is the inductive bias from Module 2. A CNN assumes locality and treats every position the same way; a transformer assumes neither and has to learn them from data. Trained only on ImageNet's 1.2 million images, ViT did worse than comparable CNNs. Pretrained on hundreds of millions of images, it did better, and kept improving with scale. That trade, less built-in assumption and more learning from data, is the story of modern vision.
+The catch is the inductive bias from Module 4. A CNN assumes locality and treats every position the same way; a transformer assumes neither and has to learn them from data. Trained only on ImageNet's 1.2 million images, ViT did worse than comparable CNNs. Pretrained on hundreds of millions of images, it did better, and kept improving with scale. That trade, less built-in assumption and more learning from data, is the story of modern vision.
 
 **Making transformers practical for vision.** Attention cost grows with the square of the number of patches, which is a problem for high-resolution images. [Swin Transformer](https://arxiv.org/abs/2103.14030) (2021) restricted attention to local windows that shift between layers and built a CNN-like hierarchy of resolutions, making transformers efficient enough to be general backbones for detection and segmentation. DeiT showed that strong data augmentation and distillation could train ViTs well on ImageNet alone.
 
@@ -74,7 +74,7 @@ flowchart LR
 
 **Self-distillation.** [DINO](https://arxiv.org/abs/2104.14294) (Meta, 2021) shows a student network and a teacher network different crops of the same image and trains the student to produce the same output as the teacher, whose weights are a slow-moving average of the student's. With no labels at all, its attention maps learned to outline objects. [DINOv2](https://arxiv.org/abs/2304.07193) scaled this up on a large, carefully curated image collection and produced features strong enough to use frozen, with only a small head trained on top, for classification, segmentation and depth estimation.
 
-**Contrastive learning with text.** [CLIP](https://arxiv.org/abs/2103.00020) (OpenAI, 2021) trained an image encoder and a text encoder on about 400 million image-caption pairs from the web, pulling each image toward its own caption and away from others. The result is a shared space where images and descriptions can be compared. That enables **zero-shot classification**: to recognize the new oat milk, compare the image with the text "a carton of oat milk," with no new training. Module 8 builds on this.
+**Contrastive learning with text.** [CLIP](https://arxiv.org/abs/2103.00020) (OpenAI, 2021) trained an image encoder and a text encoder on about 400 million image-caption pairs from the web, pulling each image toward its own caption and away from others. The result is a shared space where images and descriptions can be compared. That enables **zero-shot classification**: to recognize the new oat milk, compare the image with the text "a carton of oat milk," with no new training. Module 10 builds on this.
 
 ## What this means for the checkout camera
 
@@ -92,11 +92,12 @@ The costs are real: vision transformers are larger and slower than efficient CNN
 
 ## Where to go next
 
-- [Module 4: Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection), the next module.
+- [Module 6: Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection), the next module.
 - [When AI Sees and Speaks](/posts/computer-vision/vision-language-models-explained), for CLIP's role in vision-language models.
+- **Formal reading:** Georgia Tech CS 6476 lectures [15](https://faculty.cc.gatech.edu/~hays/compvision/lectures/15.pdf) and [18](https://faculty.cc.gatech.edu/~hays/compvision/lectures/18.pdf) on self-supervised learning and transformer architectures, with Szeliski sections 5.4.7 and 5.5.3 in [Computer Vision: Algorithms and Applications](https://szeliski.org/Book/).
 - Papers: [ViT](https://arxiv.org/abs/2010.11929), [MAE](https://arxiv.org/abs/2111.06377), [DINOv2](https://arxiv.org/abs/2304.07193), [CLIP](https://arxiv.org/abs/2103.00020).
 
-Previous: [Convolutional Networks](/posts/computer-vision/computer-vision-module-2-convolutional-networks). Next: [Object Detection](/posts/computer-vision/computer-vision-module-4-object-detection).
+Previous: [Convolutional Networks](/posts/computer-vision/computer-vision-module-4-convolutional-networks). Next: [Object Detection](/posts/computer-vision/computer-vision-module-6-object-detection).
 
 **Questions to sit with**
 
